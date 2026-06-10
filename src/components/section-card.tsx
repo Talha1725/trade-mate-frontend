@@ -22,7 +22,7 @@ export function SectionCard({
   children,
 }: SectionCardProps) {
   return (
-    <Card className={cn("h-full rounded-2xl border border-gray-200 bg-white shadow-[0_2px_10px_rgb(0,0,0,0.04)]", className)}>
+    <Card className={cn("rounded-2xl border border-gray-200 bg-white shadow-[0_2px_10px_rgb(0,0,0,0.04)] flex flex-col", className)}>
       <CardHeader>
         <div className="flex items-start gap-3">
           {Icon ? (
