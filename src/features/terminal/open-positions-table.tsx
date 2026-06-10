@@ -68,6 +68,7 @@ function SortableHead({
 }
 
 export function OpenPositionsTable() {
+  const [search, setSearch] = useState("");
   const [actionFilter, setActionFilter] = useState("All");
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("asc");
@@ -82,12 +83,21 @@ export function OpenPositionsTable() {
   }
 
   const sortedPositions = useMemo(() => {
-    const filtered = actionFilter === "All"
-      ? POSITIONS
-      : POSITIONS.filter((p) => p.type === actionFilter);
+    let result = [...POSITIONS];
 
-    if (!sortKey) return filtered;
-    return [...filtered].sort((a, b) => {
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(
+        (p) => p.symbol.toLowerCase().includes(q) || p.ticket.toLowerCase().includes(q)
+      );
+    }
+
+    if (actionFilter !== "All") {
+      result = result.filter((p) => p.type === actionFilter);
+    }
+
+    if (!sortKey) return result;
+    return result.sort((a, b) => {
       const aVal = a[sortKey] ?? 0;
       const bVal = b[sortKey] ?? 0;
       const cmp = typeof aVal === "number" && typeof bVal === "number"
@@ -95,7 +105,7 @@ export function OpenPositionsTable() {
         : String(aVal).localeCompare(String(bVal));
       return sortDir === "asc" ? cmp : -cmp;
     });
-  }, [sortKey, sortDir, actionFilter]);
+  }, [sortKey, sortDir, actionFilter, search]);
 
   const sortProps = { currentKey: sortKey, currentDir: sortDir, onSort: handleSort };
 
@@ -104,7 +114,13 @@ export function OpenPositionsTable() {
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
         <div className="relative flex-1 max-w-sm">
           <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input type="text" placeholder="Filter positions..." className="pl-8" />
+          <Input 
+            type="text" 
+            placeholder="Filter positions..." 
+            className="pl-8" 
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
         <div className="flex items-center gap-2">
           <Select value={actionFilter} onValueChange={setActionFilter}>
