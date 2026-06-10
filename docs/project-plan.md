@@ -1,7 +1,7 @@
 # Trade Mate Project Plan
 
-Trade Mate is a brokerage-style trading platform built with Next.js and shadcn/ui.
-This document is the working blueprint for the frontend, backend, and the UI that we will build first.
+Trade Mate is a simulated brokerage / trading terminal built with Next.js and shadcn/ui.
+The goal is to let users place real-feeling trades against live market data while the backend can fully control and customize account history and trades.
 
 ## Product Goal
 
@@ -13,6 +13,8 @@ Build a trading terminal where users can:
 - review history
 - let admins manage trades, inject trades, and audit activity
 
+The platform should feel like MetaTrader on the front end, but the backend must be able to edit history, inject trades, and shape what each account shows.
+
 ## Frontend Plan
 
 ### Stack
@@ -23,6 +25,7 @@ Build a trading terminal where users can:
 - Zustand
 - TanStack Query
 - WebSocket live feed
+- EODHD market-data relay
 
 ### Routes
 
@@ -57,6 +60,14 @@ Build these reusable pieces first so pages can be composed quickly:
 - `AuditLogTable`
 - `BulkPushModal`
 
+These are the core UI building blocks for the brokerage experience:
+
+- `TradingViewChart` must consume the same symbol mapping used by the market-data layer.
+- `OrderTicket` must support market buy/sell, SL/TP, and lot sizing.
+- `OpenPositionsTable` must show floating P/L and close actions.
+- `TradeHistoryTable` must support filters and readable account history.
+- `AuditLogTable` must surface every admin mutation.
+
 ## Backend Plan
 
 ### API Routes
@@ -79,10 +90,22 @@ Build these reusable pieces first so pages can be composed quickly:
 
 ### Core Services
 
-- Market Data Service
-- Order Engine
-- WebSocket Price Server
-- Trade-Injection Agent
+- Market Data Service with EODHD relay, symbol normalization, caching, and rate-limit handling
+- Order Engine with market orders, SL/TP, floating P/L, partial/full close, and pending-order-ready model design
+- WebSocket Price Server for live updates and SL/TP checks
+- Trade-Injection Agent for natural-language trade creation with validation
+
+### Admin Layer
+
+Every admin mutation must go through one shared `AdminTradeService` so we can:
+
+1. Validate the requester is an admin
+2. Create, update, or delete trades
+3. Push a trade to one account or many accounts
+4. Log every action in `AuditLog`
+5. Open a live trade so it appears in the trader terminal like a self-placed trade
+
+Bulk push should be all-or-nothing across the selected accounts.
 
 ## Database Schema
 
@@ -130,6 +153,12 @@ Use this as the contract for what the first UI should contain:
 - Login area or CTA
 - Minimal navigation
 
+### Auth Direction
+
+- The current MVP starts with `/` as the landing and login entry screen.
+- Do not add a separate signup page unless the product later requires self-service registration.
+- If we add dedicated auth flows later, keep them as separate App Router pages and follow the same project structure rules.
+
 ### Dashboard
 
 - Account balance card
@@ -139,6 +168,7 @@ Use this as the contract for what the first UI should contain:
 - Equity curve chart
 - Recent trades list
 - P/L breakdown widgets
+- Open positions summary panel
 
 ### Terminal
 
@@ -170,4 +200,3 @@ Use this as the contract for what the first UI should contain:
 - Put shared UI in `src/components`
 - Put feature-specific logic in `src/features`
 - Keep new work aligned with the folder rules in `AGENTS.md`
-
