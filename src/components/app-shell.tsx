@@ -3,15 +3,7 @@ import * as React from "react";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { TopBar } from "@/components/top-bar";
 import { cn } from "@/lib/utils";
-import type { NavItem } from "@/types";
-
-type AppShellProps = {
-  navItems: NavItem[];
-  userLabel?: string;
-  onSignOut?: () => void;
-  children: React.ReactNode;
-  className?: string;
-};
+import type { NavItem, AppShellProps } from "@/types";
 
 export function AppShell({
   navItems,

@@ -3,13 +3,7 @@ import type { LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-type PageHeaderProps = {
-  title: string;
-  description?: string;
-  icon?: LucideIcon;
-  actions?: React.ReactNode;
-  className?: string;
-};
+import type { PageHeaderProps } from "@/types";
 
 export function PageHeader({
   title,

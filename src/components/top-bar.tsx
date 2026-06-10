@@ -8,10 +8,7 @@ import { BrandMark } from "@/components/brand-mark";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
-type TopBarProps = {
-  userLabel?: string;
-  onSignOut?: () => void;
-};
+import type { TopBarProps } from "@/types";
 
 export function TopBar({ userLabel, onSignOut }: TopBarProps) {
   return (

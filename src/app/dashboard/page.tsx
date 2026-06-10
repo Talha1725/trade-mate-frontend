@@ -3,7 +3,7 @@ import { LayoutDashboardIcon } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/section-card";
-import { PRIMARY_NAV_ITEMS } from "@/lib/nav-config";
+import { PRIMARY_NAV_ITEMS } from "../../contant/nav-config";
 
 export default function DashboardPage() {
   return (

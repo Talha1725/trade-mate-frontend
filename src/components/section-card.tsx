@@ -10,15 +10,7 @@ import {
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-type SectionCardProps = {
-  title: string;
-  description?: string;
-  icon?: LucideIcon;
-  action?: React.ReactNode;
-  className?: string;
-  contentClassName?: string;
-  children: React.ReactNode;
-};
+import type { SectionCardProps } from "@/types";
 
 export function SectionCard({
   title,

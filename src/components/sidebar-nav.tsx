@@ -6,13 +6,7 @@ import { usePathname } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import type { NavItem as NavItemType } from "@/types";
-
-type SidebarNavProps = {
-  items: NavItemType[];
-  iconFor?: (item: NavItemType) => LucideIcon | undefined;
-  className?: string;
-};
+import type { NavItem as NavItemType, SidebarNavProps } from "@/types";
 
 export function SidebarNav({ items, iconFor, className }: SidebarNavProps) {
   const pathname = usePathname();
