@@ -31,4 +31,7 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) to see the starter page.
 
-# trade-mate
+## Project Docs
+
+- [Project plan](docs/project-plan.md)
+- [UI roadmap](docs/ui-roadmap.md)
