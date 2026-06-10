@@ -14,8 +14,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Trade Mate",
-  description: "Trade Mate project scaffolded with Next.js and shadcn/ui",
+  title: {
+    default: "Trade Mate",
+    template: "%s | Trade Mate",
+  },
+  description:
+    "Trade Mate is a simulated brokerage and trading terminal built with Next.js and shadcn/ui.",
 };
 
 export default function RootLayout({
