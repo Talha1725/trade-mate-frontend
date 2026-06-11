@@ -44,6 +44,7 @@ function SortableHead({
   currentKey,
   currentDir,
   onSort,
+  align = "left",
 }: {
   children: React.ReactNode;
   className?: string;
@@ -51,6 +52,7 @@ function SortableHead({
   currentKey: SortKey | null;
   currentDir: SortDir;
   onSort: (key: SortKey) => void;
+  align?: "left" | "right" | "center";
 }) {
   const isActive = currentKey === sortKey;
   const Icon = isActive ? (currentDir === "asc" ? ArrowUpIcon : ArrowDownIcon) : ArrowUpDownIcon;
@@ -58,7 +60,9 @@ function SortableHead({
     <TableHead className={className}>
       <span
         onClick={() => onSort(sortKey)}
-        className="flex items-center gap-1 cursor-pointer select-none hover:text-foreground transition-colors"
+        className={`flex items-center gap-1 cursor-pointer select-none hover:text-foreground transition-colors ${
+          align === "right" ? "justify-end" : align === "center" ? "justify-center" : "justify-start"
+        }`}
       >
         {children}
         <Icon className={`h-3 w-3 ${isActive ? "text-foreground" : "text-muted-foreground"}`} />
@@ -151,7 +155,7 @@ export function OpenPositionsTable() {
                 <TableHead className="w-20">S/L</TableHead>
                 <TableHead className="w-20">T/P</TableHead>
                 <SortableHead sortKey="current" className="w-24" {...sortProps}>Current</SortableHead>
-                <SortableHead sortKey="profit" className="w-24 text-right" {...sortProps}>Profit</SortableHead>
+                <SortableHead sortKey="profit" className="w-24 text-right" align="right" {...sortProps}>Profit</SortableHead>
                 <TableHead className="w-16"></TableHead>
               </TableRow>
             </TableHeader>
