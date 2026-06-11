@@ -20,20 +20,41 @@ const columns: ColumnDef<AccountSummary>[] = [
     cell: ({ row }) => <div className="text-xs font-medium">{row.getValue("id")}</div>,
   },
   {
-    accessorKey: "name",
-    header: ({ column }) => <SortableColumnHeader column={column} label="Name" />,
-    cell: ({ row }) => <div className="font-semibold">{row.getValue("name")}</div>,
+    id: "user",
+    header: ({ column }) => <SortableColumnHeader column={column} label="User" />,
+    cell: ({ row }) => {
+      const name = row.original.name;
+      const email = row.original.email;
+      return (
+        <div className="flex flex-col">
+          <span className="font-semibold text-sm">{name}</span>
+          <span className="text-xs text-muted-foreground">{email}</span>
+        </div>
+      );
+    },
   },
   {
-    accessorKey: "email",
-    header: ({ column }) => <SortableColumnHeader column={column} label="Email" />,
+    accessorKey: "balance",
+    header: ({ column }) => <SortableColumnHeader column={column} label="Balance" />,
+    cell: ({ row }) => {
+      const balance = parseFloat(row.getValue("balance"));
+      return <div className="font-medium">${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>;
+    },
   },
   {
     accessorKey: "equity",
     header: ({ column }) => <SortableColumnHeader column={column} label="Equity" />,
     cell: ({ row }) => {
       const equity = parseFloat(row.getValue("equity"));
-      return <div className="font-medium text-emerald-600">${equity.toLocaleString()}</div>;
+      return <div className="font-medium text-emerald-600">${equity.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>;
+    },
+  },
+  {
+    accessorKey: "openPositionsCount",
+    header: ({ column }) => <SortableColumnHeader column={column} label="Open Positions" />,
+    cell: ({ row }) => {
+      const count = row.getValue("openPositionsCount") as number;
+      return <div className="font-medium">{count}</div>;
     },
   },
   {
@@ -50,12 +71,24 @@ const columns: ColumnDef<AccountSummary>[] = [
   },
   {
     id: "actions",
+    header: "Actions",
     cell: ({ row }) => {
       const account = row.original;
       return (
-        <Link href={`/admin/accounts/${account.id}`} className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "gap-2")}>
-          Manage <ExternalLinkIcon className="h-4 w-4" />
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/admin/accounts/${account.id}`}
+            className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "text-xs h-8 px-2.5")}
+          >
+            View
+          </Link>
+          <Link
+            href={`/admin/accounts/${account.id}`}
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "text-xs h-8 px-2.5")}
+          >
+            Edit
+          </Link>
+        </div>
       );
     },
   },

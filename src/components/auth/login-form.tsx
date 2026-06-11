@@ -9,11 +9,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import type { AuthStatus, LoginFormValues, LoginFormProps } from "@/types";
+import type { UserRole } from "@/types/auth";
 
 const initialValues: LoginFormValues = {
   email: "",
   password: "",
-  rememberMe: true, // keeping it in state but not rendering
+  rememberMe: true,
 };
 
 export function LoginForm({
@@ -42,8 +43,41 @@ export function LoginForm({
       } else {
         await new Promise((resolve) => setTimeout(resolve, 400));
       }
+
+      // Predefined mock users and their roles
+      const mockUsers = [
+        { email: "admin@trademate.app", role: "admin" },
+        { email: "admin@trademate.local", role: "admin" },
+        { email: "support@trademate.app", role: "admin" },
+        { email: "alice@example.com", role: "trader" },
+        { email: "bob@example.com", role: "trader" },
+        { email: "charlie@example.com", role: "trader" },
+      ];
+
+      const userEmail = values.email.trim();
+      const matched = mockUsers.find(
+        (u) => u.email.toLowerCase() === userEmail.toLowerCase()
+      );
+
+      // Determine role: strict list matches first, then falls back to substring, then defaults to trader
+      const role: UserRole = matched
+        ? (matched.role as UserRole)
+        : userEmail.toLowerCase().includes("admin")
+        ? "admin"
+        : "trader";
+
+      // Save user session details in localStorage
+      localStorage.setItem("user_email", userEmail || (role === "admin" ? "admin@trademate.app" : "trader@trademate.app"));
+      localStorage.setItem("user_role", role);
+
       setStatus("success");
-      router.push(redirectTo);
+
+      // Redirect depending on user role
+      if (role === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (error) {
       setStatus("error");
       setErrorMessage(
