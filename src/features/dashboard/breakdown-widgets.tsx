@@ -16,7 +16,7 @@ export function BreakdownWidgets() {
   return (
     <SectionCard title="P/L by Symbol" className="h-full">
       <div className="h-[250px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
           <PieChart>
             <Pie
               data={data}

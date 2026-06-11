@@ -62,8 +62,9 @@ function SortableHead({
           align === "right" ? "justify-end" : align === "center" ? "justify-center" : "justify-start"
         }`}
       >
+        {align === "right" && <Icon className={`h-3 w-3 shrink-0 ${isActive ? "text-foreground" : "text-muted-foreground"}`} />}
         {children}
-        <Icon className={`h-3 w-3 shrink-0 ${isActive ? "text-foreground" : "text-muted-foreground"}`} />
+        {align !== "right" && <Icon className={`h-3 w-3 shrink-0 ${isActive ? "text-foreground" : "text-muted-foreground"}`} />}
       </span>
     </TableHead>
   );
