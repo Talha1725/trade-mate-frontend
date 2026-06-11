@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useState } from "react";
-import { PanelLeftCloseIcon, PanelLeftOpenIcon, LogOutIcon } from "lucide-react";
+import { PanelLeftCloseIcon, PanelLeftOpenIcon, LogOutIcon, ChevronDownIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -23,6 +23,13 @@ function SidebarNav({
   onSignOut?: () => void;
 }) {
   const pathname = usePathname();
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({
+    admin: true,
+  });
+
+  const toggleExpand = (id: string) => {
+    setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -52,21 +59,83 @@ function SidebarNav({
       <nav aria-label="Primary" className="flex flex-col gap-1 px-2 py-3 flex-1">
         {items.map((item) => {
           const Icon = PRIMARY_NAV_ICON_MAP[item.id];
-          const isActive =
-            pathname === item.href ||
-            (item.href !== "/" && pathname?.startsWith(item.href));
+          const isExactActive = item.href ? pathname === item.href : false;
+          const isChildActive = item.subItems?.some(sub => sub.href && pathname?.startsWith(sub.href)) ?? false;
+          const isActive = isExactActive || isChildActive || (item.href && item.href !== "/" && pathname?.startsWith(item.href));
+
+          if (item.subItems) {
+            const isExpanded = expanded[item.id];
+            return (
+              <div key={item.id} className="flex flex-col gap-1">
+                <button
+                  onClick={() => toggleExpand(item.id)}
+                  title={collapsed ? item.label : undefined}
+                  className={cn(
+                    "group flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors cursor-pointer outline-none",
+                    isActive
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    item.disabled && "pointer-events-none opacity-50",
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    {Icon && (
+                      <Icon className={cn(
+                        "size-4 shrink-0",
+                        isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
+                      )} />
+                    )}
+                    <span className={cn(
+                      "truncate transition-all duration-300 ease-in-out",
+                      collapsed ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
+                    )}>
+                      {item.label}
+                    </span>
+                  </div>
+                  {!collapsed && (
+                    <ChevronDownIcon className={cn(
+                      "size-4 shrink-0 transition-transform duration-200 text-muted-foreground group-hover:text-foreground",
+                      isExpanded ? "rotate-180" : ""
+                    )} />
+                  )}
+                </button>
+                
+                {!collapsed && isExpanded && (
+                  <div className="flex flex-col gap-1 pl-9 pr-2 py-1">
+                    {item.subItems.map((subItem) => {
+                      const isSubActive = subItem.href && pathname === subItem.href;
+                      return (
+                        <Link
+                          key={subItem.id}
+                          href={subItem.href || "#"}
+                          className={cn(
+                            "block rounded-md px-3 py-1.5 text-sm transition-colors",
+                            isSubActive 
+                              ? "bg-primary/10 text-primary font-medium" 
+                              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          )}
+                        >
+                          {subItem.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          }
 
           return (
             <Link
               key={item.id}
-              href={item.disabled ? "#" : item.href}
+              href={item.disabled || !item.href ? "#" : item.href}
               aria-disabled={item.disabled}
               tabIndex={item.disabled ? -1 : 0}
               title={collapsed ? item.label : undefined}
               className={cn(
                 "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
                 isActive
-                  ? "bg-primary/10 text-primary"
+                  ? "bg-primary/10 text-primary font-medium"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 item.disabled && "pointer-events-none opacity-50",
               )}
@@ -78,7 +147,7 @@ function SidebarNav({
                 )} />
               )}
               <span className={cn(
-                "truncate font-medium transition-all duration-300 ease-in-out",
+                "truncate transition-all duration-300 ease-in-out",
                 collapsed ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
               )}>
                 {item.label}

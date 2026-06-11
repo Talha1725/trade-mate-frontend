@@ -1,20 +1,14 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { FilterIcon, SearchIcon, ArrowUpIcon, ArrowDownIcon, ArrowUpDownIcon } from "lucide-react";
+import { FilterIcon, SearchIcon, ArrowUpDownIcon } from "lucide-react";
 
 import { SectionCard } from "@/components/section-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { DataTable } from "@/components/ui/data-table";
+import { ColumnDef } from "@tanstack/react-table";
 import {
   Dialog,
   DialogContent,
@@ -32,60 +26,11 @@ const TRADES: Trade[] = [
   { id: "10240", symbol: "EURGBP", type: "Sell", vol: 1.0, openP: 0.8700, closeP: 0.8650, profit: 50.00, time: "2023-10-21 11:10" },
 ];
 
-type SortKey = keyof Trade;
-type SortDir = "asc" | "desc";
-
-function SortableHead({
-  children,
-  className,
-  sortKey,
-  currentKey,
-  currentDir,
-  onSort,
-  align = "left",
-}: {
-  children: React.ReactNode;
-  className?: string;
-  sortKey: SortKey;
-  currentKey: SortKey | null;
-  currentDir: SortDir;
-  onSort: (key: SortKey) => void;
-  align?: "left" | "right" | "center";
-}) {
-  const isActive = currentKey === sortKey;
-  const Icon = isActive ? (currentDir === "asc" ? ArrowUpIcon : ArrowDownIcon) : ArrowUpDownIcon;
-  return (
-    <TableHead className={className}>
-      <span
-        onClick={() => onSort(sortKey)}
-        className={`flex items-center gap-1 cursor-pointer select-none hover:text-foreground transition-colors ${
-          align === "right" ? "justify-end" : align === "center" ? "justify-center" : "justify-start"
-        }`}
-      >
-        {align === "right" && <Icon className={`h-3 w-3 shrink-0 ${isActive ? "text-foreground" : "text-muted-foreground"}`} />}
-        {children}
-        {align !== "right" && <Icon className={`h-3 w-3 shrink-0 ${isActive ? "text-foreground" : "text-muted-foreground"}`} />}
-      </span>
-    </TableHead>
-  );
-}
-
 export function TradeHistoryTable() {
   const [search, setSearch] = useState("");
   const [actionFilter, setActionFilter] = useState("All");
   const [timeFilter, setTimeFilter] = useState("30 Days");
   const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
-  const [sortKey, setSortKey] = useState<SortKey | null>(null);
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
-
-  function handleSort(key: SortKey) {
-    if (sortKey === key) {
-      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
-    } else {
-      setSortKey(key);
-      setSortDir("asc");
-    }
-  }
 
   const filteredAndSorted = useMemo(() => {
     let result = [...TRADES];
@@ -110,23 +55,107 @@ export function TradeHistoryTable() {
       result = result; // all for demo
     }
 
-    // Sort
-    if (sortKey) {
-      result.sort((a, b) => {
-        const aVal = a[sortKey];
-        const bVal = b[sortKey];
-        const cmp =
-          typeof aVal === "number" && typeof bVal === "number"
-            ? aVal - bVal
-            : String(aVal).localeCompare(String(bVal));
-        return sortDir === "asc" ? cmp : -cmp;
-      });
-    }
-
     return result;
-  }, [search, actionFilter, timeFilter, sortKey, sortDir]);
+  }, [search, actionFilter, timeFilter]);
 
-  const sortProps = { currentKey: sortKey, currentDir: sortDir, onSort: handleSort };
+  const columns: ColumnDef<Trade>[] = [
+    {
+      accessorKey: "id",
+      header: ({ column }) => (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="px-0 font-medium w-full justify-start">
+          Ticket <ArrowUpDownIcon className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => <div>{row.getValue("id")}</div>,
+    },
+    {
+      accessorKey: "time",
+      header: ({ column }) => (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="px-0 font-medium w-full justify-start">
+          Open Time <ArrowUpDownIcon className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => <div className="text-muted-foreground">{row.getValue("time")}</div>,
+    },
+    {
+      accessorKey: "symbol",
+      header: ({ column }) => (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="px-0 font-medium w-full justify-start">
+          Symbol <ArrowUpDownIcon className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => <div className="font-medium">{row.getValue("symbol")}</div>,
+    },
+    {
+      accessorKey: "type",
+      header: "Type",
+      cell: ({ row }) => {
+        const type = row.getValue("type") as string;
+        return <div className={type === "Buy" ? "text-emerald-600" : "text-rose-600"}>{type}</div>;
+      },
+    },
+    {
+      accessorKey: "vol",
+      header: ({ column }) => (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="px-0 font-medium w-full justify-start">
+          Volume <ArrowUpDownIcon className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => <div>{row.getValue("vol")}</div>,
+    },
+    {
+      accessorKey: "openP",
+      header: ({ column }) => (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="px-0 font-medium w-full justify-start">
+          Open Price <ArrowUpDownIcon className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => <div>{parseFloat(row.getValue("openP")).toFixed(4)}</div>,
+    },
+    {
+      id: "closeTime",
+      header: "Close Time",
+      cell: ({ row }) => <div className="text-muted-foreground">{row.getValue("time")}</div>,
+    },
+    {
+      accessorKey: "closeP",
+      header: ({ column }) => (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="px-0 font-medium w-full justify-start">
+          Close Price <ArrowUpDownIcon className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => <div>{parseFloat(row.getValue("closeP")).toFixed(4)}</div>,
+    },
+    {
+      accessorKey: "profit",
+      header: ({ column }) => (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="px-0 font-medium w-full justify-start">
+          Profit <ArrowUpDownIcon className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ row }) => {
+        const profit = parseFloat(row.getValue("profit"));
+        return (
+          <div className={`font-medium ${profit > 0 ? "text-emerald-600" : "text-rose-600"}`}>
+            {profit > 0 ? "+" : ""}${profit.toFixed(2)}
+          </div>
+        );
+      },
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => (
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-7 text-xs font-medium"
+          onClick={() => setSelectedTrade(row.original)}
+        >
+          Details
+        </Button>
+      ),
+    },
+  ];
 
   return (
     <SectionCard className="p-4">
@@ -167,61 +196,7 @@ export function TradeHistoryTable() {
         </div>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <SortableHead sortKey="id" {...sortProps} className="w-20">Ticket</SortableHead>
-              <SortableHead sortKey="time" {...sortProps} className="w-36">Open Time</SortableHead>
-              <SortableHead sortKey="symbol" {...sortProps} className="w-24">Symbol</SortableHead>
-              <TableHead className="w-16">Type</TableHead>
-              <SortableHead sortKey="vol" {...sortProps} className="w-20">Volume</SortableHead>
-              <SortableHead sortKey="openP" {...sortProps} className="w-24">Open Price</SortableHead>
-              <TableHead className="w-36">Close Time</TableHead>
-              <SortableHead sortKey="closeP" {...sortProps} className="w-24">Close Price</SortableHead>
-              <SortableHead sortKey="profit" className="w-24 text-right" align="right" {...sortProps}>Profit</SortableHead>
-              <TableHead className="w-20"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredAndSorted.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
-                  No trades match your filters.
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredAndSorted.map((trade) => (
-                <TableRow key={trade.id}>
-                  <TableCell className="w-20">{trade.id}</TableCell>
-                  <TableCell className="w-36 text-muted-foreground">{trade.time}</TableCell>
-                  <TableCell className="w-24 font-medium">{trade.symbol}</TableCell>
-                  <TableCell className={`w-16 ${trade.type === "Buy" ? "text-emerald-600" : "text-rose-600"}`}>
-                    {trade.type}
-                  </TableCell>
-                  <TableCell className="w-20">{trade.vol}</TableCell>
-                  <TableCell className="w-24">{trade.openP.toFixed(4)}</TableCell>
-                  <TableCell className="w-36 text-muted-foreground">{trade.time}</TableCell>
-                  <TableCell className="w-24">{trade.closeP.toFixed(4)}</TableCell>
-                  <TableCell className={`w-24 text-right font-medium ${trade.profit > 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                    {trade.profit > 0 ? "+" : ""}${trade.profit.toFixed(2)}
-                  </TableCell>
-                  <TableCell className="w-20">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-7 text-xs font-medium"
-                      onClick={() => setSelectedTrade(trade)}
-                    >
-                      Details
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <DataTable columns={columns} data={filteredAndSorted} pageSize={100} />
 
       {/* Centered Trade Detail Dialog — no close button */}
       <Dialog open={!!selectedTrade} onOpenChange={(open) => !open && setSelectedTrade(null)}>

@@ -1,19 +1,13 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { SearchIcon, FilterIcon, ArrowUpIcon, ArrowDownIcon, ArrowUpDownIcon } from "lucide-react";
+import { SearchIcon, FilterIcon, ArrowUpDownIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SectionCard } from "@/components/section-card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { DataTable } from "@/components/ui/data-table";
+import { ColumnDef } from "@tanstack/react-table";
 
 interface Position {
   ticket: string;
@@ -34,58 +28,9 @@ const POSITIONS: Position[] = [
   { ticket: "#10248", symbol: "USDJPY", type: "Buy", volume: 2.0, openPrice: 150.20, sl: 149.00, tp: 152.00, current: 150.50, profit: 60.00 },
 ];
 
-type SortKey = keyof Position;
-type SortDir = "asc" | "desc";
-
-function SortableHead({
-  children,
-  className,
-  sortKey,
-  currentKey,
-  currentDir,
-  onSort,
-  align = "left",
-}: {
-  children: React.ReactNode;
-  className?: string;
-  sortKey: SortKey;
-  currentKey: SortKey | null;
-  currentDir: SortDir;
-  onSort: (key: SortKey) => void;
-  align?: "left" | "right" | "center";
-}) {
-  const isActive = currentKey === sortKey;
-  const Icon = isActive ? (currentDir === "asc" ? ArrowUpIcon : ArrowDownIcon) : ArrowUpDownIcon;
-  return (
-    <TableHead className={className}>
-      <span
-        onClick={() => onSort(sortKey)}
-        className={`flex items-center gap-1 cursor-pointer select-none hover:text-foreground transition-colors ${
-          align === "right" ? "justify-end" : align === "center" ? "justify-center" : "justify-start"
-        }`}
-      >
-        {align === "right" && <Icon className={`h-3 w-3 shrink-0 ${isActive ? "text-foreground" : "text-muted-foreground"}`} />}
-        {children}
-        {align !== "right" && <Icon className={`h-3 w-3 shrink-0 ${isActive ? "text-foreground" : "text-muted-foreground"}`} />}
-      </span>
-    </TableHead>
-  );
-}
-
 export function OpenPositionsTable() {
   const [search, setSearch] = useState("");
   const [actionFilter, setActionFilter] = useState("All");
-  const [sortKey, setSortKey] = useState<SortKey | null>(null);
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
-
-  function handleSort(key: SortKey) {
-    if (sortKey === key) {
-      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
-    } else {
-      setSortKey(key);
-      setSortDir("asc");
-    }
-  }
 
   const sortedPositions = useMemo(() => {
     let result = [...POSITIONS];
@@ -101,18 +46,125 @@ export function OpenPositionsTable() {
       result = result.filter((p) => p.type === actionFilter);
     }
 
-    if (!sortKey) return result;
-    return result.sort((a, b) => {
-      const aVal = a[sortKey] ?? 0;
-      const bVal = b[sortKey] ?? 0;
-      const cmp = typeof aVal === "number" && typeof bVal === "number"
-        ? aVal - bVal
-        : String(aVal).localeCompare(String(bVal));
-      return sortDir === "asc" ? cmp : -cmp;
-    });
-  }, [sortKey, sortDir, actionFilter, search]);
+    return result;
+  }, [actionFilter, search]);
 
-  const sortProps = { currentKey: sortKey, currentDir: sortDir, onSort: handleSort };
+  const columns: ColumnDef<Position>[] = [
+    {
+      accessorKey: "ticket",
+      header: "Ticket",
+    },
+    {
+      accessorKey: "symbol",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="px-0 font-medium"
+          >
+            Symbol
+            <ArrowUpDownIcon className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }) => <div className="font-medium">{row.getValue("symbol")}</div>,
+    },
+    {
+      accessorKey: "type",
+      header: "Type",
+      cell: ({ row }) => {
+        const type = row.getValue("type") as string;
+        return <div className={type === "Buy" ? "text-emerald-600" : "text-rose-600"}>{type}</div>
+      },
+    },
+    {
+      accessorKey: "volume",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="px-0 font-medium"
+          >
+            Volume
+            <ArrowUpDownIcon className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+    },
+    {
+      accessorKey: "openPrice",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="px-0 font-medium"
+          >
+            Open Price
+            <ArrowUpDownIcon className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+    },
+    {
+      accessorKey: "sl",
+      header: "S/L",
+      cell: ({ row }) => <div>{row.getValue("sl") ?? "-"}</div>,
+    },
+    {
+      accessorKey: "tp",
+      header: "T/P",
+      cell: ({ row }) => <div>{row.getValue("tp") ?? "-"}</div>,
+    },
+    {
+      accessorKey: "current",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="px-0 font-medium"
+          >
+            Current
+            <ArrowUpDownIcon className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+    },
+    {
+      accessorKey: "profit",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="px-0 font-medium"
+          >
+            Profit
+            <ArrowUpDownIcon className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }) => {
+        const profit = parseFloat(row.getValue("profit"));
+        return (
+          <div className={`font-medium ${profit > 0 ? "text-emerald-600" : "text-rose-600"}`}>
+            {profit > 0 ? "+" : ""}${profit.toFixed(2)}
+          </div>
+        );
+      },
+    },
+    {
+      id: "actions",
+      cell: () => (
+        <Button variant="outline" size="sm" className="h-7 text-xs">
+          Close
+        </Button>
+      ),
+    },
+  ];
 
   return (
     <SectionCard title="Open Positions">
@@ -144,46 +196,7 @@ export function OpenPositionsTable() {
         </div>
       </div>
       <div className="overflow-y-auto max-h-[300px] min-h-[200px]">
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-20">Ticket</TableHead>
-                <SortableHead sortKey="symbol" className="w-24" {...sortProps}>Symbol</SortableHead>
-                <TableHead className="w-16">Type</TableHead>
-                <SortableHead sortKey="volume" className="w-20" {...sortProps}>Volume</SortableHead>
-                <SortableHead sortKey="openPrice" className="w-24" {...sortProps}>Open Price</SortableHead>
-                <TableHead className="w-20">S/L</TableHead>
-                <TableHead className="w-20">T/P</TableHead>
-                <SortableHead sortKey="current" className="w-24" {...sortProps}>Current</SortableHead>
-                <SortableHead sortKey="profit" className="w-24 text-right" align="right" {...sortProps}>Profit</SortableHead>
-                <TableHead className="w-16"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedPositions.map((pos) => (
-                <TableRow key={pos.ticket}>
-                  <TableCell className="w-20">{pos.ticket}</TableCell>
-                  <TableCell className="w-24 font-medium">{pos.symbol}</TableCell>
-                  <TableCell className={`w-16 ${pos.type === "Buy" ? "text-emerald-600" : "text-rose-600"}`}>{pos.type}</TableCell>
-                  <TableCell className="w-20">{pos.volume}</TableCell>
-                  <TableCell className="w-24">{pos.openPrice}</TableCell>
-                  <TableCell className="w-20">{pos.sl ?? "-"}</TableCell>
-                  <TableCell className="w-20">{pos.tp ?? "-"}</TableCell>
-                  <TableCell className="w-24">{pos.current}</TableCell>
-                  <TableCell className={`w-24 text-right ${pos.profit > 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                    {pos.profit > 0 ? "+" : ""}${pos.profit.toFixed(2)}
-                  </TableCell>
-                  <TableCell className="w-16 text-right">
-                    <Button variant="outline" size="sm" className="h-7 text-xs">
-                      Close
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <DataTable columns={columns} data={sortedPositions} />
       </div>
     </SectionCard>
   );
