@@ -164,9 +164,9 @@ export function TradeHistoryTable() {
 
       <DataTable columns={columns} data={filteredAndSorted} pageSize={100} />
 
-      {/* Centered Trade Detail Dialog — no close button */}
+      {/* Centered Trade Detail Dialog */}
       <Dialog open={!!selectedTrade} onOpenChange={(open) => !open && setSelectedTrade(null)}>
-        <DialogContent className="sm:max-w-md" showCloseButton={false}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Trade Details #{selectedTrade?.id}</DialogTitle>
             <DialogDescription>
