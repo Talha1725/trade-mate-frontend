@@ -2,26 +2,20 @@
 
 import * as React from "react";
 import { useState } from "react";
-import { PanelLeftCloseIcon, PanelLeftOpenIcon, LogOutIcon, ChevronDownIcon } from "lucide-react";
+import { PanelLeftCloseIcon, PanelLeftOpenIcon, ChevronDownIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { PRIMARY_NAV_ICON_MAP } from "@/constant/nav-config.tsx";
-import type { AppShellProps } from "@/types";
+import { ProfileMenu } from "@/components/profile-menu";
+import { PRIMARY_NAV_ICON_MAP } from "@/constant/nav-config";
+import type { AppShellProps, AppShellSidebarNavProps } from "@/types";
 
 function SidebarNav({
   items,
   collapsed,
-  userLabel,
-  onSignOut,
-}: {
-  items: AppShellProps["navItems"];
-  collapsed: boolean;
-  userLabel?: string;
-  onSignOut?: () => void;
-}) {
+}: AppShellSidebarNavProps) {
   const pathname = usePathname();
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
     admin: true,
@@ -156,29 +150,6 @@ function SidebarNav({
           );
         })}
       </nav>
-
-      {/* Bottom: user label */}
-      {userLabel && (
-        <div className={cn(
-          "border-t border-gray-100 p-3 shrink-0",
-          collapsed ? "flex justify-center" : "flex items-center justify-between gap-2"
-        )}>
-          {!collapsed && (
-            <span className="truncate text-xs text-muted-foreground">{userLabel}</span>
-          )}
-          {onSignOut && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onSignOut}
-              title="Sign out"
-              className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
-            >
-              <LogOutIcon className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      )}
     </div>
   );
 }
@@ -202,15 +173,13 @@ export function AppShell({
         <SidebarNav
           items={navItems}
           collapsed={collapsed}
-          userLabel={userLabel}
-          onSignOut={onSignOut}
         />
       </aside>
 
       {/* Main content */}
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Top strip — holds the collapse toggle, aligned with sidebar brand header */}
-        <div className="flex h-14 shrink-0 items-center border-b border-gray-200 bg-white px-3">
+        <div className="flex h-14 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-3">
           <Button
             variant="ghost"
             size="icon"
@@ -223,6 +192,14 @@ export function AppShell({
               : <PanelLeftCloseIcon className="h-4 w-4" />
             }
           </Button>
+          <div className="flex items-center gap-3">
+            {userLabel ? (
+              <span className="hidden text-sm text-muted-foreground sm:inline">
+                {userLabel}
+              </span>
+            ) : null}
+            <ProfileMenu userLabel={userLabel} onSignOut={onSignOut} />
+          </div>
         </div>
 
         {/* Page content */}

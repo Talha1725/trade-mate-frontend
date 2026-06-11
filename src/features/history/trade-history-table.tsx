@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { FilterIcon, SearchIcon, ArrowUpDownIcon } from "lucide-react";
+import { FilterIcon, SearchIcon } from "lucide-react";
 
 import { SectionCard } from "@/components/section-card";
+import { SortableColumnHeader } from "@/components/sortable-column-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,15 +17,8 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { mockTrades } from "@/lib/mock-data/trades";
 import type { Trade } from "@/types/trade";
-
-const TRADES: Trade[] = [
-  { id: "10244", symbol: "EURUSD", type: "Buy", vol: 1.0, openP: 1.0800, closeP: 1.0850, profit: 50.00, time: "2023-10-25 10:20" },
-  { id: "10243", symbol: "GBPUSD", type: "Sell", vol: 0.5, openP: 1.2700, closeP: 1.2750, profit: -25.00, time: "2023-10-24 14:15" },
-  { id: "10242", symbol: "XAUUSD", type: "Buy", vol: 0.1, openP: 2000.00, closeP: 2050.00, profit: 500.00, time: "2023-10-23 09:30" },
-  { id: "10241", symbol: "USDJPY", type: "Buy", vol: 2.0, openP: 150.00, closeP: 151.00, profit: 200.00, time: "2023-10-22 16:45" },
-  { id: "10240", symbol: "EURGBP", type: "Sell", vol: 1.0, openP: 0.8700, closeP: 0.8650, profit: 50.00, time: "2023-10-21 11:10" },
-];
 
 export function TradeHistoryTable() {
   const [search, setSearch] = useState("");
@@ -33,7 +27,7 @@ export function TradeHistoryTable() {
   const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
 
   const filteredAndSorted = useMemo(() => {
-    let result = [...TRADES];
+    let result = [...mockTrades];
 
     // Search filter
     if (search.trim()) {
@@ -61,29 +55,17 @@ export function TradeHistoryTable() {
   const columns: ColumnDef<Trade>[] = [
     {
       accessorKey: "id",
-      header: ({ column }) => (
-        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="px-0 font-medium w-full justify-start">
-          Ticket <ArrowUpDownIcon className="ml-2 h-4 w-4" />
-        </Button>
-      ),
+      header: ({ column }) => <SortableColumnHeader column={column} label="Ticket" className="w-full justify-start" />,
       cell: ({ row }) => <div>{row.getValue("id")}</div>,
     },
     {
       accessorKey: "time",
-      header: ({ column }) => (
-        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="px-0 font-medium w-full justify-start">
-          Open Time <ArrowUpDownIcon className="ml-2 h-4 w-4" />
-        </Button>
-      ),
+      header: ({ column }) => <SortableColumnHeader column={column} label="Open Time" className="w-full justify-start" />,
       cell: ({ row }) => <div className="text-muted-foreground">{row.getValue("time")}</div>,
     },
     {
       accessorKey: "symbol",
-      header: ({ column }) => (
-        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="px-0 font-medium w-full justify-start">
-          Symbol <ArrowUpDownIcon className="ml-2 h-4 w-4" />
-        </Button>
-      ),
+      header: ({ column }) => <SortableColumnHeader column={column} label="Symbol" className="w-full justify-start" />,
       cell: ({ row }) => <div className="font-medium">{row.getValue("symbol")}</div>,
     },
     {
@@ -96,20 +78,12 @@ export function TradeHistoryTable() {
     },
     {
       accessorKey: "vol",
-      header: ({ column }) => (
-        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="px-0 font-medium w-full justify-start">
-          Volume <ArrowUpDownIcon className="ml-2 h-4 w-4" />
-        </Button>
-      ),
+      header: ({ column }) => <SortableColumnHeader column={column} label="Volume" className="w-full justify-start" />,
       cell: ({ row }) => <div>{row.getValue("vol")}</div>,
     },
     {
       accessorKey: "openP",
-      header: ({ column }) => (
-        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="px-0 font-medium w-full justify-start">
-          Open Price <ArrowUpDownIcon className="ml-2 h-4 w-4" />
-        </Button>
-      ),
+      header: ({ column }) => <SortableColumnHeader column={column} label="Open Price" className="w-full justify-start" />,
       cell: ({ row }) => <div>{parseFloat(row.getValue("openP")).toFixed(4)}</div>,
     },
     {
@@ -119,20 +93,12 @@ export function TradeHistoryTable() {
     },
     {
       accessorKey: "closeP",
-      header: ({ column }) => (
-        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="px-0 font-medium w-full justify-start">
-          Close Price <ArrowUpDownIcon className="ml-2 h-4 w-4" />
-        </Button>
-      ),
+      header: ({ column }) => <SortableColumnHeader column={column} label="Close Price" className="w-full justify-start" />,
       cell: ({ row }) => <div>{parseFloat(row.getValue("closeP")).toFixed(4)}</div>,
     },
     {
       accessorKey: "profit",
-      header: ({ column }) => (
-        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="px-0 font-medium w-full justify-start">
-          Profit <ArrowUpDownIcon className="ml-2 h-4 w-4" />
-        </Button>
-      ),
+      header: ({ column }) => <SortableColumnHeader column={column} label="Profit" className="w-full justify-start" />,
       cell: ({ row }) => {
         const profit = parseFloat(row.getValue("profit"));
         return (
@@ -158,7 +124,7 @@ export function TradeHistoryTable() {
   ];
 
   return (
-    <SectionCard className="p-4">
+    <SectionCard title="Trade History" className="p-4">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
         <div className="flex flex-1 items-center max-w-sm relative">
           <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -170,7 +136,7 @@ export function TradeHistoryTable() {
           />
         </div>
         <div className="flex items-center gap-2">
-          <Select value={actionFilter} onValueChange={setActionFilter}>
+          <Select value={actionFilter} onValueChange={(value) => setActionFilter(value ?? "All")}>
             <SelectTrigger className="w-[130px]">
               <SelectValue placeholder="Action" />
             </SelectTrigger>
@@ -180,7 +146,7 @@ export function TradeHistoryTable() {
               <SelectItem value="Sell">Sell</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={timeFilter} onValueChange={setTimeFilter}>
+          <Select value={timeFilter} onValueChange={(value) => setTimeFilter(value ?? "30 Days")}>
             <SelectTrigger className="w-[130px]">
               <SelectValue placeholder="Timeframe" />
             </SelectTrigger>

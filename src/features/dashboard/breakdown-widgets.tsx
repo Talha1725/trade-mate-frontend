@@ -2,15 +2,7 @@
 
 import { SectionCard } from "@/components/section-card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
-
-const data = [
-  { name: "EURUSD", value: 400 },
-  { name: "GBPUSD", value: 300 },
-  { name: "XAUUSD", value: 300 },
-  { name: "USDJPY", value: 200 },
-];
-
-const COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#8b5cf6"];
+import { mockSymbolBreakdown, mockSymbolBreakdownColors } from "@/lib/mock-data/dashboard";
 
 export function BreakdownWidgets() {
   return (
@@ -19,7 +11,7 @@ export function BreakdownWidgets() {
         <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
           <PieChart>
             <Pie
-              data={data}
+              data={mockSymbolBreakdown}
               cx="50%"
               cy="50%"
               innerRadius={60}
@@ -27,8 +19,8 @@ export function BreakdownWidgets() {
               paddingAngle={5}
               dataKey="value"
             >
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              {mockSymbolBreakdown.map((entry, index) => (
+                <Cell key={entry.name} fill={mockSymbolBreakdownColors[index % mockSymbolBreakdownColors.length]} />
               ))}
             </Pie>
             <Tooltip />

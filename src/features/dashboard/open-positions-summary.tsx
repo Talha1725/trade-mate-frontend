@@ -7,6 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { mockPositionSummary } from "@/lib/mock-data/dashboard";
 
 
 export function OpenPositionsSummary() {
@@ -23,24 +24,18 @@ export function OpenPositionsSummary() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          <TableRow>
-            <TableCell className="font-medium">EURUSD</TableCell>
-            <TableCell className="text-emerald-600">Buy</TableCell>
-            <TableCell>1.0</TableCell>
-            <TableCell className="text-right text-emerald-600">+$45.20</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell className="font-medium">GBPUSD</TableCell>
-            <TableCell className="text-rose-600">Sell</TableCell>
-            <TableCell>0.5</TableCell>
-            <TableCell className="text-right text-rose-600">-$12.50</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell className="font-medium">XAUUSD</TableCell>
-            <TableCell className="text-emerald-600">Buy</TableCell>
-            <TableCell>0.1</TableCell>
-            <TableCell className="text-right text-emerald-600">+$150.00</TableCell>
-          </TableRow>
+          {mockPositionSummary.map((position) => (
+            <TableRow key={position.symbol}>
+              <TableCell className="font-medium">{position.symbol}</TableCell>
+              <TableCell className={position.type === "Buy" ? "text-emerald-600" : "text-rose-600"}>
+                {position.type}
+              </TableCell>
+              <TableCell>{position.volume}</TableCell>
+              <TableCell className={`text-right ${position.profit > 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                {position.profit > 0 ? "+" : ""}${position.profit.toFixed(2)}
+              </TableCell>
+            </TableRow>
+          ))}
         </TableBody>
         </Table>
       </div>

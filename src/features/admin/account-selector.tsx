@@ -1,17 +1,10 @@
 "use client";
 
 import { SectionCard } from "@/components/section-card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SearchIcon, ChevronRightIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import type { AccountSummary } from "@/types/admin";
-
-const MOCK_ACCOUNTS: AccountSummary[] = [
-  { id: "ACC-1001", name: "Alice Smith", email: "alice@example.com", balance: 10000, equity: 10250, openPositionsCount: 2, status: "Active" },
-  { id: "ACC-1002", name: "Bob Jones", email: "bob@example.com", balance: 5000, equity: 4800, openPositionsCount: 1, status: "Active" },
-  { id: "ACC-1003", name: "Charlie Day", email: "charlie@example.com", balance: 25000, equity: 25000, openPositionsCount: 0, status: "Suspended" },
-];
+import { mockAccounts } from "@/lib/mock-data/accounts";
 
 export function AccountSelector() {
   const router = useRouter();
@@ -24,7 +17,7 @@ export function AccountSelector() {
           <Input placeholder="Search by name, email, or ID..." className="pl-8" />
         </div>
         <div className="grid gap-2">
-          {MOCK_ACCOUNTS.map((acc) => (
+          {mockAccounts.map((acc) => (
             <div 
               key={acc.id} 
               className="flex items-center justify-between p-3 border rounded-md hover:bg-muted/50 transition-colors cursor-pointer"
@@ -32,7 +25,7 @@ export function AccountSelector() {
             >
               <div className="flex flex-col">
                 <span className="font-semibold">{acc.name}</span>
-                <span className="text-xs text-muted-foreground">{acc.email} • {acc.id}</span>
+                <span className="text-xs text-muted-foreground">{acc.email} - {acc.id}</span>
               </div>
               <div className="flex items-center gap-4 text-sm">
                 <div className="flex flex-col items-end hidden sm:flex">

@@ -8,3 +8,19 @@ export interface Trade {
   profit: number;
   time: string;
 }
+
+export interface Position {
+  ticket: string;
+  symbol: string;
+  type: "Buy" | "Sell";
+  volume: number;
+  openPrice: number;
+  sl: number | null;
+  tp: number | null;
+  current: number;
+  profit: number;
+}
+
+export type TradeEditorProps = {
+  accountId: string;
+};

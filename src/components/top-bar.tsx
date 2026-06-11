@@ -2,10 +2,9 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { LogOutIcon } from "lucide-react";
 
 import { BrandMark } from "@/components/brand-mark";
-import { Button } from "@/components/ui/button";
+import { ProfileMenu } from "@/components/profile-menu";
 import { Separator } from "@/components/ui/separator";
 
 import type { TopBarProps } from "@/types";
@@ -28,12 +27,7 @@ export function TopBar({ userLabel, onSignOut }: TopBarProps) {
             {userLabel}
           </span>
         ) : null}
-        {onSignOut ? (
-          <Button variant="outline" size="sm" onClick={onSignOut} className="gap-2 border-gray-200 text-[#1a1a1a] hover:bg-gray-50">
-            <LogOutIcon className="size-4" />
-            Sign out
-          </Button>
-        ) : null}
+        <ProfileMenu userLabel={userLabel} onSignOut={onSignOut} />
       </div>
     </div>
   );

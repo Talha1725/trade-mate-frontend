@@ -1,39 +1,23 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { SearchIcon, FilterIcon, ArrowUpDownIcon } from "lucide-react";
+import { SearchIcon, FilterIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SectionCard } from "@/components/section-card";
+import { SortableColumnHeader } from "@/components/sortable-column-header";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
-
-interface Position {
-  ticket: string;
-  symbol: string;
-  type: "Buy" | "Sell";
-  volume: number;
-  openPrice: number;
-  sl: number | null;
-  tp: number | null;
-  current: number;
-  profit: number;
-}
-
-const POSITIONS: Position[] = [
-  { ticket: "#10245", symbol: "EURUSD", type: "Buy", volume: 1.0, openPrice: 1.0845, sl: 1.0800, tp: 1.0900, current: 1.0850, profit: 50.00 },
-  { ticket: "#10246", symbol: "GBPUSD", type: "Sell", volume: 0.5, openPrice: 1.2650, sl: null, tp: null, current: 1.2660, profit: -50.00 },
-  { ticket: "#10247", symbol: "XAUUSD", type: "Buy", volume: 0.1, openPrice: 2040.50, sl: 2000.00, tp: 2100.00, current: 2045.00, profit: 45.00 },
-  { ticket: "#10248", symbol: "USDJPY", type: "Buy", volume: 2.0, openPrice: 150.20, sl: 149.00, tp: 152.00, current: 150.50, profit: 60.00 },
-];
+import { mockPositions } from "@/lib/mock-data/positions";
+import type { Position } from "@/types/trade";
 
 export function OpenPositionsTable() {
   const [search, setSearch] = useState("");
   const [actionFilter, setActionFilter] = useState("All");
 
   const sortedPositions = useMemo(() => {
-    let result = [...POSITIONS];
+    let result = [...mockPositions];
 
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -56,18 +40,7 @@ export function OpenPositionsTable() {
     },
     {
       accessorKey: "symbol",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="px-0 font-medium"
-          >
-            Symbol
-            <ArrowUpDownIcon className="ml-2 h-4 w-4" />
-          </Button>
-        )
-      },
+      header: ({ column }) => <SortableColumnHeader column={column} label="Symbol" />,
       cell: ({ row }) => <div className="font-medium">{row.getValue("symbol")}</div>,
     },
     {
@@ -80,33 +53,11 @@ export function OpenPositionsTable() {
     },
     {
       accessorKey: "volume",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="px-0 font-medium"
-          >
-            Volume
-            <ArrowUpDownIcon className="ml-2 h-4 w-4" />
-          </Button>
-        )
-      },
+      header: ({ column }) => <SortableColumnHeader column={column} label="Volume" />,
     },
     {
       accessorKey: "openPrice",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="px-0 font-medium"
-          >
-            Open Price
-            <ArrowUpDownIcon className="ml-2 h-4 w-4" />
-          </Button>
-        )
-      },
+      header: ({ column }) => <SortableColumnHeader column={column} label="Open Price" />,
     },
     {
       accessorKey: "sl",
@@ -120,33 +71,11 @@ export function OpenPositionsTable() {
     },
     {
       accessorKey: "current",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="px-0 font-medium"
-          >
-            Current
-            <ArrowUpDownIcon className="ml-2 h-4 w-4" />
-          </Button>
-        )
-      },
+      header: ({ column }) => <SortableColumnHeader column={column} label="Current" />,
     },
     {
       accessorKey: "profit",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="px-0 font-medium"
-          >
-            Profit
-            <ArrowUpDownIcon className="ml-2 h-4 w-4" />
-          </Button>
-        )
-      },
+      header: ({ column }) => <SortableColumnHeader column={column} label="Profit" />,
       cell: ({ row }) => {
         const profit = parseFloat(row.getValue("profit"));
         return (
@@ -180,7 +109,7 @@ export function OpenPositionsTable() {
           />
         </div>
         <div className="flex items-center gap-2">
-          <Select value={actionFilter} onValueChange={setActionFilter}>
+          <Select value={actionFilter} onValueChange={(value) => setActionFilter(value ?? "All")}>
             <SelectTrigger className="w-[130px]">
               <SelectValue placeholder="Action" />
             </SelectTrigger>

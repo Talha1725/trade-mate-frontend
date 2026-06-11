@@ -1,31 +1,18 @@
 import { SectionCard } from "@/components/section-card";
+import { mockStatCards } from "@/lib/mock-data/dashboard";
+import { cn } from "@/lib/utils";
 
 export function StatCards() {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <SectionCard title="Account Balance">
-        <p className="text-3xl font-semibold tracking-tight">$12,450.80</p>
-        <p className="text-sm text-muted-foreground">
-          +2.3% from last month
-        </p>
-      </SectionCard>
-
-      <SectionCard title="Open Positions">
-        <p className="text-3xl font-semibold tracking-tight">4</p>
-        <p className="text-sm text-muted-foreground">2 long / 2 short</p>
-      </SectionCard>
-
-      <SectionCard title="Today's P&L">
-        <p className="text-3xl font-semibold tracking-tight text-emerald-600">
-          +$184.20
-        </p>
-        <p className="text-sm text-muted-foreground">+1.5% today</p>
-      </SectionCard>
-
-      <SectionCard title="Win Rate">
-        <p className="text-3xl font-semibold tracking-tight">68%</p>
-        <p className="text-sm text-muted-foreground">Last 30 trades</p>
-      </SectionCard>
+      {mockStatCards.map((stat) => (
+        <SectionCard key={stat.title} title={stat.title}>
+          <p className={cn("text-3xl font-semibold tracking-tight", stat.tone === "success" && "text-emerald-600")}>
+            {stat.value}
+          </p>
+          <p className="text-sm text-muted-foreground">{stat.description}</p>
+        </SectionCard>
+      ))}
     </div>
   );
 }

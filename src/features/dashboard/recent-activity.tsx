@@ -7,6 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { mockRecentActivity } from "@/lib/mock-data/dashboard";
 
 
 export function RecentActivity() {
@@ -23,24 +24,14 @@ export function RecentActivity() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          <TableRow>
-            <TableCell className="font-medium">EURUSD</TableCell>
-            <TableCell>Buy</TableCell>
-            <TableCell>1.0850</TableCell>
-            <TableCell className="text-right text-muted-foreground">10 mins ago</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell className="font-medium">GBPUSD</TableCell>
-            <TableCell>Sell</TableCell>
-            <TableCell>1.2640</TableCell>
-            <TableCell className="text-right text-muted-foreground">1 hr ago</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell className="font-medium">XAUUSD</TableCell>
-            <TableCell>Close Buy</TableCell>
-            <TableCell>2045.50</TableCell>
-            <TableCell className="text-right text-muted-foreground">3 hrs ago</TableCell>
-          </TableRow>
+          {mockRecentActivity.map((activity) => (
+            <TableRow key={`${activity.symbol}-${activity.dateLabel}`}>
+              <TableCell className="font-medium">{activity.symbol}</TableCell>
+              <TableCell>{activity.action}</TableCell>
+              <TableCell>{activity.price.toFixed(4)}</TableCell>
+              <TableCell className="text-right text-muted-foreground">{activity.dateLabel}</TableCell>
+            </TableRow>
+          ))}
         </TableBody>
         </Table>
       </div>

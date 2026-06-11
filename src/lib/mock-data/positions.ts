@@ -1,0 +1,48 @@
+import type { Position } from "@/types/trade";
+
+export const mockPositions: Position[] = [
+  {
+    ticket: "#10245",
+    symbol: "EURUSD",
+    type: "Buy",
+    volume: 1.0,
+    openPrice: 1.0845,
+    sl: 1.08,
+    tp: 1.09,
+    current: 1.085,
+    profit: 50,
+  },
+  {
+    ticket: "#10246",
+    symbol: "GBPUSD",
+    type: "Sell",
+    volume: 0.5,
+    openPrice: 1.265,
+    sl: null,
+    tp: null,
+    current: 1.266,
+    profit: -50,
+  },
+  {
+    ticket: "#10247",
+    symbol: "XAUUSD",
+    type: "Buy",
+    volume: 0.1,
+    openPrice: 2040.5,
+    sl: 2000,
+    tp: 2100,
+    current: 2045,
+    profit: 45,
+  },
+  {
+    ticket: "#10248",
+    symbol: "USDJPY",
+    type: "Buy",
+    volume: 2.0,
+    openPrice: 150.2,
+    sl: 149,
+    tp: 152,
+    current: 150.5,
+    profit: 60,
+  },
+];

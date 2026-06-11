@@ -2,14 +2,13 @@
 
 import { useState, useMemo } from "react";
 import { ColumnDef } from "@tanstack/react-table";
+import { SortableColumnHeader } from "@/components/sortable-column-header";
 import { DataTable } from "@/components/ui/data-table";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowUpDown, SearchIcon } from "lucide-react";
+import { SearchIcon } from "lucide-react";
+import { auditActionTypes, mockAudits } from "@/lib/mock-data/audits";
 import type { AuditLogEntry } from "@/types/admin";
-
-const ACTION_TYPES = ["All", "Inject Trade", "Close Position", "Account Update"];
 
 const ACTION_BADGE: Record<string, string> = {
   "Inject Trade": "bg-blue-100 text-blue-700",
@@ -20,28 +19,16 @@ const ACTION_BADGE: Record<string, string> = {
 const columns: ColumnDef<AuditLogEntry>[] = [
   {
     accessorKey: "timestamp",
-    header: ({ column }) => (
-      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="px-0 h-auto font-medium">
-        Time <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
+    header: ({ column }) => <SortableColumnHeader column={column} label="Time" />,
     cell: ({ row }) => <div className="text-muted-foreground">{row.getValue("timestamp")}</div>,
   },
   {
     accessorKey: "adminEmail",
-    header: ({ column }) => (
-      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="px-0 h-auto font-medium">
-        Admin <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
+    header: ({ column }) => <SortableColumnHeader column={column} label="Admin" />,
   },
   {
     accessorKey: "action",
-    header: ({ column }) => (
-      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="px-0 h-auto font-medium">
-        Action <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
+    header: ({ column }) => <SortableColumnHeader column={column} label="Action" />,
     cell: ({ row }) => {
       const action = row.getValue("action") as string;
       return (
@@ -53,11 +40,7 @@ const columns: ColumnDef<AuditLogEntry>[] = [
   },
   {
     accessorKey: "targetAccountId",
-    header: ({ column }) => (
-      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="px-0 h-auto font-medium">
-        Target Account <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
+    header: ({ column }) => <SortableColumnHeader column={column} label="Target Account" />,
   },
   {
     accessorKey: "details",
@@ -70,18 +53,12 @@ const columns: ColumnDef<AuditLogEntry>[] = [
   },
 ];
 
-const MOCK_AUDITS: AuditLogEntry[] = [
-  { id: "LOG-01", timestamp: "2023-10-25 14:30", adminId: "ADM-1", adminEmail: "admin@trademate.app", action: "Inject Trade", targetAccountId: "ACC-1001", details: "Injected BUY 1.0 EURUSD @ Market" },
-  { id: "LOG-02", timestamp: "2023-10-25 13:15", adminId: "ADM-1", adminEmail: "admin@trademate.app", action: "Close Position", targetAccountId: "ACC-1002", details: "Closed ticket #10246" },
-  { id: "LOG-03", timestamp: "2023-10-24 09:00", adminId: "ADM-2", adminEmail: "support@trademate.app", action: "Account Update", targetAccountId: "ACC-1003", details: "Suspended account due to margin call" },
-];
-
 export function AuditTable() {
   const [search, setSearch] = useState("");
   const [actionFilter, setActionFilter] = useState("All");
 
   const filtered = useMemo(() => {
-    let result = [...MOCK_AUDITS];
+    let result = [...mockAudits];
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter(
@@ -109,12 +86,12 @@ export function AuditTable() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <Select value={actionFilter} onValueChange={setActionFilter}>
+        <Select value={actionFilter} onValueChange={(value) => setActionFilter(value ?? "All")}>
           <SelectTrigger className="w-[170px]">
             <SelectValue placeholder="All Actions" />
           </SelectTrigger>
           <SelectContent>
-            {ACTION_TYPES.map((type) => (
+            {auditActionTypes.map((type) => (
               <SelectItem key={type} value={type}>
                 {type === "All" ? "All Actions" : type}
               </SelectItem>

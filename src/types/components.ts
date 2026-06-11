@@ -1,4 +1,5 @@
 import * as React from "react";
+import type { Column, ColumnDef } from "@tanstack/react-table";
 import type { LucideIcon } from "lucide-react";
 import type { NavItem, LoginFormValues } from "@/types";
 
@@ -39,9 +40,33 @@ export type SidebarNavProps = {
   className?: string;
 };
 
+export type AppShellSidebarNavProps = {
+  items: NavItem[];
+  collapsed: boolean;
+  userLabel?: string;
+  onSignOut?: () => void;
+};
+
 export type TopBarProps = {
   userLabel?: string;
   onSignOut?: () => void;
+};
+
+export type ProfileMenuProps = {
+  userLabel?: string;
+  onSignOut?: () => void;
+};
+
+export type DataTableProps<TData, TValue> = {
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
+  pageSize?: number;
+};
+
+export type SortableColumnHeaderProps<TData, TValue = unknown> = {
+  column: Column<TData, TValue>;
+  label: string;
+  className?: string;
 };
 
 export type LoginFormProps = {

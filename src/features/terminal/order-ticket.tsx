@@ -15,7 +15,7 @@ export function OrderTicket() {
       <div className="flex flex-col gap-4">
         <div className="grid gap-2">
           <Label htmlFor="type">Order Type</Label>
-          <Select value={orderType} onValueChange={setOrderType}>
+          <Select value={orderType} onValueChange={(value) => setOrderType(value ?? "Market")}>
             <SelectTrigger id="type">
               <SelectValue placeholder="Select type" />
             </SelectTrigger>

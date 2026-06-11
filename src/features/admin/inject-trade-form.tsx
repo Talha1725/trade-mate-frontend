@@ -6,24 +6,27 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SendIcon, SparklesIcon } from "lucide-react";
+import { allActiveAccountsTarget, mockInjectionTargetOptions } from "@/lib/mock-data/injection";
 
 export function InjectTradeForm() {
   const [prompt, setPrompt] = useState("");
-  const [target, setTarget] = useState("All Active Accounts");
+  const [target, setTarget] = useState(allActiveAccountsTarget);
 
   return (
     <SectionCard title="Natural Language Injection">
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-4">
           <div className="w-[200px]">
-            <Select value={target} onValueChange={setTarget}>
+            <Select value={target} onValueChange={(value) => setTarget(value ?? allActiveAccountsTarget)}>
               <SelectTrigger>
                 <SelectValue placeholder="Target Account" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="All Active Accounts">All Active Accounts</SelectItem>
-                <SelectItem value="ACC-1001">Alice Smith</SelectItem>
-                <SelectItem value="ACC-1002">Bob Jones</SelectItem>
+                {mockInjectionTargetOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

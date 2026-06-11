@@ -1,3 +1,5 @@
+import type React from "react";
+
 export interface AccountSummary {
   id: string;
   name: string;
@@ -7,6 +9,14 @@ export interface AccountSummary {
   openPositionsCount: number;
   status: "Active" | "Suspended" | "Pending";
 }
+
+export type AdminAccountPageProps = {
+  params: Promise<{ id: string }>;
+};
+
+export type AdminLayoutProps = {
+  children: React.ReactNode;
+};
 
 export interface AuditLogEntry {
   id: string;
@@ -31,3 +41,24 @@ export interface TradeInjectionPayload {
     action: "Open" | "Close" | "Modify";
   };
 }
+
+export type TradeInjectionTargetOption = {
+  value: string;
+  label: string;
+};
+
+export type PreviewAction = {
+  action: string;
+  symbol?: string;
+  details: string;
+};
+
+export type InjectionPreview = {
+  target: string;
+  actions: PreviewAction[];
+};
+
+export type LiveTradeShortcut = {
+  label: string;
+  tone: "buy" | "sell";
+};
