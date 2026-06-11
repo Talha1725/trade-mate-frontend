@@ -43,11 +43,11 @@ const columns: ColumnDef<Trade>[] = [
   },
   {
     accessorKey: "profit",
-    header: ({ column }) => <SortableColumnHeader column={column} label="Profit" className="w-full justify-end" />,
+    header: ({ column }) => <SortableColumnHeader column={column} label="Profit" />,
     cell: ({ row }) => {
       const profit = parseFloat(row.getValue("profit"));
       return (
-        <div className={`text-right font-medium ${profit > 0 ? "text-emerald-600" : "text-rose-600"}`}>
+        <div className={`font-medium ${profit > 0 ? "text-emerald-600" : "text-rose-600"}`}>
           {profit > 0 ? "+" : ""}${profit.toFixed(2)}
         </div>
       );
