@@ -1,4 +1,4 @@
-import { AuditTable } from "@/features/admin/audit-table";
+import { AuditTable } from "@/components/admin/audit-table";
 import { PageHeader } from "@/components/page-header";
 
 export default function AdminAuditPage() {

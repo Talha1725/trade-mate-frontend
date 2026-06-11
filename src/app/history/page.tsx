@@ -3,7 +3,7 @@ import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { PRIMARY_NAV_ITEMS } from "../../constant/nav-config";
 import { Button } from "@/components/ui/button";
-import { TradeHistoryTable } from "@/features/history/trade-history-table";
+import { TradeHistoryTable } from "@/components/history/trade-history-table";
 
 export default function HistoryPage() {
   return (

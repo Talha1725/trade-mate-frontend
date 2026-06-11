@@ -1,5 +1,5 @@
-import { InjectTradeForm } from "@/features/admin/inject-trade-form";
-import { PreviewPanel } from "@/features/admin/preview-panel";
+import { InjectTradeForm } from "@/components/admin/inject-trade-form";
+import { PreviewPanel } from "@/components/admin/preview-panel";
 import { PageHeader } from "@/components/page-header";
 
 export default function AdminInjectPage() {

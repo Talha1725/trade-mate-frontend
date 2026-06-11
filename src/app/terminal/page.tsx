@@ -1,10 +1,10 @@
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { PRIMARY_NAV_ITEMS } from "../../constant/nav-config";
-import { SymbolSearch } from "@/features/terminal/symbol-search";
-import { TradingChart } from "@/features/terminal/trading-chart";
-import { OrderTicket } from "@/features/terminal/order-ticket";
-import { OpenPositionsTable } from "@/features/terminal/open-positions-table";
+import { SymbolSearch } from "@/components/terminal/symbol-search";
+import { TradingChart } from "@/components/terminal/trading-chart";
+import { OrderTicket } from "@/components/terminal/order-ticket";
+import { OpenPositionsTable } from "@/components/terminal/open-positions-table";
 
 export default function TerminalPage() {
   return (

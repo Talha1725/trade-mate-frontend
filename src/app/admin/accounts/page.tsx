@@ -1,4 +1,4 @@
-import { AccountsTable } from "@/features/admin/accounts-table";
+import { AccountsTable } from "@/components/admin/accounts-table";
 import { PageHeader } from "@/components/page-header";
 
 export default function AdminAccountsPage() {

@@ -1,4 +1,4 @@
-import { TradeEditor } from "@/features/admin/trade-editor";
+import { TradeEditor } from "@/components/admin/trade-editor";
 import { SectionCard } from "@/components/section-card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeftIcon } from "lucide-react";

@@ -1,11 +1,11 @@
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { PRIMARY_NAV_ITEMS } from "../../constant/nav-config";
-import { EquityChart } from "@/features/dashboard/equity-chart";
-import { BreakdownWidgets } from "@/features/dashboard/breakdown-widgets";
-import { StatCards } from "@/features/dashboard/stat-cards";
-import { OpenPositionsSummary } from "@/features/dashboard/open-positions-summary";
-import { RecentActivity } from "@/features/dashboard/recent-activity";
+import { EquityChart } from "@/components/dashboard/equity-chart";
+import { BreakdownWidgets } from "@/components/dashboard/breakdown-widgets";
+import { StatCards } from "@/components/dashboard/stat-cards";
+import { OpenPositionsSummary } from "@/components/dashboard/open-positions-summary";
+import { RecentActivity } from "@/components/dashboard/recent-activity";
 
 export default function DashboardPage() {
   return (
