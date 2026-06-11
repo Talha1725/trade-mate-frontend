@@ -30,8 +30,12 @@ export const PRIMARY_NAV_ITEMS: NavItem[] = [
   {
     id: "admin",
     label: "Admin",
-    href: "/admin",
     description: "Account controls and trade injection",
+    subItems: [
+      { id: "admin-accounts", label: "Accounts", href: "/admin/accounts" },
+      { id: "admin-audit", label: "Audit Logs", href: "/admin/audit" },
+      { id: "admin-inject", label: "Inject Trades", href: "/admin/inject" },
+    ],
   },
 ];
 

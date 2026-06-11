@@ -9,3 +9,4 @@ export type { AuthUser, AuthSession, AuthStatus, LoginCredentials, LoginFormValu
 export type { NavItem } from "@/types/nav";
 
 export type * from "@/types/components";
+export type * from "@/types/dashboard";
