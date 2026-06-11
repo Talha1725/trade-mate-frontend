@@ -1,14 +1,13 @@
 "use client";
 
-import { LogOutIcon, UserIcon } from "lucide-react";
+import { LogOutIcon } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { ProfileMenuProps } from "@/types";
@@ -49,16 +48,13 @@ export function ProfileMenu({ userLabel, onSignOut }: ProfileMenuProps) {
           </AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel className="flex items-center gap-2">
-          <UserIcon className="h-4 w-4" />
-          <span className="truncate">{userLabel ?? "Trade Mate User"}</span>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleSignOut} variant="destructive" className="cursor-pointer">
-          <LogOutIcon className="h-4 w-4" />
-          Sign out
-        </DropdownMenuItem>
+      <DropdownMenuContent align="end" className="w-40">
+        <DropdownMenuGroup>
+          <DropdownMenuItem onClick={handleSignOut} variant="destructive" className="cursor-pointer">
+            <LogOutIcon className="h-4 w-4" />
+            Sign out
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );

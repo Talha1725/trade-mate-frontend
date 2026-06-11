@@ -57,8 +57,3 @@ export type InjectionPreview = {
   target: string;
   actions: PreviewAction[];
 };
-
-export type LiveTradeShortcut = {
-  label: string;
-  tone: "buy" | "sell";
-};

@@ -1,5 +1,5 @@
 import { mockAccounts } from "@/lib/mock-data/accounts";
-import type { InjectionPreview, LiveTradeShortcut, TradeInjectionTargetOption } from "@/types/admin";
+import type { InjectionPreview, TradeInjectionTargetOption } from "@/types/admin";
 
 export const allActiveAccountsTarget = "All Active Accounts";
 
@@ -31,10 +31,3 @@ export const mockInjectionPreview: InjectionPreview = {
     },
   ],
 };
-
-export const mockLiveTradeShortcuts: LiveTradeShortcut[] = [
-  { label: "Buy 1.0 EURUSD", tone: "buy" },
-  { label: "Sell 1.0 EURUSD", tone: "sell" },
-  { label: "Buy 0.1 XAUUSD", tone: "buy" },
-  { label: "Close All Profits", tone: "sell" },
-];
