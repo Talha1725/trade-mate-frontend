@@ -1,26 +1,31 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { SortableColumnHeader } from "@/components/sortable-column-header";
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchIcon } from "lucide-react";
-import { auditActionTypes, mockAudits } from "@/lib/mock-data/audits";
+import { auditApi } from "@/lib/services/audit.api";
 import type { AuditLogEntry } from "@/types/admin";
+import { toast } from "sonner";
 
 const ACTION_BADGE: Record<string, string> = {
   "Inject Trade": "bg-blue-100 text-blue-700",
   "Close Position": "bg-amber-100 text-amber-700",
   "Account Update": "bg-purple-100 text-purple-700",
+  "Bulk Push": "bg-indigo-100 text-indigo-700",
+  "Modify Trade": "bg-teal-100 text-teal-700",
 };
+
+const auditActionTypes = ["All", "Inject Trade", "Close Position", "Account Update", "Bulk Push", "Modify Trade"];
 
 const columns: ColumnDef<AuditLogEntry>[] = [
   {
     accessorKey: "timestamp",
     header: ({ column }) => <SortableColumnHeader column={column} label="Timestamp" />,
-    cell: ({ row }) => <div className="text-muted-foreground">{row.getValue("timestamp")}</div>,
+    cell: ({ row }) => <div className="text-muted-foreground text-xs">{row.getValue("timestamp")}</div>,
   },
   {
     accessorKey: "adminEmail",
@@ -41,6 +46,7 @@ const columns: ColumnDef<AuditLogEntry>[] = [
   {
     accessorKey: "targetAccountId",
     header: ({ column }) => <SortableColumnHeader column={column} label="Target Account" />,
+    cell: ({ row }) => <div className="font-mono text-xs">{row.getValue("targetAccountId")}</div>,
   },
   {
     accessorKey: "details",
@@ -54,11 +60,29 @@ const columns: ColumnDef<AuditLogEntry>[] = [
 ];
 
 export function AuditTable() {
+  const [audits, setAudits] = useState<AuditLogEntry[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [actionFilter, setActionFilter] = useState("All");
 
+  const fetchAudits = async () => {
+    setLoading(true);
+    try {
+      const data = await auditApi.getAuditLogs();
+      setAudits(data);
+    } catch {
+      toast.error("Failed to load audit logs.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAudits();
+  }, []);
+
   const filtered = useMemo(() => {
-    let result = [...mockAudits];
+    let result = [...audits];
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter(
@@ -72,7 +96,7 @@ export function AuditTable() {
       result = result.filter((a) => a.action === actionFilter);
     }
     return result;
-  }, [search, actionFilter]);
+  }, [audits, search, actionFilter]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -99,7 +123,14 @@ export function AuditTable() {
           </SelectContent>
         </Select>
       </div>
-      <DataTable columns={columns} data={filtered} pageSize={100} />
+
+      {loading ? (
+        <div className="text-center py-8 text-muted-foreground animate-pulse">
+          Loading audit logs...
+        </div>
+      ) : (
+        <DataTable columns={columns} data={filtered} pageSize={100} />
+      )}
     </div>
   );
 }

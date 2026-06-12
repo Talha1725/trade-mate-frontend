@@ -18,6 +18,7 @@ export type LoginCredentials = {
 
 export type AuthSession = {
   user: AuthUser;
+  token?: string;
   expiresAt?: ISODateString;
 };
 

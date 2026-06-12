@@ -27,7 +27,7 @@ export function RouteGuard({ children, requiredRole }: RouteGuardProps) {
     }
 
     if (!session) {
-      router.replace("/");
+      router.replace("/admin/login");
       return;
     }
 

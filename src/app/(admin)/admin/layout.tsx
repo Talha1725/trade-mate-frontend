@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { ADMIN_NAV_ITEMS } from "@/constant/nav-config";
 import type { AdminLayoutProps } from "@/types/admin";
@@ -8,6 +9,11 @@ import { useAuthStore } from "@/lib/stores/auth-store";
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const adminEmail = useAuthStore((state) => state.session?.user.email);
+  const pathname = usePathname();
+
+  if (pathname === "/admin/login") {
+    return <>{children}</>;
+  }
 
   return (
     <RouteGuard requiredRole="admin">

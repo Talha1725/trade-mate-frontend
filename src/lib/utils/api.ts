@@ -1,5 +1,6 @@
 import axios from "axios"
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios"
+import { useAuthStore } from "@/lib/stores/auth-store"
 
 const api: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || "",
@@ -9,6 +10,20 @@ const api: AxiosInstance = axios.create({
     "Content-Type": "application/json",
   },
 })
+
+api.interceptors.request.use(
+  (config) => {
+    const state = useAuthStore.getState()
+    const token = state.session?.token || (typeof document !== "undefined" ? document.cookie.split("; ").find(row => row.startsWith("token="))?.split("=")[1] : undefined)
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
 
 api.interceptors.response.use(
   (response) => response,

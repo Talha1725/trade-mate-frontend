@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SparklesIcon, SendIcon } from "lucide-react";
-import { mockInjectionTargetOptions } from "@/lib/mock-data/injection";
+import type { TradeInjectionTargetOption } from "@/types/admin";
 
 interface InjectTradeFormProps {
   prompt: string;
@@ -15,6 +15,7 @@ interface InjectTradeFormProps {
   onPreview: () => void;
   onInject: () => void;
   isInjecting?: boolean;
+  options: TradeInjectionTargetOption[];
 }
 
 export function InjectTradeForm({
@@ -25,6 +26,7 @@ export function InjectTradeForm({
   onPreview,
   onInject,
   isInjecting = false,
+  options,
 }: InjectTradeFormProps) {
   return (
     <SectionCard title="Natural Language Injection">
@@ -37,7 +39,7 @@ export function InjectTradeForm({
                 <SelectValue placeholder="Select Account" />
               </SelectTrigger>
               <SelectContent>
-                {mockInjectionTargetOptions.map((option) => (
+                {options.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
                   </SelectItem>
