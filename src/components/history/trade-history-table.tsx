@@ -18,18 +18,20 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { mockTrades } from "@/lib/mock-data/trades";
+import type { TradeHistoryTableProps } from "@/types";
 import type { Trade } from "@/types/trade";
 
-export function TradeHistoryTable() {
+export function TradeHistoryTable({ trades }: TradeHistoryTableProps) {
   const [search, setSearch] = useState("");
   const [actionFilter, setActionFilter] = useState("All");
   const [timeFilter, setTimeFilter] = useState("30 Days");
   const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 10;
+  const sourceTrades = trades?.length ? trades : mockTrades;
 
   const filteredAndSorted = useMemo(() => {
-    let result = [...mockTrades];
+    let result = [...sourceTrades];
 
     // Search filter
     if (search.trim()) {
@@ -52,7 +54,7 @@ export function TradeHistoryTable() {
     }
 
     return result;
-  }, [search, actionFilter, timeFilter]);
+  }, [search, actionFilter, timeFilter, sourceTrades]);
 
   const pageCount = Math.ceil(filteredAndSorted.length / PAGE_SIZE);
   const paginated = filteredAndSorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
