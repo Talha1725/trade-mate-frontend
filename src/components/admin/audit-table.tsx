@@ -19,7 +19,7 @@ const ACTION_BADGE: Record<string, string> = {
 const columns: ColumnDef<AuditLogEntry>[] = [
   {
     accessorKey: "timestamp",
-    header: ({ column }) => <SortableColumnHeader column={column} label="Time" />,
+    header: ({ column }) => <SortableColumnHeader column={column} label="Timestamp" />,
     cell: ({ row }) => <div className="text-muted-foreground">{row.getValue("timestamp")}</div>,
   },
   {
