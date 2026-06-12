@@ -1,5 +1,5 @@
 import { ROUTES } from "@/constant/routes"
-import { post } from "@/lib/utils/api"
+import { get, post } from "@/lib/utils/api"
 import type { AuthSession, LoginCredentials } from "@/types/auth"
 
 export const loginApi = {
@@ -7,19 +7,11 @@ export const loginApi = {
     return post(ROUTES.AUTH.LOGIN, credentials)
   },
 
-  logout(): Promise<void> {
-    return post(ROUTES.AUTH.LOGOUT)
+  me(): Promise<AuthSession> {
+    return get(ROUTES.AUTH.ME)
   },
 
-  refreshToken(): Promise<AuthSession> {
-    return post(ROUTES.AUTH.REFRESH)
-  },
-
-  forgotPassword(email: string): Promise<void> {
-    return post(ROUTES.AUTH.FORGOT_PASSWORD, { email })
-  },
-
-  resetPassword(token: string, password: string): Promise<void> {
-    return post(ROUTES.AUTH.RESET_PASSWORD, { token, password })
+  signout(): Promise<void> {
+    return post(ROUTES.AUTH.SIGNOUT)
   },
 }

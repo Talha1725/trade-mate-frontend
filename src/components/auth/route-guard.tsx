@@ -8,11 +8,24 @@ import type { RouteGuardProps } from "@/types";
 export function RouteGuard({ children, requiredRole }: RouteGuardProps) {
   const router = useRouter();
   const session = useAuthStore((state) => state.session);
+  const status = useAuthStore((state) => state.status);
+  const loadSession = useAuthStore((state) => state.loadSession);
+  const isCheckingSession = status === "idle" || status === "loading";
   const isAuthorized = Boolean(
     session && (!requiredRole || session.user.role === requiredRole),
   );
 
   React.useEffect(() => {
+    if (status === "idle") {
+      void loadSession();
+    }
+  }, [loadSession, status]);
+
+  React.useEffect(() => {
+    if (isCheckingSession) {
+      return;
+    }
+
     if (!session) {
       router.replace("/");
       return;
@@ -21,9 +34,9 @@ export function RouteGuard({ children, requiredRole }: RouteGuardProps) {
     if (requiredRole && session.user.role !== requiredRole) {
       router.replace(session.user.role === "admin" ? "/admin" : "/dashboard");
     }
-  }, [router, requiredRole, session]);
+  }, [isCheckingSession, router, requiredRole, session]);
 
-  if (!isAuthorized) {
+  if (isCheckingSession || !isAuthorized) {
     return null;
   }
 

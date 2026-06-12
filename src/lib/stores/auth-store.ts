@@ -2,34 +2,36 @@
 
 import { create } from "zustand";
 
-import type { AuthStore, LoginCredentials, UserRole } from "@/types";
-
-function getRoleFromEmail(email: string): UserRole {
-  return email.toLowerCase().includes("admin") ? "admin" : "trader";
-}
-
-function createSession(credentials: LoginCredentials) {
-  const email = credentials.email.trim();
-  const role = getRoleFromEmail(email);
-
-  return {
-    user: {
-      id: email,
-      email,
-      name: email.split("@")[0] || "Trader",
-      role,
-      createdAt: new Date().toISOString(),
-    },
-    token: `session_${email}`,
-    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 8).toISOString(),
-  };
-}
+import { loginApi } from "@/lib/services/auth.api";
+import type { AuthStore } from "@/types";
 
 export const useAuthStore = create<AuthStore>((set) => ({
   session: null,
-  signIn: (credentials) =>
-    set(() => ({
-      session: createSession(credentials),
-    })),
-  signOut: () => set({ session: null }),
+  status: "idle",
+  loadSession: async () => {
+    set({ status: "loading" });
+
+    try {
+      const session = await loginApi.me();
+      set({ session, status: "authenticated" });
+      return session;
+    } catch {
+      set({ session: null, status: "unauthenticated" });
+      return null;
+    }
+  },
+  signIn: async (credentials) => {
+    const session = await loginApi.login(credentials);
+    set({ session, status: "authenticated" });
+    return session;
+  },
+  signOut: async () => {
+    try {
+      await loginApi.signout();
+    } catch {
+      // Clear local auth state even if the server session is already expired.
+    } finally {
+      set({ session: null, status: "unauthenticated" });
+    }
+  },
 }));
