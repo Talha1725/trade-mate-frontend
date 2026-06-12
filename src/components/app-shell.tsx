@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ProfileMenu } from "@/components/profile-menu";
 import { PRIMARY_NAV_ICON_MAP } from "@/constant/nav-config";
+import { useAuthStore } from "@/lib/stores/auth-store";
 import type { AppShellProps, AppShellSidebarNavProps } from "@/types";
 
 function SidebarNav({
@@ -162,6 +163,19 @@ export function AppShell({
   className,
 }: AppShellProps) {
   const [collapsed, setCollapsed] = useState(false);
+  const sessionUserLabel = useAuthStore((state) => state.session?.user.email);
+  const signOut = useAuthStore((state) => state.signOut);
+  const resolvedUserLabel = userLabel ?? sessionUserLabel;
+
+  const handleSignOut = () => {
+    signOut();
+    if (onSignOut) {
+      onSignOut();
+      return;
+    }
+
+    window.location.href = "/";
+  };
 
   return (
     <div className={cn("flex h-screen bg-[#fafafa] font-sans text-[#1a1a1a] overflow-hidden", className)}>
@@ -193,12 +207,12 @@ export function AppShell({
             }
           </Button>
           <div className="flex items-center gap-3">
-            {userLabel ? (
+            {resolvedUserLabel ? (
               <span className="hidden text-sm text-muted-foreground sm:inline">
-                {userLabel}
+                {resolvedUserLabel}
               </span>
             ) : null}
-            <ProfileMenu userLabel={userLabel} onSignOut={onSignOut} />
+            <ProfileMenu userLabel={resolvedUserLabel} onSignOut={handleSignOut} />
           </div>
         </div>
 

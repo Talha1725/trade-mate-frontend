@@ -77,7 +77,7 @@ export function PreviewPanel({ preview, targetAccountLabel }: PreviewPanelProps)
           <HelpCircleIcon className="h-10 w-10 text-muted-foreground/50 mb-3" />
           <p className="font-semibold text-sm">No Preview Generated</p>
           <p className="text-xs max-w-[280px] mt-1">
-            Fill in the details in the injection form and click "Preview Trade" to inspect before executing.
+            Fill in the details in the injection form and click &quot;Preview Trade&quot; to inspect before executing.
           </p>
         </div>
       )}

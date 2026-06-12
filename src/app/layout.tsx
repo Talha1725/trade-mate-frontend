@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import type { RootLayoutProps } from "@/types";
 
 const poppins = Poppins({
   weight: ["300", "400", "500", "600", "700"],
@@ -18,11 +19,7 @@ export const metadata: Metadata = {
     "Trade Mate is a simulated brokerage and trading terminal built with Next.js and shadcn/ui.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html
       lang="en"
