@@ -35,7 +35,7 @@ export default async function AdminAccountPage({ params }: AdminAccountPageProps
     <div className="flex flex-col gap-6 w-full">
       <div className="flex items-center justify-between">
         <Link 
-          href="/admin"
+          href="/admin/accounts"
           className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "gap-2 -ml-2 text-muted-foreground hover:text-foreground")}
         >
           <ArrowLeftIcon className="h-4 w-4" />

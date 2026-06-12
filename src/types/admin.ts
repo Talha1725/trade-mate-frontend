@@ -57,3 +57,13 @@ export type InjectionPreview = {
   target: string;
   actions: PreviewAction[];
 };
+
+export interface TradePreviewData {
+  symbol: string;
+  direction: "Buy" | "Sell";
+  entry: number;
+  exit: number;
+  lotSize: number;
+  profit: number;
+}
+
