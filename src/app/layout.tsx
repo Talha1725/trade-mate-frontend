@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Providers } from "./providers";
 import type { RootLayoutProps } from "@/types";
 
 const poppins = Poppins({
@@ -26,7 +27,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
       className={`${poppins.variable} font-sans h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <TooltipProvider>{children}</TooltipProvider>
+        <Providers>
+          <TooltipProvider>{children}</TooltipProvider>
+        </Providers>
       </body>
     </html>
   );

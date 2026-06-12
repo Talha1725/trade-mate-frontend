@@ -2,7 +2,6 @@ import type {
   EquityCurveDatum,
   PositionSummary,
   RecentActivityItem,
-  StatCardDatum,
   SymbolBreakdownDatum,
 } from "@/types/dashboard";
 
@@ -37,9 +36,4 @@ export const mockRecentActivity: RecentActivityItem[] = [
   { symbol: "XAUUSD", action: "Close Buy", price: 2045.5, dateLabel: "3 hrs ago" },
 ];
 
-export const mockStatCards: StatCardDatum[] = [
-  { title: "Account Balance", value: "$12,450.80", description: "+2.3% from last month" },
-  { title: "Open Positions", value: "4", description: "2 long / 2 short" },
-  { title: "Today's P&L", value: "+$184.20", description: "+1.5% today", tone: "success" },
-  { title: "Win Rate", value: "68%", description: "Last 30 trades" },
-];
+
