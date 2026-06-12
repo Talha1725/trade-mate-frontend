@@ -8,9 +8,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { mockPositionSummary } from "@/lib/mock-data/dashboard";
+import type { OpenPositionsSummaryProps } from "@/types";
 
+export function OpenPositionsSummary({ positions }: OpenPositionsSummaryProps) {
+  const data = positions?.length ? positions : mockPositionSummary;
 
-export function OpenPositionsSummary() {
   return (
     <SectionCard title="Open Positions Summary">
       <div className="rounded-md border">
@@ -24,7 +26,7 @@ export function OpenPositionsSummary() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {mockPositionSummary.map((position) => (
+          {data.map((position) => (
             <TableRow key={position.symbol}>
               <TableCell className="font-medium">{position.symbol}</TableCell>
               <TableCell className={position.type === "Buy" ? "text-emerald-600" : "text-rose-600"}>

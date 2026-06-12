@@ -11,7 +11,9 @@ const api: AxiosInstance = axios.create({
 
 api.interceptors.request.use((config) => {
   const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null
-  if (token) {
+  const existingAuthHeader = config.headers?.Authorization ?? config.headers?.authorization
+
+  if (token && !existingAuthHeader) {
     config.headers.Authorization = `Bearer ${token}`
   }
   return config
@@ -21,6 +23,16 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      const requestAuthHeader =
+        error.config?.headers?.Authorization ?? error.config?.headers?.authorization
+      const storedToken = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null
+      const shouldResetStoredSession =
+        !requestAuthHeader || requestAuthHeader === `Bearer ${storedToken}`
+
+      if (!shouldResetStoredSession) {
+        return Promise.reject(error)
+      }
+
       if (typeof window !== "undefined") {
         localStorage.removeItem("auth_token")
         window.location.href = "/"

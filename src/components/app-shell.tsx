@@ -163,12 +163,12 @@ export function AppShell({
   className,
 }: AppShellProps) {
   const [collapsed, setCollapsed] = useState(false);
-  const sessionUserLabel = useAuthStore((state) => state.session?.user.email);
+  const resolvedUserLabel = userLabel;
   const signOut = useAuthStore((state) => state.signOut);
-  const resolvedUserLabel = userLabel ?? sessionUserLabel;
 
   const handleSignOut = () => {
     signOut();
+
     if (onSignOut) {
       onSignOut();
       return;
@@ -206,14 +206,14 @@ export function AppShell({
               : <PanelLeftCloseIcon className="h-4 w-4" />
             }
           </Button>
-          <div className="flex items-center gap-3">
-            {resolvedUserLabel ? (
+          {resolvedUserLabel ? (
+            <div className="flex items-center gap-3">
               <span className="hidden text-sm text-muted-foreground sm:inline">
                 {resolvedUserLabel}
               </span>
-            ) : null}
-            <ProfileMenu userLabel={resolvedUserLabel} onSignOut={handleSignOut} />
-          </div>
+              <ProfileMenu userLabel={resolvedUserLabel} onSignOut={handleSignOut} />
+            </div>
+          ) : null}
         </div>
 
         {/* Page content */}
