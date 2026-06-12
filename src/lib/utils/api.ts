@@ -14,7 +14,7 @@ const api: AxiosInstance = axios.create({
 api.interceptors.request.use(
   (config) => {
     const state = useAuthStore.getState()
-    const token = state.session?.token || (typeof document !== "undefined" ? document.cookie.split("; ").find(row => row.startsWith("token="))?.split("=")[1] : undefined)
+    const token = state.session?.token
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }

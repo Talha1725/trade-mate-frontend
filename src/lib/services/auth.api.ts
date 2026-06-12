@@ -1,13 +1,11 @@
 import { ROUTES } from "@/constant/routes"
 import { get, post } from "@/lib/utils/api"
 import type { AuthSession, LoginCredentials } from "@/types/auth"
+import { useAuthStore } from "@/lib/stores/auth-store"
 
 export const loginApi = {
   async login(credentials: LoginCredentials): Promise<AuthSession> {
     const res = await post<{ token: string; user: { id: string; email: string; name: string; role: string } }>(ROUTES.AUTH.LOGIN, credentials)
-    if (res.token && typeof window !== "undefined") {
-      document.cookie = `token=${res.token}; path=/; max-age=86400; SameSite=Lax`
-    }
     return {
       user: {
         id: res.user.id,
@@ -21,7 +19,7 @@ export const loginApi = {
 
   async me(): Promise<AuthSession> {
     const res = await get<{ user: { id: string; email: string; name: string; role: string } }>(ROUTES.AUTH.ME)
-    const token = typeof document !== "undefined" ? document.cookie.split("; ").find(row => row.startsWith("token="))?.split("=")[1] : undefined
+    const token = useAuthStore.getState().session?.token
     return {
       user: {
         id: res.user.id,
@@ -34,8 +32,6 @@ export const loginApi = {
   },
 
   async signout(): Promise<void> {
-    if (typeof window !== "undefined") {
-      document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
-    }
+    useAuthStore.getState().clearToken()
   },
 }

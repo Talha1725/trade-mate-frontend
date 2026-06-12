@@ -34,4 +34,15 @@ export const useAuthStore = create<AuthStore>((set) => ({
       set({ session: null, status: "unauthenticated" });
     }
   },
+  clearToken: () => {
+    set((state) => {
+      if (!state.session) return {};
+      return {
+        session: {
+          ...state.session,
+          token: undefined,
+        },
+      };
+    });
+  },
 }));

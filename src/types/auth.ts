@@ -43,6 +43,7 @@ export type AuthStoreActions = {
   loadSession: () => Promise<AuthSession | null>;
   signIn: (credentials: LoginCredentials) => Promise<AuthSession>;
   signOut: () => Promise<void>;
+  clearToken: () => void;
 };
 
 export type AuthStore = AuthStoreState & AuthStoreActions;
