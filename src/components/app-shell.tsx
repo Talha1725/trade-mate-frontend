@@ -163,12 +163,12 @@ export function AppShell({
   className,
 }: AppShellProps) {
   const [collapsed, setCollapsed] = useState(false);
-  const sessionUserLabel = useAuthStore((state) => state.session?.user.email);
+  const resolvedUserLabel = userLabel;
   const signOut = useAuthStore((state) => state.signOut);
-  const resolvedUserLabel = userLabel ?? sessionUserLabel;
 
   const handleSignOut = () => {
     signOut();
+
     if (onSignOut) {
       onSignOut();
       return;

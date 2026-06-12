@@ -17,6 +17,20 @@ export const loginApi = {
     }
   },
 
+  async demo(): Promise<AuthSession> {
+    const response = await post<AuthLoginResponse>(ROUTES.AUTH.DEMO)
+    const now = new Date().toISOString()
+
+    return {
+      token: response.token,
+      user: {
+        ...response.user,
+        createdAt: now,
+      },
+      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 8).toISOString(),
+    }
+  },
+
   logout(): Promise<void> {
     return post(ROUTES.AUTH.LOGOUT)
   },

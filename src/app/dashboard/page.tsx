@@ -1,6 +1,14 @@
+"use client";
+
+import * as React from "react";
+
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
-import { PRIMARY_NAV_ITEMS } from "../../constant/nav-config";
+import { PRIMARY_NAV_ITEMS } from "@/constant/nav-config";
+import { dashboardApi } from "@/lib/services/dashboard.api";
+import { ensurePublicTraderSession } from "@/lib/services/public-trader-session";
+import { buildDashboardData } from "@/lib/utils/trader-data";
+import type { AccountLedgerResponse, UserPortfolioResponse } from "@/types/dashboard";
 import { EquityChart } from "@/components/dashboard/equity-chart";
 import { BreakdownWidgets } from "@/components/dashboard/breakdown-widgets";
 import { StatCards } from "@/components/dashboard/stat-cards";
@@ -9,6 +17,72 @@ import { RecentActivity } from "@/components/dashboard/recent-activity";
 import { LiveTradingView } from "@/components/dashboard/live-trading-view";
 
 export default function DashboardPage() {
+  const [token, setToken] = React.useState<string | null>(null);
+  const [snapshot, setSnapshot] = React.useState<UserPortfolioResponse | null>(null);
+  const [ledger, setLedger] = React.useState<AccountLedgerResponse | null>(null);
+
+  React.useEffect(() => {
+    let isMounted = true;
+
+    ensurePublicTraderSession()
+      .then((session) => {
+        if (!isMounted) {
+          return;
+        }
+
+        setToken(session.token);
+      })
+      .catch(() => {
+        if (isMounted) {
+          setToken(null);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  React.useEffect(() => {
+    if (!token) {
+      return;
+    }
+
+    let isMounted = true;
+
+    (async () => {
+      try {
+        const accountSnapshot = await dashboardApi.getPortfolioSnapshot(token);
+
+        if (!isMounted) {
+          return;
+        }
+
+        setSnapshot(accountSnapshot);
+
+        const accountLedger = await dashboardApi.getAccountLedger(accountSnapshot.account.id, token);
+
+        if (!isMounted) {
+          return;
+        }
+
+        setLedger(accountLedger);
+      } catch {
+        if (isMounted) {
+          setSnapshot(null);
+          setLedger(null);
+        }
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [token]);
+
+  const dashboardData = snapshot ? buildDashboardData(snapshot, ledger ?? undefined) : null;
+  const liveSymbol = dashboardData?.positions[0]?.symbol;
+
   return (
     <AppShell navItems={PRIMARY_NAV_ITEMS}>
       <div className="flex w-full flex-col gap-6">
@@ -17,22 +91,26 @@ export default function DashboardPage() {
           description="Account overview, equity curve, and trading performance."
         />
 
-        <LiveTradingView />
+        <LiveTradingView
+          symbol={liveSymbol}
+          positions={dashboardData?.openPositionsSummary}
+          recentActivity={dashboardData?.recentActivity}
+        />
 
-        <StatCards />
+        <StatCards stats={dashboardData?.statCards} />
 
         <div className="grid gap-6 md:grid-cols-3">
           <div className="md:col-span-2">
-            <EquityChart />
+            <EquityChart data={dashboardData?.equityCurve} />
           </div>
           <div className="md:col-span-1">
-            <BreakdownWidgets />
+            <BreakdownWidgets data={dashboardData?.breakdown} />
           </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          <OpenPositionsSummary />
-          <RecentActivity />
+          <OpenPositionsSummary positions={dashboardData?.openPositionsSummary} />
+          <RecentActivity items={dashboardData?.recentActivity} />
         </div>
       </div>
     </AppShell>

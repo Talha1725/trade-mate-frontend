@@ -70,3 +70,42 @@ export type UserPortfolioResponse = {
   account: PortfolioAccount;
   positions: PortfolioPosition[];
 };
+
+export type PortfolioTrade = {
+  id: string;
+  accountId: string;
+  userId: string | null;
+  symbol: string;
+  internalSymbol: string;
+  direction: PortfolioDirection;
+  lots: string;
+  entryPrice: string;
+  exitPrice: string | null;
+  stopLoss: string | null;
+  takeProfit: string | null;
+  openedAt: string;
+  closedAt: string | null;
+  pnl: string;
+  status: PortfolioStatus;
+  source: string;
+  notes: string | null;
+  positionId: string | null;
+};
+
+export type AccountLedgerResponse = UserPortfolioResponse & {
+  trades: PortfolioTrade[];
+};
+
+export type TradePositionRecord = PortfolioPosition;
+
+export type TradeOpenResponse = {
+  trade: PortfolioTrade;
+  position: TradePositionRecord;
+  account: PortfolioAccount;
+};
+
+export type TradeCloseResponse = {
+  trade: PortfolioTrade;
+  position: TradePositionRecord;
+  account: PortfolioAccount;
+};

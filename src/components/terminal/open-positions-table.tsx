@@ -10,14 +10,16 @@ import { SortableColumnHeader } from "@/components/sortable-column-header";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { mockPositions } from "@/lib/mock-data/positions";
+import type { OpenPositionsTableProps } from "@/types";
 import type { Position } from "@/types/trade";
 
-export function OpenPositionsTable() {
+export function OpenPositionsTable({ positions, onClosePosition }: OpenPositionsTableProps) {
   const [search, setSearch] = useState("");
   const [actionFilter, setActionFilter] = useState("All");
+  const sourcePositions = positions?.length ? positions : mockPositions;
 
   const sortedPositions = useMemo(() => {
-    let result = [...mockPositions];
+    let result = [...sourcePositions];
 
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -31,7 +33,7 @@ export function OpenPositionsTable() {
     }
 
     return result;
-  }, [actionFilter, search]);
+  }, [actionFilter, search, sourcePositions]);
 
   const columns: ColumnDef<Position>[] = [
     {
@@ -87,8 +89,14 @@ export function OpenPositionsTable() {
     },
     {
       id: "actions",
-      cell: () => (
-        <Button variant="outline" size="sm" className="h-7 text-xs">
+      cell: ({ row }) => (
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-7 text-xs"
+          disabled={!onClosePosition}
+          onClick={() => onClosePosition?.(row.original)}
+        >
           Close
         </Button>
       ),
