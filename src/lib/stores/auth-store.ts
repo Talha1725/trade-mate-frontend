@@ -2,34 +2,63 @@
 
 import { create } from "zustand";
 
-import type { AuthStore, LoginCredentials, UserRole } from "@/types";
+import type { AuthSession, AuthStore } from "@/types";
 
-function getRoleFromEmail(email: string): UserRole {
-  return email.toLowerCase().includes("admin") ? "admin" : "trader";
+const STORAGE_KEY = "auth_session";
+
+function readStoredSession(): AuthSession | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const raw = window.localStorage.getItem(STORAGE_KEY);
+
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as AuthSession;
+    if (!parsed?.token || !parsed?.user?.email) {
+      return null;
+    }
+
+    return parsed;
+  } catch {
+    window.localStorage.removeItem(STORAGE_KEY);
+    window.localStorage.removeItem("auth_token");
+    return null;
+  }
 }
 
-function createSession(credentials: LoginCredentials) {
-  const email = credentials.email.trim();
-  const role = getRoleFromEmail(email);
+function persistSession(session: AuthSession) {
+  if (typeof window === "undefined") {
+    return;
+  }
 
-  return {
-    user: {
-      id: email,
-      email,
-      name: email.split("@")[0] || "Trader",
-      role,
-      createdAt: new Date().toISOString(),
-    },
-    token: `session_${email}`,
-    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 8).toISOString(),
-  };
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+  window.localStorage.setItem("auth_token", session.token);
+}
+
+function clearStoredSession() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.removeItem(STORAGE_KEY);
+  window.localStorage.removeItem("auth_token");
 }
 
 export const useAuthStore = create<AuthStore>((set) => ({
-  session: null,
-  signIn: (credentials) =>
-    set(() => ({
-      session: createSession(credentials),
-    })),
-  signOut: () => set({ session: null }),
+  session: readStoredSession(),
+  signIn: (session) =>
+    set(() => {
+      persistSession(session);
+      return { session };
+    }),
+  signOut: () =>
+    set(() => {
+      clearStoredSession();
+      return { session: null };
+    }),
 }));

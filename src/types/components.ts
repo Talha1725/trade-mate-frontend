@@ -74,3 +74,11 @@ export type LoginFormProps = {
   redirectTo?: string;
   className?: string;
 };
+
+export type TradingChartProps = {
+  symbol?: string;
+  title?: string;
+  description?: string;
+  className?: string;
+  contentClassName?: string;
+};

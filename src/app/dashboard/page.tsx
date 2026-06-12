@@ -6,15 +6,18 @@ import { BreakdownWidgets } from "@/components/dashboard/breakdown-widgets";
 import { StatCards } from "@/components/dashboard/stat-cards";
 import { OpenPositionsSummary } from "@/components/dashboard/open-positions-summary";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
+import { LiveTradingView } from "@/components/dashboard/live-trading-view";
 
 export default function DashboardPage() {
   return (
-    <AppShell navItems={PRIMARY_NAV_ITEMS} userLabel="trader@trademate.app">
+    <AppShell navItems={PRIMARY_NAV_ITEMS}>
       <div className="flex w-full flex-col gap-6">
         <PageHeader
           title="Dashboard"
           description="Account overview, equity curve, and trading performance."
         />
+
+        <LiveTradingView />
 
         <StatCards />
 

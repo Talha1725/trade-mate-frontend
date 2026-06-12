@@ -2,6 +2,7 @@ import { ROUTES } from "@/constant/routes"
 import { get } from "@/lib/utils/api"
 import type {
   EquityCurveDatum,
+  UserPortfolioResponse,
   RecentActivityItem,
   StatCardDatum,
   SymbolBreakdownDatum,
@@ -31,5 +32,9 @@ export const dashboardApi = {
 
   getStatCards(): Promise<StatCardDatum[]> {
     return get(ROUTES.DASHBOARD.STAT_CARDS)
+  },
+
+  getUserPortfolio(): Promise<UserPortfolioResponse> {
+    return get(ROUTES.POSITION.LIST)
   },
 }
