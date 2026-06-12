@@ -28,10 +28,6 @@ function getInitials(userLabel?: string) {
 
 export function ProfileMenu({ userLabel, onSignOut }: ProfileMenuProps) {
   const handleSignOut = () => {
-    localStorage.removeItem("user_email");
-    localStorage.removeItem("user_role");
-    localStorage.removeItem("admin_email");
-
     if (onSignOut) {
       onSignOut();
       return;

@@ -57,7 +57,7 @@ export function InjectTradeForm({
             onChange={(e) => setPrompt(e.target.value)}
           />
           <p className="text-xs text-muted-foreground">
-            Example: <span className="font-mono text-foreground italic">"Add a trade opened today that made $126 profit"</span>
+            Example: <span className="font-mono text-foreground italic">&quot;Add a trade opened today that made $126 profit&quot;</span>
           </p>
         </div>
 
