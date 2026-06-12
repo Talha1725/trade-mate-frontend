@@ -7,13 +7,14 @@ import { ArrowRightIcon, EyeIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuthStore } from "@/lib/stores/auth-store";
 import { cn } from "@/lib/utils";
 import type { AuthStatus, LoginFormValues, LoginFormProps } from "@/types";
 
 const initialValues: LoginFormValues = {
   email: "",
   password: "",
-  rememberMe: true, // keeping it in state but not rendering
+  rememberMe: true,
 };
 
 export function LoginForm({
@@ -22,6 +23,7 @@ export function LoginForm({
   className,
 }: LoginFormProps) {
   const router = useRouter();
+  const signIn = useAuthStore((state) => state.signIn);
   const [values, setValues] = React.useState<LoginFormValues>(initialValues);
   const [status, setStatus] = React.useState<AuthStatus>("idle");
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
@@ -42,6 +44,7 @@ export function LoginForm({
       } else {
         await new Promise((resolve) => setTimeout(resolve, 400));
       }
+      signIn(values);
       setStatus("success");
       router.push(redirectTo);
     } catch (error) {
