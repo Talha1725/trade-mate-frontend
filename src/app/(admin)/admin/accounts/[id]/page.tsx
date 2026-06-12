@@ -116,24 +116,19 @@ export default function AdminAccountPage({ params }: AdminAccountPageProps) {
               <p className="font-medium text-lg text-emerald-600">${formattedEquity}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Status</p>
-              <div className={cn("inline-flex items-center mt-1 px-2.5 py-0.5 rounded-full text-xs font-semibold", statusClassName)}>
-                {account.status}
-              </div>
-            </div>
-            <div className="pt-4 border-t flex flex-col gap-2">
-              <Button
-                variant="outline"
+              <p className="text-sm text-muted-foreground mb-1">Status</p>
+              <button
                 onClick={toggleStatus}
                 className={cn(
-                  "w-full",
-                  isSuspended
-                    ? "text-emerald-600 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
-                    : "text-rose-600 border-rose-200 hover:bg-rose-50 hover:text-rose-700"
+                  "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold transition-colors hover:opacity-80 cursor-pointer outline-none", 
+                  statusClassName
                 )}
+                title={statusActionLabel}
               >
-                {statusActionLabel}
-              </Button>
+                {account.status}
+              </button>
+            </div>
+            <div className="pt-4 border-t flex flex-col gap-2">
               <Button onClick={resetBalance} variant="outline" className="w-full">Reset Balance</Button>
             </div>
           </div>
