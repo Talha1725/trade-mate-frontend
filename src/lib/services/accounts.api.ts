@@ -54,12 +54,15 @@ export const accountsApi = {
     return Array.from(ids)
   },
 
-  async getAccounts(): Promise<AccountSummary[]> {
+  async getAccounts(opts?: { page?: number; limit?: number }): Promise<{ items: AccountSummary[]; total: number }> {
+    const { page = 1, limit = 25 } = opts ?? {}
     const ids = await this.discoverAccountIds()
+    const total = ids.length
+    const paged = ids.slice((page - 1) * limit, page * limit)
     const accounts: AccountSummary[] = []
 
     await Promise.all(
-      ids.map(async (id) => {
+      paged.map(async (id) => {
         try {
           const res = await get<{
             account: {
@@ -106,7 +109,7 @@ export const accountsApi = {
       })
     )
 
-    return accounts
+    return { items: accounts, total }
   },
 
   async getAccountById(id: string): Promise<AccountSummary> {
@@ -151,9 +154,10 @@ export const accountsApi = {
     }
   },
 
-  async getAccountTrades(id: string): Promise<Trade[]> {
+  async getAccountTrades(id: string, opts?: { page?: number; limit?: number }): Promise<{ items: Trade[]; total: number }> {
+    const { page = 1, limit = 25 } = opts ?? {}
     const res = await get<{ trades: any[] }>(ROUTES.ACCOUNT.BY_ID(id))
-    return res.trades.map((t) => ({
+    const all = res.trades.map((t) => ({
       id: t.id,
       symbol: t.symbol,
       type: t.direction === "BUY" ? "Buy" : "Sell",
@@ -163,7 +167,11 @@ export const accountsApi = {
       profit: parseFloat(t.pnl),
       status: t.status === "OPEN" ? "Open" : "Closed",
       time: t.openedAt,
-    }))
+    })) as Trade[]
+    return {
+      items: all.slice((page - 1) * limit, page * limit),
+      total: all.length,
+    }
   },
 
   async updateAccount(id: string, data: Partial<AccountSummary>): Promise<AccountSummary> {

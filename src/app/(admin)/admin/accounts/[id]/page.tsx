@@ -91,13 +91,25 @@ export default function AdminAccountPage({ params }: AdminAccountPageProps) {
   return (
     <div className="flex flex-col gap-6 w-full">
       <div className="flex items-center justify-between">
-        <Link 
+        <Link
           href="/admin/accounts"
           className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "gap-2 -ml-2 text-muted-foreground hover:text-foreground")}
         >
           <ArrowLeftIcon className="h-4 w-4" />
           Back to Accounts
         </Link>
+        <Button
+          onClick={toggleStatus}
+          size="sm"
+          variant="outline"
+          className={cn(
+            isSuspended
+              ? "text-emerald-600 border-emerald-200 hover:bg-emerald-50"
+              : "text-rose-600 border-rose-200 hover:bg-rose-50"
+          )}
+        >
+          {statusActionLabel}
+        </Button>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">

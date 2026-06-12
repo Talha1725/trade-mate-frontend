@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { SortableColumnHeader } from "@/components/sortable-column-header";
 import { SectionCard } from "@/components/section-card";
@@ -11,12 +11,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Edit2Icon, TrashIcon, PlusIcon } from "lucide-react";
 import { accountsApi } from "@/lib/services/accounts.api";
 import { post, patch, del } from "@/lib/utils/api";
+import { ROUTES } from "@/constant/routes";
 import type { Trade, TradeEditorProps } from "@/types/trade";
 import { toast } from "sonner";
+
+const PAGE_SIZE = 10;
 
 export function TradeEditor({ accountId }: TradeEditorProps) {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
 
@@ -31,21 +36,22 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
     notes: "",
   });
 
-  const fetchTrades = async () => {
+  const fetchTrades = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await accountsApi.getAccountTrades(accountId);
-      setTrades(data);
+      const data = await accountsApi.getAccountTrades(accountId, { page, limit: PAGE_SIZE });
+      setTrades(data.items);
+      setTotalCount(data.total);
     } catch {
       toast.error("Failed to load account trades.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [accountId, page]);
 
   useEffect(() => {
     fetchTrades();
-  }, [accountId]);
+  }, [fetchTrades]);
 
   const handleEdit = (trade: Trade) => {
     setEditingTrade(trade);
@@ -65,8 +71,9 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
   const handleDelete = async (tradeId: string) => {
     if (!confirm("Are you sure you want to delete this trade?")) return;
     try {
-      await del(`/api/admin/trades/${tradeId}`);
+      await del(ROUTES.ADMIN.TRADE_BY_ID(tradeId));
       toast.success("Trade deleted successfully.");
+      setPage(1);
       fetchTrades();
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Failed to delete trade.");
@@ -89,25 +96,17 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
       };
 
       if (editingTrade) {
-        await patch(`/api/admin/trades/${editingTrade.id}`, payload);
+        await patch(ROUTES.ADMIN.TRADE_BY_ID(editingTrade.id), payload);
         toast.success("Trade updated successfully!");
       } else {
-        await post("/api/admin/trades", payload);
+        await post(ROUTES.ADMIN.TRADES, payload);
         toast.success("Trade injected successfully!");
       }
       
       setShowForm(false);
       setEditingTrade(null);
-      setFormData({
-        symbol: "",
-        direction: "BUY",
-        lots: 1.0,
-        entryPrice: 1.0,
-        exitPrice: 1.0,
-        stopLoss: "",
-        takeProfit: "",
-        notes: "",
-      });
+      setFormData({ symbol: "", direction: "BUY", lots: 1.0, entryPrice: 1.0, exitPrice: 1.0, stopLoss: "", takeProfit: "", notes: "" });
+      setPage(1);
       fetchTrades();
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Operation failed.");
@@ -297,7 +296,15 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
           Loading trades...
         </div>
       ) : (
-        <DataTable columns={columns} data={trades} pageSize={100} />
+        <DataTable
+          columns={columns}
+          data={trades}
+          serverPagination={{
+            page,
+            pageCount: Math.ceil(totalCount / PAGE_SIZE),
+            onPageChange: setPage,
+          }}
+        />
       )}
     </SectionCard>
   );

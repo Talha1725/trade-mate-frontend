@@ -37,7 +37,7 @@ export default function AdminDashboardPage() {
         ]);
 
         setStats(statsData);
-        setRecentAccounts(accountsData.slice(0, 5));
+        setRecentAccounts(accountsData.items.slice(0, 5));
         setRecentAudits(auditsData.slice(0, 5));
 
         if (tradesData.length > 0) {

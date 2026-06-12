@@ -64,6 +64,8 @@ export function AuditTable() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [actionFilter, setActionFilter] = useState("All");
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const fetchAudits = async () => {
     setLoading(true);
@@ -98,6 +100,9 @@ export function AuditTable() {
     return result;
   }, [audits, search, actionFilter]);
 
+  const pageCount = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -129,7 +134,11 @@ export function AuditTable() {
           Loading audit logs...
         </div>
       ) : (
-        <DataTable columns={columns} data={filtered} pageSize={100} />
+        <DataTable
+          columns={columns}
+          data={paginated}
+          serverPagination={{ page, pageCount, onPageChange: setPage }}
+        />
       )}
     </div>
   );

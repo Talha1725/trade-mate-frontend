@@ -8,7 +8,7 @@ import { accountsApi } from "./accounts.api"
 
 export const injectApi = {
   async getInjectionTargets(): Promise<TradeInjectionTargetOption[]> {
-    const accounts = await accountsApi.getAccounts()
+    const { items: accounts } = await accountsApi.getAccounts({ limit: 1000 })
     return accounts.map((a) => ({
       value: a.id,
       label: `${a.name} (${a.id}) - $${a.balance.toLocaleString()}`,

@@ -1,7 +1,7 @@
 import { ROUTES } from "@/constant/routes"
 import { get, patch, del } from "@/lib/utils/api"
 import type { Trade } from "@/types/trade"
-import { useAuthStore } from "@/lib/stores/auth-store"
+import { accountsApi } from "@/lib/services/accounts.api"
 
 export const adminApi = {
   async getAdminTrades(): Promise<Trade[]> {
@@ -44,9 +44,9 @@ export const adminApi = {
         }
       }
 
-      const session = useAuthStore.getState().session
-      if (session?.user?.id) {
-        uniqueAccounts.add(`${session.user.id}-demo-account`)
+      const { items: accountItems } = await accountsApi.getAccounts()
+      for (const a of accountItems) {
+        if (a.id) uniqueAccounts.add(a.id)
       }
 
       let totalProfit = 0

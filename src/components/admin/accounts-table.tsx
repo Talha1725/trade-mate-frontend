@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { SortableColumnHeader } from "@/components/sortable-column-header";
 import { DataTable } from "@/components/ui/data-table";
@@ -89,11 +89,15 @@ const columns: ColumnDef<AccountSummary>[] = [
   },
 ];
 
+const PAGE_SIZE = 10;
+
 export function AccountsTable() {
   const [accounts, setAccounts] = useState<AccountSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   const [showProvisionForm, setShowProvisionForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -105,22 +109,23 @@ export function AccountsTable() {
   });
   const [provisioning, setProvisioning] = useState(false);
 
-  const fetchAccounts = async () => {
+  const fetchAccounts = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await accountsApi.getAccounts();
-      setAccounts(data);
+      const data = await accountsApi.getAccounts({ page, limit: PAGE_SIZE });
+      setAccounts(data.items);
+      setTotalCount(data.total);
     } catch (e) {
       console.error(e);
       toast.error("Failed to load accounts.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [page]);
 
   useEffect(() => {
     fetchAccounts();
-  }, []);
+  }, [fetchAccounts]);
 
   const handleProvision = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -147,17 +152,21 @@ export function AccountsTable() {
 
       toast.success("User account provisioned successfully!");
       setShowProvisionForm(false);
-      setFormData({
-        email: "",
-        password: "",
-        name: "",
-        role: "TRADER",
-        balance: 10000,
-      });
+      setFormData({ email: "", password: "", name: "", role: "TRADER", balance: 10000 });
+      setPage(1);
       fetchAccounts();
     } catch (err: any) {
       console.error(err);
-      toast.error(err.response?.data?.message || "Failed to provision user.");
+      const serverMsg: string = err.response?.data?.message ?? "";
+      const isDuplicate =
+        serverMsg.toLowerCase().includes("already") ||
+        serverMsg.toLowerCase().includes("duplicate") ||
+        serverMsg.toLowerCase().includes("unique") ||
+        err.response?.data?.code === "P2002";
+      toast.error(isDuplicate
+        ? "A user with this email already exists."
+        : serverMsg || "Failed to provision user."
+      );
     } finally {
       setProvisioning(false);
     }
@@ -179,6 +188,8 @@ export function AccountsTable() {
     }
     return result;
   }, [accounts, search, statusFilter]);
+
+  const pageCount = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
     <div className="flex flex-col gap-4">
@@ -264,7 +275,15 @@ export function AccountsTable() {
           Loading discovered accounts...
         </div>
       ) : (
-        <DataTable columns={columns} data={filtered} pageSize={100} />
+        <DataTable
+          columns={columns}
+          data={filtered}
+          serverPagination={{
+            page,
+            pageCount,
+            onPageChange: setPage,
+          }}
+        />
       )}
     </div>
   );

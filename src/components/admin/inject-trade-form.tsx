@@ -35,7 +35,7 @@ export function InjectTradeForm({
           <label className="text-sm font-semibold text-foreground">Select Account</label>
           <div className="max-w-xs">
             <Select value={target} onValueChange={(value) => setTarget(value ?? "")}>
-              <SelectTrigger id="account-selector">
+              <SelectTrigger id="account-selector" className="w-full">
                 <SelectValue placeholder="Select Account" />
               </SelectTrigger>
               <SelectContent>

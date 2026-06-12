@@ -15,6 +15,8 @@ import type { Position } from "@/types/trade";
 export function OpenPositionsTable() {
   const [search, setSearch] = useState("");
   const [actionFilter, setActionFilter] = useState("All");
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const sortedPositions = useMemo(() => {
     let result = [...mockPositions];
@@ -32,6 +34,9 @@ export function OpenPositionsTable() {
 
     return result;
   }, [actionFilter, search]);
+
+  const pageCount = Math.ceil(sortedPositions.length / PAGE_SIZE);
+  const paginated = sortedPositions.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const columns: ColumnDef<Position>[] = [
     {
@@ -125,7 +130,11 @@ export function OpenPositionsTable() {
         </div>
       </div>
       <div className="overflow-y-auto max-h-[300px] min-h-[200px]">
-        <DataTable columns={columns} data={sortedPositions} />
+        <DataTable
+          columns={columns}
+          data={paginated}
+          serverPagination={{ page, pageCount, onPageChange: setPage }}
+        />
       </div>
     </SectionCard>
   );

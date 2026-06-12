@@ -93,7 +93,7 @@ export default function AdminInjectPage() {
     setIsInjecting(true);
     try {
       if (target === "All Active Accounts") {
-        const accounts = await accountsApi.getAccounts();
+        const { items: accounts } = await accountsApi.getAccounts({ limit: 1000 });
         const activeIds = accounts.filter((a) => a.status === "Active").map((a) => a.id);
         if (activeIds.length === 0) {
           toast.error("No active accounts found for bulk push.");

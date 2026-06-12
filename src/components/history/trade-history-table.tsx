@@ -25,6 +25,8 @@ export function TradeHistoryTable() {
   const [actionFilter, setActionFilter] = useState("All");
   const [timeFilter, setTimeFilter] = useState("30 Days");
   const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const filteredAndSorted = useMemo(() => {
     let result = [...mockTrades];
@@ -51,6 +53,9 @@ export function TradeHistoryTable() {
 
     return result;
   }, [search, actionFilter, timeFilter]);
+
+  const pageCount = Math.ceil(filteredAndSorted.length / PAGE_SIZE);
+  const paginated = filteredAndSorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const columns: ColumnDef<Trade>[] = [
     {
@@ -162,7 +167,11 @@ export function TradeHistoryTable() {
         </div>
       </div>
 
-      <DataTable columns={columns} data={filteredAndSorted} pageSize={100} />
+      <DataTable
+        columns={columns}
+        data={paginated}
+        serverPagination={{ page, pageCount, onPageChange: setPage }}
+      />
 
       {/* Centered Trade Detail Dialog */}
       <Dialog open={!!selectedTrade} onOpenChange={(open) => !open && setSelectedTrade(null)}>
