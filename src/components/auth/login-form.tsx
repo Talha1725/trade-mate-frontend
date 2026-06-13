@@ -7,6 +7,7 @@ import { ArrowRightIcon, EyeIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { loginApi } from "@/lib/services/auth.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { cn } from "@/lib/utils";
 import type { AuthStatus, LoginFormValues, LoginFormProps } from "@/types";
@@ -19,7 +20,7 @@ const initialValues: LoginFormValues = {
 
 export function LoginForm({
   onSubmit,
-  redirectTo = "/dashboard",
+  redirectTo = "/admin",
   className,
 }: LoginFormProps) {
   const router = useRouter();
@@ -42,9 +43,9 @@ export function LoginForm({
       if (onSubmit) {
         await onSubmit(values);
       } else {
-        await new Promise((resolve) => setTimeout(resolve, 400));
+        const session = await loginApi.login(values);
+        signIn(session);
       }
-      signIn(values);
       setStatus("success");
       router.push(redirectTo);
     } catch (error) {
@@ -68,7 +69,7 @@ export function LoginForm({
           Welcome back
         </h2>
         <p className="text-sm text-gray-500">
-          Access the internal review generation dashboard.
+          Access the internal admin dashboard.
         </p>
       </div>
 

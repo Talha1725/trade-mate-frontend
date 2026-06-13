@@ -2,6 +2,7 @@ export const ROUTES = {
   /** Auth Module */
   AUTH: {
     LOGIN:           `/api/auth/login`,
+    DEMO:            `/api/auth/demo`,
     LOGOUT:          `/api/auth/logout`,
     REGISTER:        `/api/auth/register`,
     REFRESH:         `/api/auth/refresh`,
@@ -23,6 +24,7 @@ export const ROUTES = {
     LIST:           `/api/trades`,
     OPEN:           `/api/trades/open`,
     CLOSE:          `/api/trades/close`,
+    ACCOUNT: (id: string) => `/api/trades/account/${id}`,
     BY_ID:  (id: string) => `/api/trades/${id}`,
     CREATE:         `/api/trades/create`,
     HISTORY:        `/api/trades/history`,

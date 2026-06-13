@@ -1,10 +1,7 @@
-"use client";
+import { loginApi } from "@/lib/services/auth.api";
+import type { AuthSession } from "@/types/auth";
 
-import { create } from "zustand";
-
-import type { AuthSession, AuthStore } from "@/types";
-
-const STORAGE_KEY = "auth_session";
+const STORAGE_KEY = "public_trader_session";
 
 function readStoredSession(): AuthSession | null {
   if (typeof window === "undefined") {
@@ -19,6 +16,7 @@ function readStoredSession(): AuthSession | null {
 
   try {
     const parsed = JSON.parse(raw) as AuthSession;
+
     if (!parsed?.token || !parsed?.user?.email) {
       return null;
     }
@@ -26,7 +24,6 @@ function readStoredSession(): AuthSession | null {
     return parsed;
   } catch {
     window.localStorage.removeItem(STORAGE_KEY);
-    window.localStorage.removeItem("auth_token");
     return null;
   }
 }
@@ -37,28 +34,24 @@ function persistSession(session: AuthSession) {
   }
 
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-  window.localStorage.setItem("auth_token", session.token);
 }
 
-function clearStoredSession() {
+export async function ensurePublicTraderSession(): Promise<AuthSession> {
+  const stored = readStoredSession();
+
+  if (stored) {
+    return stored;
+  }
+
+  const session = await loginApi.demo();
+  persistSession(session);
+  return session;
+}
+
+export function clearPublicTraderSession() {
   if (typeof window === "undefined") {
     return;
   }
 
   window.localStorage.removeItem(STORAGE_KEY);
-  window.localStorage.removeItem("auth_token");
 }
-
-export const useAuthStore = create<AuthStore>((set) => ({
-  session: readStoredSession(),
-  signIn: (session) =>
-    set(() => {
-      persistSession(session);
-      return { session };
-    }),
-  signOut: () =>
-    set(() => {
-      clearStoredSession();
-      return { session: null };
-    }),
-}));

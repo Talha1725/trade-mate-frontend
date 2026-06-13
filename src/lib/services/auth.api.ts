@@ -1,10 +1,34 @@
 import { ROUTES } from "@/constant/routes"
 import { post } from "@/lib/utils/api"
-import type { AuthSession, LoginCredentials } from "@/types/auth"
+import type { AuthLoginResponse, AuthSession, LoginCredentials } from "@/types/auth"
 
 export const loginApi = {
-  login(credentials: LoginCredentials): Promise<AuthSession> {
-    return post(ROUTES.AUTH.LOGIN, credentials)
+  async login(credentials: LoginCredentials): Promise<AuthSession> {
+    const response = await post<AuthLoginResponse>(ROUTES.AUTH.LOGIN, credentials)
+    const now = new Date().toISOString()
+
+    return {
+      token: response.token,
+      user: {
+        ...response.user,
+        createdAt: now,
+      },
+      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 8).toISOString(),
+    }
+  },
+
+  async demo(): Promise<AuthSession> {
+    const response = await post<AuthLoginResponse>(ROUTES.AUTH.DEMO)
+    const now = new Date().toISOString()
+
+    return {
+      token: response.token,
+      user: {
+        ...response.user,
+        createdAt: now,
+      },
+      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 8).toISOString(),
+    }
   },
 
   logout(): Promise<void> {

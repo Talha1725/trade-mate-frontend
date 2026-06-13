@@ -16,6 +16,13 @@ export type LoginCredentials = {
   password: string;
 };
 
+export type AuthApiUser = Pick<AuthUser, "id" | "email" | "name" | "role">;
+
+export type AuthLoginResponse = {
+  token: string;
+  user: AuthApiUser;
+};
+
 export type AuthSession = {
   user: AuthUser;
   token: string;
@@ -33,7 +40,7 @@ export type AuthStoreState = {
 };
 
 export type AuthStoreActions = {
-  signIn: (credentials: LoginCredentials) => void;
+  signIn: (session: AuthSession) => void;
   signOut: () => void;
 };
 
