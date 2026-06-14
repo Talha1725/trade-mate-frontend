@@ -8,20 +8,17 @@ import { DataTable } from "@/components/ui/data-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Edit2Icon, TrashIcon, PlusIcon } from "lucide-react";
+import { Edit2Icon, TrashIcon, PlusIcon, SearchIcon } from "lucide-react";
 import { accountsApi } from "@/lib/services/accounts.api";
 import { post, patch, del } from "@/lib/utils/api";
 import { ROUTES } from "@/constant/routes";
+import { useTableQuery } from "@/hooks/use-table-query";
 import type { Trade, TradeEditorProps } from "@/types/trade";
 import { toast } from "sonner";
-
-const PAGE_SIZE = 10;
 
 export function TradeEditor({ accountId }: TradeEditorProps) {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
 
@@ -39,19 +36,28 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
   const fetchTrades = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await accountsApi.getAccountTrades(accountId, { page, limit: PAGE_SIZE });
+      // Fetch the full set once; the shared hook handles search/filter/paging.
+      const data = await accountsApi.getAccountTrades(accountId, { page: 1, limit: 1000 });
       setTrades(data.items);
-      setTotalCount(data.total);
     } catch {
       toast.error("Failed to load account trades.");
     } finally {
       setLoading(false);
     }
-  }, [accountId, page]);
+  }, [accountId]);
 
   useEffect(() => {
     fetchTrades();
   }, [fetchTrades]);
+
+  const searchText = useCallback((t: Trade) => `${t.symbol} ${t.id}`, []);
+  const filterFn = useCallback(
+    (t: Trade, f: Record<string, string>) =>
+      !f.status || f.status === "All" || t.status === f.status,
+    [],
+  );
+  const { search, setSearch, filters, setFilter, page, setPage, pageCount, rows } =
+    useTableQuery({ rows: trades, searchText, filterFn });
 
   const handleEdit = (trade: Trade) => {
     setEditingTrade(trade);
@@ -61,9 +67,9 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
       lots: trade.vol,
       entryPrice: trade.openP,
       exitPrice: trade.closeP,
-      stopLoss: trade.profit ? "" : "", // Map if applicable, otherwise keep it blank
-      takeProfit: "",
-      notes: "",
+      stopLoss: trade.stopLoss ?? "",
+      takeProfit: trade.takeProfit ?? "",
+      notes: trade.notes ?? "",
     });
     setShowForm(true);
   };
@@ -162,21 +168,26 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
       header: () => <div className="text-right">Actions</div>,
       cell: ({ row }) => {
         const trade = row.original;
+        const isClosed = trade.status === "Closed";
         return (
           <div className="flex items-center justify-end gap-2">
             <Button
               variant="ghost"
               size="icon"
+              disabled={!isClosed}
+              title={isClosed ? "Edit trade" : "Only closed trades can be edited"}
               onClick={() => handleEdit(trade)}
-              className="h-8 w-8 text-muted-foreground hover:text-indigo-600"
+              className="h-8 w-8 text-muted-foreground hover:text-indigo-600 disabled:opacity-40"
             >
               <Edit2Icon className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
+              disabled={!isClosed}
+              title={isClosed ? "Delete trade" : "Only closed trades can be deleted"}
               onClick={() => handleDelete(trade.id)}
-              className="h-8 w-8 text-muted-foreground hover:text-rose-600"
+              className="h-8 w-8 text-muted-foreground hover:text-rose-600 disabled:opacity-40"
             >
               <TrashIcon className="h-4 w-4" />
             </Button>
@@ -196,6 +207,28 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
         </Button>
       </div>
 
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+        <div className="relative flex-1 max-w-sm">
+          <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by symbol or ticket..."
+            className="pl-8"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <Select value={filters.status ?? "All"} onValueChange={(value) => setFilter("status", value ?? "All")}>
+          <SelectTrigger className="w-[150px]">
+            <SelectValue placeholder="All Statuses" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="All">All Statuses</SelectItem>
+            <SelectItem value="Open">Open</SelectItem>
+            <SelectItem value="Closed">Closed</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       {showForm && (
         <form onSubmit={handleSubmit} className="bg-muted/30 border rounded-xl p-4 grid gap-4 sm:grid-cols-4 items-end mb-4">
           <div className="space-y-1.5">
@@ -210,6 +243,7 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
           <div className="space-y-1.5">
             <label className="text-xs font-semibold">Direction</label>
             <Select
+              value={formData.direction}
               onValueChange={(val) => {
                 if (val) setFormData({ ...formData, direction: val as "BUY" | "SELL" });
               }}
@@ -298,10 +332,10 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
       ) : (
         <DataTable
           columns={columns}
-          data={trades}
+          data={rows}
           serverPagination={{
             page,
-            pageCount: Math.ceil(totalCount / PAGE_SIZE),
+            pageCount,
             onPageChange: setPage,
           }}
         />

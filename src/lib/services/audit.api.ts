@@ -9,7 +9,10 @@ export const auditApi = {
     dateFrom?: string
     dateTo?: string
   }): Promise<AuditLogEntry[]> {
-    const res = await get<{ auditLogs: any[] }>(ROUTES.ADMIN.AUDIT, { params: filters })
+    // The backend audit endpoint supports only `limit` (max 100), with no
+    // offset/page param — so we request the max and paginate on the client.
+    // True offset-based server pagination would require a backend change.
+    const res = await get<{ auditLogs: any[] }>(ROUTES.ADMIN.AUDIT, { params: { limit: 100, ...filters } })
     return res.auditLogs.map((log: any): AuditLogEntry => {
       let actionMapped: AuditLogEntry["action"] = "Account Update"
       if (log.action === "admin.trade_create") {

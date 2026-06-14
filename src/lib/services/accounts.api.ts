@@ -167,6 +167,9 @@ export const accountsApi = {
       profit: parseFloat(t.pnl),
       status: t.status === "OPEN" ? "Open" : "Closed",
       time: t.openedAt,
+      stopLoss: t.stopLoss != null ? parseFloat(t.stopLoss) : null,
+      takeProfit: t.takeProfit != null ? parseFloat(t.takeProfit) : null,
+      notes: t.notes ?? null,
     })) as Trade[]
     return {
       items: all.slice((page - 1) * limit, page * limit),

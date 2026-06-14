@@ -9,6 +9,9 @@ export interface Trade {
   time: string;
   accountId?: string;
   status?: "Open" | "Closed";
+  stopLoss?: number | null;
+  takeProfit?: number | null;
+  notes?: string | null;
 }
 
 export interface Position {
