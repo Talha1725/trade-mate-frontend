@@ -28,6 +28,18 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (error.response?.status === 401) {
+      // Only force a sign-out when we currently believe we're authenticated.
+      // A 401 from the login request itself has no session yet, so it falls
+      // through to the form's error handling instead of redirecting.
+      const { session, signOut } = useAuthStore.getState()
+      if (session) {
+        void signOut()
+        if (typeof window !== "undefined") {
+          window.location.href = "/dashboard"
+        }
+      }
+    }
     return Promise.reject(error)
   },
 )

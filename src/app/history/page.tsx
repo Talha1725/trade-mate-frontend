@@ -1,13 +1,76 @@
+"use client";
+
+import * as React from "react";
 import { DownloadIcon } from "lucide-react";
+
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { PRIMARY_NAV_ITEMS } from "../../constant/nav-config";
 import { Button } from "@/components/ui/button";
 import { TradeHistoryTable } from "@/components/history/trade-history-table";
+import { dashboardApi } from "@/lib/services/dashboard.api";
+import { historyApi } from "@/lib/services/history.api";
+import { ensurePublicTraderSession } from "@/lib/services/public-trader-session";
+import { mapPortfolioTradeToTrade } from "@/lib/utils/trader-data";
+import type { AccountLedgerResponse } from "@/types/dashboard";
 
 export default function HistoryPage() {
+  const [token, setToken] = React.useState<string | null>(null);
+  const [ledger, setLedger] = React.useState<AccountLedgerResponse | null>(null);
+
+  React.useEffect(() => {
+    let isMounted = true;
+
+    ensurePublicTraderSession()
+      .then((session) => {
+        if (!isMounted) {
+          return;
+        }
+
+        setToken(session.token ?? null);
+      })
+      .catch(() => {
+        if (isMounted) {
+          setToken(null);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  React.useEffect(() => {
+    if (!token) {
+      return;
+    }
+
+    let isMounted = true;
+
+    (async () => {
+      try {
+        const snapshot = await dashboardApi.getPortfolioSnapshot(token);
+        const accountLedger = await historyApi.getAccountLedger(snapshot.account.id, token);
+
+        if (isMounted) {
+          setLedger(accountLedger);
+        }
+      } catch {
+        if (isMounted) {
+          setLedger(null);
+        }
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [token]);
+
+  const trades = ledger?.trades?.map(mapPortfolioTradeToTrade);
+
   return (
-    <AppShell navItems={PRIMARY_NAV_ITEMS} userLabel="trader@trademate.app">
+    <AppShell navItems={PRIMARY_NAV_ITEMS}>
       <div className="flex w-full flex-col gap-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <PageHeader
@@ -22,7 +85,7 @@ export default function HistoryPage() {
           </div>
         </div>
 
-        <TradeHistoryTable />
+        <TradeHistoryTable trades={trades} />
       </div>
     </AppShell>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { SortableColumnHeader } from "@/components/sortable-column-header";
 import { DataTable } from "@/components/ui/data-table";
@@ -11,6 +11,7 @@ import { SearchIcon, UserPlusIcon } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { accountsApi } from "@/lib/services/accounts.api";
+import { useTableQuery } from "@/hooks/use-table-query";
 import type { AccountSummary } from "@/types/admin";
 import { toast } from "sonner";
 
@@ -89,15 +90,21 @@ const columns: ColumnDef<AccountSummary>[] = [
   },
 ];
 
-const PAGE_SIZE = 10;
-
 export function AccountsTable() {
   const [accounts, setAccounts] = useState<AccountSummary[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [page, setPage] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
+
+  const searchText = useCallback(
+    (a: AccountSummary) => `${a.name} ${a.email} ${a.id}`,
+    [],
+  );
+  const filterFn = useCallback(
+    (a: AccountSummary, f: Record<string, string>) =>
+      !f.status || f.status === "All" || a.status === f.status,
+    [],
+  );
+  const { search, setSearch, filters, setFilter, page, setPage, pageCount, rows } =
+    useTableQuery({ rows: accounts, searchText, filterFn });
 
   const [showProvisionForm, setShowProvisionForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -112,16 +119,17 @@ export function AccountsTable() {
   const fetchAccounts = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await accountsApi.getAccounts({ page, limit: PAGE_SIZE });
+      // The backend has no "list accounts" endpoint — accounts are discovered
+      // client-side — so we load the full set once and filter/paginate locally.
+      const data = await accountsApi.getAccounts({ page: 1, limit: 1000 });
       setAccounts(data.items);
-      setTotalCount(data.total);
     } catch (e) {
       console.error(e);
       toast.error("Failed to load accounts.");
     } finally {
       setLoading(false);
     }
-  }, [page]);
+  }, []);
 
   useEffect(() => {
     fetchAccounts();
@@ -131,6 +139,10 @@ export function AccountsTable() {
     e.preventDefault();
     if (!formData.email || !formData.password) {
       toast.error("Email and password are required.");
+      return;
+    }
+    if (formData.password.length < 8) {
+      toast.error("Password must be at least 8 characters.");
       return;
     }
 
@@ -172,25 +184,6 @@ export function AccountsTable() {
     }
   };
 
-  const filtered = useMemo(() => {
-    let result = [...accounts];
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (a) =>
-          a.name.toLowerCase().includes(q) ||
-          a.email.toLowerCase().includes(q) ||
-          a.id.toLowerCase().includes(q)
-      );
-    }
-    if (statusFilter !== "All") {
-      result = result.filter((a) => a.status === statusFilter);
-    }
-    return result;
-  }, [accounts, search, statusFilter]);
-
-  const pageCount = Math.ceil(totalCount / PAGE_SIZE);
-
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -204,7 +197,7 @@ export function AccountsTable() {
           />
         </div>
         <div className="flex items-center gap-3">
-          <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value ?? "All")}>
+          <Select value={filters.status ?? "All"} onValueChange={(value) => setFilter("status", value ?? "All")}>
             <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
@@ -222,7 +215,7 @@ export function AccountsTable() {
       </div>
 
       {showProvisionForm && (
-        <form onSubmit={handleProvision} className="bg-muted/30 border rounded-xl p-4 grid gap-4 md:grid-cols-5 items-end">
+        <form onSubmit={handleProvision} className="bg-muted/30 border rounded-xl p-4 grid gap-4 md:grid-cols-3 items-end">
           <div className="space-y-1.5 md:col-span-1">
             <label className="text-xs font-semibold">Name</label>
             <Input
@@ -259,6 +252,23 @@ export function AccountsTable() {
               onChange={(e) => setFormData({ ...formData, balance: parseFloat(e.target.value) || 0 })}
             />
           </div>
+          <div className="space-y-1.5 md:col-span-1">
+            <label className="text-xs font-semibold">Role</label>
+            <Select
+              value={formData.role}
+              onValueChange={(val) => {
+                if (val) setFormData({ ...formData, role: val as "TRADER" | "ADMIN" });
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="TRADER">Trader</SelectItem>
+                <SelectItem value="ADMIN">Admin</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="flex items-center gap-2 md:col-span-1">
             <Button type="submit" disabled={provisioning} className="w-full">
               {provisioning ? "Provisioning..." : "Submit"}
@@ -277,7 +287,7 @@ export function AccountsTable() {
       ) : (
         <DataTable
           columns={columns}
-          data={filtered}
+          data={rows}
           serverPagination={{
             page,
             pageCount,

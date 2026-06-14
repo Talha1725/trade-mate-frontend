@@ -75,7 +75,7 @@ export function LoginForm({
           Welcome back
         </h2>
         <p className="text-sm text-gray-500">
-          Access the internal review generation dashboard.
+          Access the internal admin dashboard.
         </p>
       </div>
 

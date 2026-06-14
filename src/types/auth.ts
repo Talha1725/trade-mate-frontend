@@ -16,6 +16,13 @@ export type LoginCredentials = {
   password: string;
 };
 
+export type AuthApiUser = Pick<AuthUser, "id" | "email" | "name" | "role">;
+
+export type AuthLoginResponse = {
+  token: string;
+  user: AuthApiUser;
+};
+
 export type AuthSession = {
   user: AuthUser;
   token?: string;
@@ -37,6 +44,7 @@ export type LoginFormValues = LoginCredentials & {
 export type AuthStoreState = {
   session: AuthSession | null;
   status: AuthSessionStatus;
+  hasHydrated: boolean;
 };
 
 export type AuthStoreActions = {
@@ -44,6 +52,7 @@ export type AuthStoreActions = {
   signIn: (credentials: LoginCredentials) => Promise<AuthSession>;
   signOut: () => Promise<void>;
   clearToken: () => void;
+  setHasHydrated: (value: boolean) => void;
 };
 
 export type AuthStore = AuthStoreState & AuthStoreActions;

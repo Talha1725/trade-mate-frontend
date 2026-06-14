@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { SortableColumnHeader } from "@/components/sortable-column-header";
 import { DataTable } from "@/components/ui/data-table";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchIcon } from "lucide-react";
 import { auditApi } from "@/lib/services/audit.api";
+import { useTableQuery } from "@/hooks/use-table-query";
 import type { AuditLogEntry } from "@/types/admin";
 import { toast } from "sonner";
 
@@ -62,10 +63,18 @@ const columns: ColumnDef<AuditLogEntry>[] = [
 export function AuditTable() {
   const [audits, setAudits] = useState<AuditLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [actionFilter, setActionFilter] = useState("All");
-  const [page, setPage] = useState(1);
-  const PAGE_SIZE = 10;
+
+  const searchText = useCallback(
+    (a: AuditLogEntry) => `${a.adminEmail} ${a.targetAccountId} ${a.details}`,
+    [],
+  );
+  const filterFn = useCallback(
+    (a: AuditLogEntry, f: Record<string, string>) =>
+      !f.action || f.action === "All" || a.action === f.action,
+    [],
+  );
+  const { search, setSearch, filters, setFilter, page, setPage, pageCount, rows } =
+    useTableQuery({ rows: audits, searchText, filterFn });
 
   const fetchAudits = async () => {
     setLoading(true);
@@ -83,26 +92,6 @@ export function AuditTable() {
     fetchAudits();
   }, []);
 
-  const filtered = useMemo(() => {
-    let result = [...audits];
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (a) =>
-          a.adminEmail.toLowerCase().includes(q) ||
-          a.targetAccountId.toLowerCase().includes(q) ||
-          a.details.toLowerCase().includes(q)
-      );
-    }
-    if (actionFilter !== "All") {
-      result = result.filter((a) => a.action === actionFilter);
-    }
-    return result;
-  }, [audits, search, actionFilter]);
-
-  const pageCount = Math.ceil(filtered.length / PAGE_SIZE);
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -115,7 +104,7 @@ export function AuditTable() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <Select value={actionFilter} onValueChange={(value) => setActionFilter(value ?? "All")}>
+        <Select value={filters.action ?? "All"} onValueChange={(value) => setFilter("action", value ?? "All")}>
           <SelectTrigger className="w-[170px]">
             <SelectValue placeholder="All Actions" />
           </SelectTrigger>
@@ -136,7 +125,7 @@ export function AuditTable() {
       ) : (
         <DataTable
           columns={columns}
-          data={paginated}
+          data={rows}
           serverPagination={{ page, pageCount, onPageChange: setPage }}
         />
       )}
