@@ -23,3 +23,5 @@ export type { RootLayoutProps } from "@/types/layout";
 
 export type * from "@/types/components";
 export type * from "@/types/dashboard";
+export type * from "@/types/market";
+export type { TradeClosePayload, TradeOpenPayload, TradeOrderDirection } from "@/types/trade";

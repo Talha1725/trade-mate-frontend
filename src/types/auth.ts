@@ -16,6 +16,13 @@ export type LoginCredentials = {
   password: string;
 };
 
+export type AuthApiUser = Pick<AuthUser, "id" | "email" | "name" | "role">;
+
+export type AuthLoginResponse = {
+  token: string;
+  user: AuthApiUser;
+};
+
 export type AuthSession = {
   user: AuthUser;
   token?: string;

@@ -2,6 +2,14 @@ import * as React from "react";
 import type { Column, ColumnDef } from "@tanstack/react-table";
 import type { LucideIcon } from "lucide-react";
 import type { NavItem, LoginFormValues } from "@/types";
+import type {
+  EquityCurveDatum,
+  PositionSummary,
+  RecentActivityItem,
+  StatCardDatum,
+  SymbolBreakdownDatum,
+} from "@/types/dashboard";
+import type { Position, Trade, TradeOrderDirection } from "@/types/trade";
 
 export type AppShellProps = {
   navItems: NavItem[];
@@ -79,4 +87,71 @@ export type LoginFormProps = {
   onSubmit?: (values: LoginFormValues) => Promise<void> | void;
   redirectTo?: string;
   className?: string;
+};
+
+export type TradingChartProps = {
+  symbol?: string;
+  title?: string;
+  description?: string;
+  className?: string;
+  contentClassName?: string;
+};
+
+export type LiveTradingViewProps = {
+  symbol?: string;
+  positions?: PositionSummary[];
+  recentActivity?: RecentActivityItem[];
+};
+
+export type StatCardsProps = {
+  stats?: StatCardDatum[];
+};
+
+export type EquityChartProps = {
+  data?: EquityCurveDatum[];
+};
+
+export type BreakdownWidgetsProps = {
+  data?: SymbolBreakdownDatum[];
+};
+
+export type OpenPositionsSummaryProps = {
+  positions?: PositionSummary[];
+};
+
+export type RecentActivityProps = {
+  items?: RecentActivityItem[];
+};
+
+export type SymbolSearchProps = {
+  symbol?: string;
+  price?: number;
+  symbols?: string[];
+  onSymbolChange?: (symbol: string) => void;
+};
+
+export type OrderTicketSubmitPayload = {
+  accountId: string;
+  symbol: string;
+  direction: TradeOrderDirection;
+  lots: number;
+  stopLoss?: number | null;
+  takeProfit?: number | null;
+};
+
+export type OrderTicketProps = {
+  accountId?: string;
+  symbol?: string;
+  price?: number;
+  onSubmit?: (payload: OrderTicketSubmitPayload) => Promise<void> | void;
+  isSubmitting?: boolean;
+};
+
+export type OpenPositionsTableProps = {
+  positions?: Position[];
+  onClosePosition?: (position: Position) => Promise<void> | void;
+};
+
+export type TradeHistoryTableProps = {
+  trades?: Trade[];
 };
