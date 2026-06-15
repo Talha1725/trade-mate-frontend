@@ -11,16 +11,27 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Edit2Icon, TrashIcon, PlusIcon, SearchIcon } from "lucide-react";
 import { accountsApi } from "@/lib/services/accounts.api";
 import { post, patch, del } from "@/lib/utils/api";
+import { useServerTablePagination } from "@/hooks/use-server-table-pagination";
 import { ROUTES } from "@/constant/routes";
-import { useTableQuery } from "@/hooks/use-table-query";
 import type { Trade, TradeEditorProps } from "@/types/trade";
 import { toast } from "sonner";
+
+type TradeStatusFilter = "All" | "Open" | "Closed";
 
 export function TradeEditor({ accountId }: TradeEditorProps) {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<TradeStatusFilter>("All");
+  const [totalItems, setTotalItems] = useState(0);
+  const [pageCount, setPageCount] = useState(1);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const { page, pageSize, setPage, setPageSize } = useServerTablePagination({
+    defaultPageSize: 10,
+    pageSizeOptions: [10, 25, 50],
+  });
 
   const [formData, setFormData] = useState({
     symbol: "",
@@ -36,28 +47,26 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
   const fetchTrades = useCallback(async () => {
     setLoading(true);
     try {
-      // Fetch the full set once; the shared hook handles search/filter/paging.
-      const data = await accountsApi.getAccountTrades(accountId, { page: 1, limit: 1000 });
+      const data = await accountsApi.getAccountTrades(accountId, {
+        page,
+        limit: pageSize,
+        search: search.trim() || undefined,
+        status: statusFilter,
+      });
+
       setTrades(data.items);
+      setTotalItems(data.total);
+      setPageCount(data.pageCount);
     } catch {
       toast.error("Failed to load account trades.");
     } finally {
       setLoading(false);
     }
-  }, [accountId]);
+  }, [accountId, page, pageSize, search, statusFilter]);
 
   useEffect(() => {
-    fetchTrades();
-  }, [fetchTrades]);
-
-  const searchText = useCallback((t: Trade) => `${t.symbol} ${t.id}`, []);
-  const filterFn = useCallback(
-    (t: Trade, f: Record<string, string>) =>
-      !f.status || f.status === "All" || t.status === f.status,
-    [],
-  );
-  const { search, setSearch, filters, setFilter, page, setPage, pageCount, rows } =
-    useTableQuery({ rows: trades, searchText, filterFn });
+    void fetchTrades();
+  }, [fetchTrades, refreshKey]);
 
   const handleEdit = (trade: Trade) => {
     setEditingTrade(trade);
@@ -80,7 +89,7 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
       await del(ROUTES.ADMIN.TRADE_BY_ID(tradeId));
       toast.success("Trade deleted successfully.");
       setPage(1);
-      fetchTrades();
+      setRefreshKey((value) => value + 1);
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Failed to delete trade.");
     }
@@ -108,12 +117,12 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
         await post(ROUTES.ADMIN.TRADES, payload);
         toast.success("Trade injected successfully!");
       }
-      
+
       setShowForm(false);
       setEditingTrade(null);
       setFormData({ symbol: "", direction: "BUY", lots: 1.0, entryPrice: 1.0, exitPrice: 1.0, stopLoss: "", takeProfit: "", notes: "" });
       setPage(1);
-      fetchTrades();
+      setRefreshKey((value) => value + 1);
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Operation failed.");
     }
@@ -134,7 +143,7 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
       header: ({ column }) => <SortableColumnHeader column={column} label="Type" />,
       cell: ({ row }) => {
         const type = row.getValue("type") as Trade["type"];
-        return <div className={type === "Buy" ? "text-emerald-600 font-semibold" : "text-rose-600 font-semibold"}>{type}</div>;
+        return <div className={type === "Buy" ? "font-semibold text-emerald-600" : "font-semibold text-rose-600"}>{type}</div>;
       },
     },
     {
@@ -199,7 +208,7 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
 
   return (
     <SectionCard title={`Trade Editor for ${accountId}`}>
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <p className="text-sm text-muted-foreground">Manage historical and active trades for this account.</p>
         <Button onClick={() => setShowForm(!showForm)} size="sm" className="gap-1.5">
           <PlusIcon className="h-4 w-4" />
@@ -207,30 +216,41 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
         </Button>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative flex-1 max-w-sm">
           <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search by symbol or ticket..."
             className="pl-8"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
           />
         </div>
-        <Select value={filters.status ?? "All"} onValueChange={(value) => setFilter("status", value ?? "All")}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder="All Statuses" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="All">All Statuses</SelectItem>
-            <SelectItem value="Open">Open</SelectItem>
-            <SelectItem value="Closed">Closed</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Select
+            value={statusFilter}
+            onValueChange={(value) => {
+              setStatusFilter((value ?? "All") as TradeStatusFilter);
+              setPage(1);
+            }}
+          >
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="All Statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="All">All Statuses</SelectItem>
+              <SelectItem value="Open">Open</SelectItem>
+              <SelectItem value="Closed">Closed</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-muted/30 border rounded-xl p-4 grid gap-4 sm:grid-cols-4 items-end mb-4">
+        <form onSubmit={handleSubmit} className="mb-4 grid gap-4 rounded-xl border bg-muted/30 p-4 sm:grid-cols-4 items-end">
           <div className="space-y-1.5">
             <label className="text-xs font-semibold">Symbol</label>
             <Input
@@ -244,16 +264,14 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
             <label className="text-xs font-semibold">Direction</label>
             <Select
               value={formData.direction}
-              onValueChange={(val) => {
-                if (val) setFormData({ ...formData, direction: val as "BUY" | "SELL" });
-              }}
+              onValueChange={(v) => setFormData({ ...formData, direction: v as "BUY" | "SELL" })}
             >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="BUY">BUY</SelectItem>
-                <SelectItem value="SELL">SELL</SelectItem>
+                <SelectItem value="BUY">Buy</SelectItem>
+                <SelectItem value="SELL">Sell</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -263,53 +281,56 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
               type="number"
               step="0.01"
               value={formData.lots}
-              onChange={(e) => setFormData({ ...formData, lots: parseFloat(e.target.value) || 0.01 })}
-              required
+              onChange={(e) => setFormData({ ...formData, lots: parseFloat(e.target.value) || 0 })}
             />
           </div>
           <div className="space-y-1.5">
             <label className="text-xs font-semibold">Entry Price</label>
             <Input
               type="number"
-              step="0.00001"
+              step="0.0001"
               value={formData.entryPrice}
               onChange={(e) => setFormData({ ...formData, entryPrice: parseFloat(e.target.value) || 0 })}
-              required
             />
           </div>
           <div className="space-y-1.5">
             <label className="text-xs font-semibold">Exit Price</label>
             <Input
               type="number"
-              step="0.00001"
+              step="0.0001"
               value={formData.exitPrice}
               onChange={(e) => setFormData({ ...formData, exitPrice: parseFloat(e.target.value) || 0 })}
-              required
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold">Stop Loss (SL)</label>
+            <label className="text-xs font-semibold">Stop Loss</label>
             <Input
               type="number"
-              step="0.00001"
-              placeholder="Optional"
+              step="0.0001"
               value={formData.stopLoss}
               onChange={(e) => setFormData({ ...formData, stopLoss: e.target.value })}
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold">Take Profit (TP)</label>
+            <label className="text-xs font-semibold">Take Profit</label>
             <Input
               type="number"
-              step="0.00001"
-              placeholder="Optional"
+              step="0.0001"
               value={formData.takeProfit}
               onChange={(e) => setFormData({ ...formData, takeProfit: e.target.value })}
             />
           </div>
-          <div className="flex gap-2">
-            <Button type="submit" className="flex-1">
-              {editingTrade ? "Save Changes" : "Create Trade"}
+          <div className="space-y-1.5 sm:col-span-2">
+            <label className="text-xs font-semibold">Notes</label>
+            <Input
+              placeholder="Optional notes"
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            />
+          </div>
+          <div className="flex items-center gap-2 sm:col-span-4">
+            <Button type="submit" className="gap-2">
+              {editingTrade ? "Update Trade" : "Submit Trade"}
             </Button>
             <Button
               type="button"
@@ -326,17 +347,22 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
       )}
 
       {loading ? (
-        <div className="text-center py-8 text-muted-foreground animate-pulse">
-          Loading trades...
-        </div>
+        <div className="animate-pulse py-8 text-center text-muted-foreground">Loading account trades...</div>
       ) : (
         <DataTable
           columns={columns}
-          data={rows}
+          data={trades}
           serverPagination={{
             page,
             pageCount,
+            totalItems,
+            pageSize,
+            pageSizeOptions: [10, 25, 50],
             onPageChange: setPage,
+            onPageSizeChange: (nextPageSize) => {
+              setPageSize(nextPageSize);
+              setPage(1);
+            },
           }}
         />
       )}

@@ -50,6 +50,7 @@ export const ROUTES = {
 
   /** Admin Module */
   ADMIN: {
+    ACCOUNTS:        `/api/admin/accounts`,
     TRADES:          `/api/admin/trades`,
     TRADE_BY_ID: (id: string) => `/api/admin/trades/${id}`,
     USERS:           `/api/admin/users`,

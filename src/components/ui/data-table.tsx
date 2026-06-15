@@ -18,6 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { DataTableProps } from "@/types"
 
 export function DataTable<TData, TValue>({
@@ -26,6 +27,8 @@ export function DataTable<TData, TValue>({
   serverPagination,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([])
+  const fallbackPageSize = serverPagination?.pageSize ?? (data.length || 1)
+  const totalItems = serverPagination?.totalItems ?? data.length * (serverPagination?.pageCount || 1)
 
   const table = useReactTable({
     data,
@@ -77,10 +80,45 @@ export function DataTable<TData, TValue>({
       </div>
 
       {serverPagination && (
-        <div className="flex items-center justify-between py-4">
-          <p className="text-sm text-muted-foreground">
-            Page {serverPagination.page} of {serverPagination.pageCount || 1}
-          </p>
+        <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+              <p>
+              Showing{" "}
+              {totalItems === 0
+                ? 0
+                : (serverPagination.page - 1) * fallbackPageSize + 1}
+              -
+              {totalItems === 0
+                ? 0
+                : Math.min(
+                    totalItems,
+                    serverPagination.page * fallbackPageSize,
+                  )}{" "}
+              of {totalItems}
+            </p>
+
+            {serverPagination.onPageSizeChange && serverPagination.pageSize ? (
+              <div className="flex items-center gap-2">
+                <span>Rows per page</span>
+                <Select
+                  value={String(serverPagination.pageSize)}
+                  onValueChange={(value) => serverPagination.onPageSizeChange?.(Number(value))}
+                >
+                  <SelectTrigger className="h-8 w-[88px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(serverPagination.pageSizeOptions ?? [10, 25, 50]).map((option) => (
+                      <SelectItem key={option} value={String(option)}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : null}
+          </div>
+
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
@@ -90,6 +128,9 @@ export function DataTable<TData, TValue>({
             >
               Previous
             </Button>
+            <p className="text-sm text-muted-foreground">
+              Page {serverPagination.page} of {serverPagination.pageCount || 1}
+            </p>
             <Button
               variant="outline"
               size="sm"

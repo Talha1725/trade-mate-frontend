@@ -13,6 +13,18 @@ import { PRIMARY_NAV_ICON_MAP } from "@/constant/nav-config";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import type { AppShellProps, AppShellSidebarNavProps } from "@/types";
 
+function matchesPath(pathname: string | null, href: string) {
+  if (!pathname) {
+    return false;
+  }
+
+  if (href === "/") {
+    return pathname === href;
+  }
+
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 function SidebarNav({
   items,
   collapsed,
@@ -54,9 +66,10 @@ function SidebarNav({
       <nav aria-label="Primary" className="flex flex-col gap-1 px-2 py-3 flex-1">
         {items.map((item) => {
           const Icon = PRIMARY_NAV_ICON_MAP[item.id];
-          const isExactActive = item.href ? pathname === item.href : false;
-          const isChildActive = item.subItems?.some(sub => sub.href && pathname?.startsWith(sub.href)) ?? false;
-          const isActive = isExactActive || isChildActive || (item.href && item.href !== "/" && pathname?.startsWith(item.href));
+          const isChildActive = item.subItems?.some((sub) => sub.href ? matchesPath(pathname, sub.href) : false) ?? false;
+          const isActive = item.subItems
+            ? Boolean(item.href && matchesPath(pathname, item.href)) || isChildActive
+            : Boolean(item.href && pathname === item.href);
 
           if (item.subItems) {
             const isExpanded = expanded[item.id];
@@ -98,7 +111,7 @@ function SidebarNav({
                 {!collapsed && isExpanded && (
                   <div className="flex flex-col gap-1 pl-9 pr-2 py-1">
                     {item.subItems.map((subItem) => {
-                      const isSubActive = subItem.href && pathname === subItem.href;
+                      const isSubActive = subItem.href ? matchesPath(pathname, subItem.href) : false;
                       return (
                         <Link
                           key={subItem.id}

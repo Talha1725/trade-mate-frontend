@@ -31,14 +31,14 @@ export default function AdminDashboardPage() {
       try {
         const [statsData, accountsData, auditsData, tradesData] = await Promise.all([
           adminApi.getAdminStats(),
-          accountsApi.getAccounts(),
-          auditApi.getAuditLogs(),
-          adminApi.getAdminTrades(),
+          accountsApi.getAccounts({ page: 1, limit: 5 }),
+          auditApi.getAuditLogs({ page: 1, limit: 5 }),
+          adminApi.getAllAdminTrades(),
         ]);
 
         setStats(statsData);
-        setRecentAccounts(accountsData.items.slice(0, 5));
-        setRecentAudits(auditsData.slice(0, 5));
+        setRecentAccounts(accountsData.items);
+        setRecentAudits(auditsData.items);
 
         if (tradesData.length > 0) {
           const symbolCounts: Record<string, number> = {};

@@ -163,8 +163,8 @@ export default function AdminInjectPage() {
       }
 
       const execution = selectedTargets[0] === allActiveAccountsTarget
-        ? await (async () => {
-            const { items: accounts } = await accountsApi.getAccounts({ limit: 1000 });
+          ? await (async () => {
+            const accounts = await accountsApi.getAllAccounts({ status: "Active" });
             const activeIds = accounts.filter((account) => account.status === "Active").map((account) => account.id);
 
             if (activeIds.length === 0) {
