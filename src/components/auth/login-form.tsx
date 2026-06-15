@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import type { AuthStatus, LoginFormValues, LoginFormProps } from "@/types";
 
 const initialValues: LoginFormValues = {
-  email: "",
+  assignedId: "",
   password: "",
   rememberMe: true,
 };
@@ -43,7 +43,7 @@ export function LoginForm({
         await onSubmit(values);
       } else {
         const session = await signIn({
-          email: values.email,
+          assignedId: values.assignedId,
           password: values.password,
         });
         setStatus("success");
@@ -73,23 +73,23 @@ export function LoginForm({
           Welcome back
         </h2>
         <p className="text-sm text-gray-500">
-          Access the internal admin dashboard.
+          Sign in with your assigned ID to access the trader dashboard.
         </p>
       </div>
 
       <div className="space-y-4">
         <div className="space-y-1.5">
-          <Label htmlFor="login-email" className="text-sm font-semibold text-[#1a1a1a]">
-            Email
+          <Label htmlFor="login-assigned-id" className="text-sm font-semibold text-[#1a1a1a]">
+            Assigned ID
           </Label>
           <Input
-            id="login-email"
-            type="email"
-            autoComplete="email"
-            placeholder="admin@trademate.local"
-            value={values.email}
+            id="login-assigned-id"
+            type="text"
+            autoComplete="username"
+            placeholder="TM-1001"
+            value={values.assignedId}
             onChange={(event) =>
-              setValues((prev) => ({ ...prev, email: event.target.value }))
+              setValues((prev) => ({ ...prev, assignedId: event.target.value }))
             }
             required
             disabled={isSubmitting}
@@ -98,18 +98,9 @@ export function LoginForm({
         </div>
 
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="login-password" className="text-sm font-semibold text-[#1a1a1a]">
-              Password
-            </Label>
-            <button
-              type="button"
-              className="text-sm font-medium text-[#1a1a1a] hover:underline"
-              disabled={isSubmitting}
-            >
-              Forgot password?
-            </button>
-          </div>
+          <Label htmlFor="login-password" className="text-sm font-semibold text-[#1a1a1a]">
+            Password
+          </Label>
           <div className="relative">
             <Input
               id="login-password"
@@ -155,14 +146,7 @@ export function LoginForm({
       </Button>
 
       <div className="text-center text-sm text-gray-500">
-        Do not have an account?{" "}
-        <button
-          type="button"
-          className="font-semibold text-[#1a1a1a] hover:underline"
-          disabled={isSubmitting}
-        >
-          Sign up
-        </button>
+        Contact support if you do not have assigned login credentials.
       </div>
     </form>
   );

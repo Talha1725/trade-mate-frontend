@@ -2,7 +2,6 @@ export const ROUTES = {
   /** Auth Module */
   AUTH: {
     LOGIN:           `/api/auth/login`,
-    DEMO:            `/api/auth/demo`,
     ME:              `/api/auth/me`,
   },
 

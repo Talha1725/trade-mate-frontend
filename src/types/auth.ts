@@ -6,17 +6,20 @@ export type UserRole = "trader" | "admin";
 export type AuthUser = {
   id: ID;
   email: string;
+  assignedId?: string;
   name: string;
   role: UserRole;
   createdAt?: ISODateString;
 };
 
 export type LoginCredentials = {
-  email: string;
+  assignedId: string;
   password: string;
 };
 
-export type AuthApiUser = Pick<AuthUser, "id" | "email" | "name" | "role">;
+export type AuthApiUser = Pick<AuthUser, "id" | "email" | "name" | "role"> & {
+  assignedId?: string;
+};
 
 export type AuthLoginResponse = {
   token: string;

@@ -1,6 +1,6 @@
 import * as React from "react";
+import { RouteGuard } from "@/components/auth/route-guard";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  // Any user can visit /dashboard without login
-  return <>{children}</>;
+  return <RouteGuard>{children}</RouteGuard>;
 }
