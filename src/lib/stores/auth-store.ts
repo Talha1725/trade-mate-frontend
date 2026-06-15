@@ -1,66 +1,64 @@
 "use client";
 
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
 
-import { loginApi } from "@/lib/services/auth.api";
-import type { AuthStore } from "@/types";
+import type { AuthSession, AuthStore } from "@/types";
 
-export const useAuthStore = create<AuthStore>()(
-  persist(
-    (set) => ({
-      session: null,
-      status: "idle",
-      hasHydrated: false,
-      loadSession: async () => {
-        set({ status: "loading" });
+const STORAGE_KEY = "auth_session";
 
-        try {
-          const session = await loginApi.me();
-          set({ session, status: "authenticated" });
-          return session;
-        } catch {
-          set({ session: null, status: "unauthenticated" });
-          return null;
-        }
-      },
-      signIn: async (credentials) => {
-        const session = await loginApi.login(credentials);
-        set({ session, status: "authenticated" });
-        return session;
-      },
-      signOut: async () => {
-        try {
-          await loginApi.signout();
-        } catch {
-          // Clear local auth state even if the server session is already expired.
-        } finally {
-          set({ session: null, status: "unauthenticated" });
-        }
-      },
-      clearToken: () => {
-        set((state) => {
-          if (!state.session) return {};
-          return {
-            session: {
-              ...state.session,
-              token: undefined,
-            },
-          };
-        });
-      },
-      setHasHydrated: (value) => set({ hasHydrated: value }),
+function readStoredSession(): AuthSession | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const raw = window.localStorage.getItem(STORAGE_KEY);
+
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as AuthSession;
+    if (!parsed?.token || !parsed?.user?.email) {
+      return null;
+    }
+
+    return parsed;
+  } catch {
+    window.localStorage.removeItem(STORAGE_KEY);
+    window.localStorage.removeItem("auth_token");
+    return null;
+  }
+}
+
+function persistSession(session: AuthSession) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+  window.localStorage.setItem("auth_token", session.token);
+}
+
+function clearStoredSession() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.removeItem(STORAGE_KEY);
+  window.localStorage.removeItem("auth_token");
+}
+
+export const useAuthStore = create<AuthStore>((set) => ({
+  session: readStoredSession(),
+  signIn: (session) =>
+    set(() => {
+      persistSession(session);
+      return { session };
     }),
-    {
-      name: "trade-mate-auth",
-      storage: createJSONStorage(() => localStorage),
-      // Only the session needs to survive a refresh; status is derived on rehydrate.
-      partialize: (state) => ({ session: state.session }),
-      onRehydrateStorage: () => (state) => {
-        if (!state) return;
-        state.status = state.session ? "authenticated" : "unauthenticated";
-        state.setHasHydrated(true);
-      },
-    },
-  ),
-);
+  signOut: () =>
+    set(() => {
+      clearStoredSession();
+      return { session: null };
+    }),
+}));

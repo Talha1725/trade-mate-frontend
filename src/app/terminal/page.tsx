@@ -34,7 +34,7 @@ export default function TerminalPage() {
           return;
         }
 
-        setToken(session.token ?? null);
+        setToken(session.token);
       })
       .catch(() => {
         if (isMounted) {

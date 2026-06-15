@@ -3,7 +3,11 @@ export const ROUTES = {
   AUTH: {
     LOGIN:           `/api/auth/login`,
     DEMO:            `/api/auth/demo`,
-    ME:              `/api/auth/me`,
+    LOGOUT:          `/api/auth/logout`,
+    REGISTER:        `/api/auth/register`,
+    REFRESH:         `/api/auth/refresh`,
+    FORGOT_PASSWORD: `/api/auth/forgot-password`,
+    RESET_PASSWORD:  `/api/auth/reset-password`,
   },
 
   /** Market Module */
@@ -51,8 +55,10 @@ export const ROUTES = {
   /** Admin Module */
   ADMIN: {
     TRADES:          `/api/admin/trades`,
-    TRADE_BY_ID: (id: string) => `/api/admin/trades/${id}`,
-    USERS:           `/api/admin/users`,
+    ACCOUNTS:        `/api/admin/accounts`,
+    ACCOUNT_BY_ID: (id: string) => `/api/admin/accounts/${id}`,
+    ACCOUNT_TRADES:(id: string) => `/api/admin/accounts/${id}/trades`,
+    INJECT:          `/api/admin/inject`,
     BULK_PUSH:       `/api/admin/bulk-push`,
     AUDIT:           `/api/admin/audit`,
   },

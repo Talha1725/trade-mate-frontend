@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useState, useMemo } from "react";
 import { SearchIcon, FilterIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,24 +10,30 @@ import { SortableColumnHeader } from "@/components/sortable-column-header";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { mockPositions } from "@/lib/mock-data/positions";
-import { useTableQuery } from "@/hooks/use-table-query";
 import type { OpenPositionsTableProps } from "@/types";
 import type { Position } from "@/types/trade";
 
 export function OpenPositionsTable({ positions, onClosePosition }: OpenPositionsTableProps) {
+  const [search, setSearch] = useState("");
+  const [actionFilter, setActionFilter] = useState("All");
   const sourcePositions = positions?.length ? positions : mockPositions;
 
-  const searchText = useCallback(
-    (p: Position) => `${p.symbol} ${p.ticket}`,
-    [],
-  );
-  const filterFn = useCallback(
-    (p: Position, f: Record<string, string>) =>
-      !f.action || f.action === "All" || p.type === f.action,
-    [],
-  );
-  const { search, setSearch, filters, setFilter, page, setPage, pageCount, rows } =
-    useTableQuery({ rows: sourcePositions, searchText, filterFn });
+  const sortedPositions = useMemo(() => {
+    let result = [...sourcePositions];
+
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(
+        (p) => p.symbol.toLowerCase().includes(q) || p.ticket.toLowerCase().includes(q)
+      );
+    }
+
+    if (actionFilter !== "All") {
+      result = result.filter((p) => p.type === actionFilter);
+    }
+
+    return result;
+  }, [actionFilter, search, sourcePositions]);
 
   const columns: ColumnDef<Position>[] = [
     {
@@ -111,7 +117,7 @@ export function OpenPositionsTable({ positions, onClosePosition }: OpenPositions
           />
         </div>
         <div className="flex items-center gap-2">
-          <Select value={filters.action ?? "All"} onValueChange={(value) => setFilter("action", value ?? "All")}>
+          <Select value={actionFilter} onValueChange={(value) => setActionFilter(value ?? "All")}>
             <SelectTrigger className="w-[130px]">
               <SelectValue placeholder="Action" />
             </SelectTrigger>
@@ -127,11 +133,7 @@ export function OpenPositionsTable({ positions, onClosePosition }: OpenPositions
         </div>
       </div>
       <div className="overflow-y-auto max-h-[300px] min-h-[200px]">
-        <DataTable
-          columns={columns}
-          data={rows}
-          serverPagination={{ page, pageCount, onPageChange: setPage }}
-        />
+        <DataTable columns={columns} data={sortedPositions} />
       </div>
     </SectionCard>
   );

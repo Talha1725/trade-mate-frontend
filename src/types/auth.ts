@@ -8,7 +8,7 @@ export type AuthUser = {
   email: string;
   name: string;
   role: UserRole;
-  createdAt?: ISODateString;
+  createdAt: ISODateString;
 };
 
 export type LoginCredentials = {
@@ -25,17 +25,11 @@ export type AuthLoginResponse = {
 
 export type AuthSession = {
   user: AuthUser;
-  token?: string;
-  expiresAt?: ISODateString;
+  token: string;
+  expiresAt: ISODateString;
 };
 
 export type AuthStatus = "idle" | "submitting" | "success" | "error";
-
-export type AuthSessionStatus =
-  | "idle"
-  | "loading"
-  | "authenticated"
-  | "unauthenticated";
 
 export type LoginFormValues = LoginCredentials & {
   rememberMe: boolean;
@@ -43,16 +37,11 @@ export type LoginFormValues = LoginCredentials & {
 
 export type AuthStoreState = {
   session: AuthSession | null;
-  status: AuthSessionStatus;
-  hasHydrated: boolean;
 };
 
 export type AuthStoreActions = {
-  loadSession: () => Promise<AuthSession | null>;
-  signIn: (credentials: LoginCredentials) => Promise<AuthSession>;
-  signOut: () => Promise<void>;
-  clearToken: () => void;
-  setHasHydrated: (value: boolean) => void;
+  signIn: (session: AuthSession) => void;
+  signOut: () => void;
 };
 
 export type AuthStore = AuthStoreState & AuthStoreActions;
