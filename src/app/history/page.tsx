@@ -27,7 +27,7 @@ export default function HistoryPage() {
           return;
         }
 
-        setToken(session.token);
+        setToken(session.token ?? null);
       })
       .catch(() => {
         if (isMounted) {

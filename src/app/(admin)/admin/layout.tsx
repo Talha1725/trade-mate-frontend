@@ -14,18 +14,28 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
   const session = useAuthStore((state) => state.session);
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
   const isAdmin = session?.user.role === "admin";
 
   React.useEffect(() => {
+    // Wait until the persisted session has been read back from storage so a
+    // refresh doesn't momentarily look unauthenticated and redirect away.
+    if (!hasHydrated) return;
+
     if (pathname !== "/admin" && !session) {
-      router.replace("/admin");
+      router.replace("/dashboard");
       return;
     }
 
     if (session && !isAdmin) {
       router.replace("/dashboard");
     }
-  }, [isAdmin, pathname, router, session]);
+  }, [hasHydrated, isAdmin, pathname, router, session]);
+
+  // Avoid rendering (and flashing the login screen) before hydration completes.
+  if (!hasHydrated) {
+    return null;
+  }
 
   if (!session || !isAdmin) {
     if (pathname !== "/admin") {
@@ -48,7 +58,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     <AppShell
       navItems={ADMIN_NAV_ITEMS}
       userLabel={session.user.email}
-      onSignOut={() => router.replace("/admin")}
+      onSignOut={() => router.replace("/dashboard")}
     >
       <div className="flex w-full flex-col gap-2">{children}</div>
     </AppShell>

@@ -1,41 +1,43 @@
 import axios from "axios"
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios"
+import { useAuthStore } from "@/lib/stores/auth-store"
 
 const api: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || "",
   timeout: 15000,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 })
 
-api.interceptors.request.use((config) => {
-  const token = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null
-  const existingAuthHeader = config.headers?.Authorization ?? config.headers?.authorization
-
-  if (token && !existingAuthHeader) {
-    config.headers.Authorization = `Bearer ${token}`
+api.interceptors.request.use(
+  (config) => {
+    const state = useAuthStore.getState()
+    const token = state.session?.token
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
   }
-  return config
-})
+)
 
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      const requestAuthHeader =
-        error.config?.headers?.Authorization ?? error.config?.headers?.authorization
-      const storedToken = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null
-      const shouldResetStoredSession =
-        !requestAuthHeader || requestAuthHeader === `Bearer ${storedToken}`
-
-      if (!shouldResetStoredSession) {
-        return Promise.reject(error)
-      }
-
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("auth_token")
-        window.location.href = "/"
+      // Only force a sign-out when we currently believe we're authenticated.
+      // A 401 from the login request itself has no session yet, so it falls
+      // through to the form's error handling instead of redirecting.
+      const { session, signOut } = useAuthStore.getState()
+      if (session) {
+        void signOut()
+        if (typeof window !== "undefined") {
+          window.location.href = "/dashboard"
+        }
       }
     }
     return Promise.reject(error)
