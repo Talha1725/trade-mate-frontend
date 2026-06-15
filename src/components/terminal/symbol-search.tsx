@@ -1,12 +1,16 @@
+"use client";
+
 import { useMemo, useState } from "react";
 import { SearchIcon } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SectionCard } from "@/components/section-card";
-import { Button } from "@/components/ui/button";
 import type { SymbolSearchProps } from "@/types";
 
 export function SymbolSearch({ symbol = "EURUSD", price, symbols, onSymbolChange }: SymbolSearchProps) {
   const [query, setQuery] = useState("");
+
   const filteredSymbols = useMemo(() => {
     const resolvedSymbols = symbols?.length ? symbols : [symbol];
     const normalizedQuery = query.trim().toUpperCase();
@@ -32,6 +36,7 @@ export function SymbolSearch({ symbol = "EURUSD", price, symbols, onSymbolChange
               onChange={(event) => setQuery(event.target.value)}
             />
           </div>
+
           <div className="flex items-center gap-4 text-2xl font-bold tracking-tight">
             <span>{symbol}</span>
             <span className="text-emerald-600">{price != null ? price.toFixed(4) : "—"}</span>

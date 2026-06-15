@@ -8,13 +8,13 @@ import { PRIMARY_NAV_ITEMS } from "@/constant/nav-config";
 import { terminalApi } from "@/lib/services/terminal.api";
 import { ensurePublicTraderSession } from "@/lib/services/public-trader-session";
 import { mapPortfolioPositionToPosition } from "@/lib/utils/trader-data";
-import type { MarketQuoteResponse, MarketSymbolResponse } from "@/types/market";
-import type { UserPortfolioResponse } from "@/types/dashboard";
-import type { Position } from "@/types/trade";
 import { SymbolSearch } from "@/components/terminal/symbol-search";
 import { TradingChart } from "@/components/terminal/trading-chart";
 import { OrderTicket } from "@/components/terminal/order-ticket";
 import { OpenPositionsTable } from "@/components/terminal/open-positions-table";
+import type { MarketQuoteResponse, MarketSymbolResponse } from "@/types/market";
+import type { UserPortfolioResponse } from "@/types/dashboard";
+import type { Position } from "@/types/trade";
 
 export default function TerminalPage() {
   const [token, setToken] = React.useState<string | null>(null);
@@ -68,7 +68,8 @@ export default function TerminalPage() {
         setSnapshot(snapshotResponse);
         setSymbols(symbolResponse.symbols);
 
-        const initialSymbol = snapshotResponse.positions[0]?.symbol ?? symbolResponse.symbols[0]?.displaySymbol ?? "EURUSD";
+        const initialSymbol =
+          snapshotResponse.positions[0]?.symbol ?? symbolResponse.symbols[0]?.displaySymbol ?? "EURUSD";
         setSelectedSymbol(initialSymbol);
       } catch {
         if (isMounted) {
@@ -200,10 +201,7 @@ export default function TerminalPage() {
   return (
     <AppShell navItems={PRIMARY_NAV_ITEMS}>
       <div className="flex w-full flex-col gap-6">
-        <PageHeader
-          title="Terminal"
-          description="Place trades, view charts, and manage positions."
-        />
+        <PageHeader title="Terminal" description="Place trades, view charts, and manage positions." />
 
         <div className="flex flex-col gap-6 w-full">
           <SymbolSearch

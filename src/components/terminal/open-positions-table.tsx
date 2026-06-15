@@ -17,17 +17,18 @@ import type { Position } from "@/types/trade";
 export function OpenPositionsTable({ positions, onClosePosition }: OpenPositionsTableProps) {
   const sourcePositions = positions?.length ? positions : mockPositions;
 
-  const searchText = useCallback(
-    (p: Position) => `${p.symbol} ${p.ticket}`,
-    [],
-  );
+  const searchText = useCallback((position: Position) => `${position.symbol} ${position.ticket}`, []);
   const filterFn = useCallback(
-    (p: Position, f: Record<string, string>) =>
-      !f.action || f.action === "All" || p.type === f.action,
+    (position: Position, filters: Record<string, string>) =>
+      !filters.action || filters.action === "All" || position.type === filters.action,
     [],
   );
-  const { search, setSearch, filters, setFilter, page, setPage, pageCount, rows } =
-    useTableQuery({ rows: sourcePositions, searchText, filterFn });
+
+  const { search, setSearch, filters, setFilter, page, setPage, pageCount, rows } = useTableQuery({
+    rows: sourcePositions,
+    searchText,
+    filterFn,
+  });
 
   const columns: ColumnDef<Position>[] = [
     {
@@ -44,7 +45,7 @@ export function OpenPositionsTable({ positions, onClosePosition }: OpenPositions
       header: "Type",
       cell: ({ row }) => {
         const type = row.getValue("type") as string;
-        return <div className={type === "Buy" ? "text-emerald-600" : "text-rose-600"}>{type}</div>
+        return <div className={type === "Buy" ? "text-emerald-600" : "text-rose-600"}>{type}</div>;
       },
     },
     {
@@ -102,14 +103,15 @@ export function OpenPositionsTable({ positions, onClosePosition }: OpenPositions
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
         <div className="relative flex-1 max-w-sm">
           <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input 
-            type="text" 
-            placeholder="Filter positions..." 
-            className="pl-8" 
+          <Input
+            type="text"
+            placeholder="Filter positions..."
+            className="pl-8"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(event) => setSearch(event.target.value)}
           />
         </div>
+
         <div className="flex items-center gap-2">
           <Select value={filters.action ?? "All"} onValueChange={(value) => setFilter("action", value ?? "All")}>
             <SelectTrigger className="w-[130px]">
@@ -126,6 +128,7 @@ export function OpenPositionsTable({ positions, onClosePosition }: OpenPositions
           </Button>
         </div>
       </div>
+
       <div className="overflow-y-auto max-h-[300px] min-h-[200px]">
         <DataTable
           columns={columns}
