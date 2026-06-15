@@ -4,12 +4,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$ROOT_DIR"
 
-CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-
-echo "[frontend] syncing latest code from origin/${CURRENT_BRANCH}"
-git fetch origin
-git reset --hard "origin/${CURRENT_BRANCH}"
-git clean -fd
+echo "[frontend] pulling latest code from origin/main"
+git pull --ff-only origin main
 
 echo "[frontend] installing dependencies"
 npm install
