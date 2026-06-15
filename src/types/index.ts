@@ -6,7 +6,6 @@ export type Nullable<T> = T | null;
 
 export type {
   AuthSession,
-  AuthSessionStatus,
   AuthStatus,
   AuthStore,
   AuthStoreActions,
