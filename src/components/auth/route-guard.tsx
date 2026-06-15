@@ -27,12 +27,12 @@ export function RouteGuard({ children, requiredRole }: RouteGuardProps) {
     }
 
     if (!session) {
-      router.replace("/dashboard");
+      router.replace("/login");
       return;
     }
 
     if (requiredRole && session.user.role !== requiredRole) {
-      router.replace("/dashboard");
+      router.replace("/login");
     }
   }, [isCheckingSession, router, requiredRole, session]);
 

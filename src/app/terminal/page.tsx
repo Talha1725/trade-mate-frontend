@@ -6,7 +6,7 @@ import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { PRIMARY_NAV_ITEMS } from "@/constant/nav-config";
 import { terminalApi } from "@/lib/services/terminal.api";
-import { ensurePublicTraderSession } from "@/lib/services/public-trader-session";
+import { useAuthStore } from "@/lib/stores/auth-store";
 import { mapPortfolioPositionToPosition } from "@/lib/utils/trader-data";
 import { SymbolSearch } from "@/components/terminal/symbol-search";
 import { TradingChart } from "@/components/terminal/trading-chart";
@@ -17,35 +17,13 @@ import type { UserPortfolioResponse } from "@/types/dashboard";
 import type { Position } from "@/types/trade";
 
 export default function TerminalPage() {
-  const [token, setToken] = React.useState<string | null>(null);
   const [snapshot, setSnapshot] = React.useState<UserPortfolioResponse | null>(null);
   const [symbols, setSymbols] = React.useState<MarketSymbolResponse["symbols"]>([]);
   const [quotes, setQuotes] = React.useState<MarketQuoteResponse["quotes"]>([]);
   const [historyClose, setHistoryClose] = React.useState<number | null>(null);
   const [selectedSymbol, setSelectedSymbol] = React.useState("EURUSD");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-
-  React.useEffect(() => {
-    let isMounted = true;
-
-    ensurePublicTraderSession()
-      .then((session) => {
-        if (!isMounted) {
-          return;
-        }
-
-        setToken(session.token ?? null);
-      })
-      .catch(() => {
-        if (isMounted) {
-          setToken(null);
-        }
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const token = useAuthStore((state) => state.session?.token ?? null);
 
   React.useEffect(() => {
     if (!token) {
