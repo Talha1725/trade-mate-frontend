@@ -16,7 +16,6 @@ import { SectionCard } from "@/components/section-card";
 import type { OrderTicketProps, TradeOrderDirection } from "@/types";
 
 export function OrderTicket({ accountId, symbol = "EURUSD", price, onSubmit, isSubmitting }: OrderTicketProps) {
-  const [orderType, setOrderType] = useState("Market");
   const [volume, setVolume] = useState("1.0");
   const [stopLoss, setStopLoss] = useState("");
   const [takeProfit, setTakeProfit] = useState("");
@@ -56,13 +55,12 @@ export function OrderTicket({ accountId, symbol = "EURUSD", price, onSubmit, isS
 
         <div className="grid gap-2">
           <Label htmlFor="type">Order Type</Label>
-          <Select value={orderType} onValueChange={(value) => setOrderType(value ?? "Market")}>
+          <Select value="Market" disabled>
             <SelectTrigger id="type">
               <SelectValue placeholder="Select type" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="Market">Market</SelectItem>
-              <SelectItem value="Limit">Limit</SelectItem>
             </SelectContent>
           </Select>
         </div>

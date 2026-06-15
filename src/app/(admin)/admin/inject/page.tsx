@@ -1,122 +1,210 @@
 "use client";
 
 import * as React from "react";
-import { PageHeader } from "@/components/page-header";
+import { AlertTriangleIcon, CheckCircle2Icon, Layers3Icon, Loader2Icon, SparklesIcon, WandSparklesIcon, XIcon } from "lucide-react";
+import { toast } from "sonner";
+
 import { InjectTradeForm } from "@/components/admin/inject-trade-form";
 import { PreviewPanel } from "@/components/admin/preview-panel";
-import { injectApi } from "@/lib/services/inject.api";
+import { PageHeader } from "@/components/page-header";
+import { SectionCard } from "@/components/section-card";
+import { allActiveAccountsTarget } from "@/lib/mock-data/injection";
 import { accountsApi } from "@/lib/services/accounts.api";
-import type { TradePreviewData, TradeInjectionTargetOption } from "@/types/admin";
-import { CheckCircle2Icon, XIcon } from "lucide-react";
-import { toast } from "sonner";
+import { injectApi } from "@/lib/services/inject.api";
+import { Button } from "@/components/ui/button";
+import type { TradeInjectionExecuteResponse, TradeInjectionTargetOption, TradePreviewData } from "@/types/admin";
+
+const promptPresets = [
+  "Create a winning EURUSD trade from today with about $125 profit, medium confidence, single account",
+  "Inject a losing GBPUSD sell trade from this morning with around $80 loss",
+  "Create a bullish BTCUSD trade for all active accounts with about $250 profit",
+  "Add a closed AAPL trade from yesterday with stop loss and take profit levels",
+] as const;
+
+function getResultSummary(result: TradeInjectionExecuteResponse["result"]) {
+  if (result && typeof result === "object") {
+    if ("pushedCount" in result && typeof result.pushedCount === "number") {
+      return `Bulk pushed to ${result.pushedCount} account(s).`;
+    }
+
+    if ("trade" in result && result.trade && typeof result.trade === "object" && "id" in result.trade) {
+      return `Trade ${String(result.trade.id)} injected successfully.`;
+    }
+  }
+
+  return "Injection completed successfully.";
+}
 
 export default function AdminInjectPage() {
   const [prompt, setPrompt] = React.useState("");
   const [options, setOptions] = React.useState<TradeInjectionTargetOption[]>([]);
-  const [target, setTarget] = React.useState("");
+  const [selectedTargets, setSelectedTargets] = React.useState<string[]>([]);
   const [preview, setPreview] = React.useState<TradePreviewData | null>(null);
+  const [isLoadingTargets, setIsLoadingTargets] = React.useState(true);
+  const [isPreviewing, setIsPreviewing] = React.useState(false);
   const [isInjecting, setIsInjecting] = React.useState(false);
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
-  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     async function loadOptions() {
-      setLoading(true);
+      setIsLoadingTargets(true);
+
       try {
         const list = await injectApi.getInjectionTargets();
-        // Insert bulk push option at the beginning
         const formatted = [
-          { value: "All Active Accounts", label: "All Active Accounts" },
-          ...list
+          { value: allActiveAccountsTarget, label: allActiveAccountsTarget },
+          ...list,
         ];
+
         setOptions(formatted);
-        if (formatted[0]) {
-          setTarget(formatted[0].value);
-        }
+        setSelectedTargets((current) => (current.length > 0 ? current : formatted[0] ? [formatted[0].value] : []));
       } catch {
         toast.error("Failed to load account options.");
       } finally {
-        setLoading(false);
+        setIsLoadingTargets(false);
       }
     }
-    loadOptions();
+
+    void loadOptions();
   }, []);
 
-  const targetLabel = React.useMemo(() => {
-    return options.find((opt) => opt.value === target)?.label || target;
-  }, [options, target]);
-
-  const handlePreview = () => {
-    if (!prompt.trim()) return;
-    const lower = prompt.toLowerCase();
-
-    // Parse symbol
-    let symbol = "EURUSD";
-    if (lower.includes("gbpusd")) symbol = "GBPUSD";
-    else if (lower.includes("xauusd") || lower.includes("gold")) symbol = "XAUUSD";
-    else if (lower.includes("usdjpy")) symbol = "USDJPY";
-
-    // Parse direction
-    const direction = lower.includes("sell") || lower.includes("short") ? "Sell" : "Buy";
-
-    // Parse profit
-    let profit = 126.0;
-    const matchProfit = prompt.match(/\$?(\d+(\.\d+)?)/);
-    if (matchProfit) {
-      profit = parseFloat(matchProfit[1]);
+  const selectedTargetLabel = React.useMemo(() => {
+    if (selectedTargets.length === 0) {
+      return "";
     }
 
-    // Parse lot size
-    let lotSize = 1.0;
-    const lotMatch = prompt.match(/(\d+(\.\d+)?)\s*lot/);
-    if (lotMatch) {
-      lotSize = parseFloat(lotMatch[1]);
+    if (selectedTargets[0] === allActiveAccountsTarget) {
+      return allActiveAccountsTarget;
     }
 
-    setPreview({
-      symbol,
-      direction,
-      entry: symbol === "XAUUSD" ? 2045.5 : symbol === "USDJPY" ? 150.25 : 1.085,
-      exit: symbol === "XAUUSD" ? 2051.8 : symbol === "USDJPY" ? 151.1 : 1.0862,
-      lotSize,
-      profit,
+    if (selectedTargets.length === 1) {
+      return options.find((option) => option.value === selectedTargets[0])?.label ?? selectedTargets[0];
+    }
+
+    const labels = selectedTargets
+      .map((value) => options.find((option) => option.value === value)?.label ?? value)
+      .slice(0, 2);
+
+    return selectedTargets.length > 2 ? `${labels.join(", ")} + ${selectedTargets.length - 2} more` : labels.join(", ");
+  }, [options, selectedTargets]);
+
+  const isBulkTarget = selectedTargets.length > 1 || selectedTargets[0] === allActiveAccountsTarget;
+
+  const handleToggleTarget = React.useCallback((value: string) => {
+    setSelectedTargets((current) => {
+      if (value === allActiveAccountsTarget) {
+        return [allActiveAccountsTarget];
+      }
+
+      if (current.includes(allActiveAccountsTarget)) {
+        return [value];
+      }
+
+      if (current.includes(value)) {
+        const next = current.filter((item) => item !== value);
+        return next.length > 0 ? next : [];
+      }
+
+      return [...current, value];
     });
-  };
+  }, []);
 
-  const handleInject = async () => {
-    let activePreview = preview;
-    if (!activePreview) {
-      handlePreview();
+  const handleSelectAllActive = React.useCallback(() => {
+    setSelectedTargets([allActiveAccountsTarget]);
+  }, []);
+
+  const handleClearTargets = React.useCallback(() => {
+    setSelectedTargets([]);
+  }, []);
+
+  const handlePreview = React.useCallback(async () => {
+    if (!prompt.trim()) {
+      toast.error("Please enter a trade instruction first.");
+      return;
+    }
+
+    setIsPreviewing(true);
+
+    try {
+      const generatedPreview = await injectApi.previewInjection(prompt);
+      setPreview(generatedPreview);
+      setSuccessMessage(null);
+
+      if (generatedPreview.recommendedScope === "BULK" && selectedTargets.length <= 1) {
+        setSelectedTargets([allActiveAccountsTarget]);
+      }
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Failed to preview trade injection.");
+    } finally {
+      setIsPreviewing(false);
+    }
+  }, [prompt]);
+
+  const handleInject = React.useCallback(async () => {
+    if (!prompt.trim()) {
+      toast.error("Please enter a valid trade instruction first.");
       return;
     }
 
     setIsInjecting(true);
+
     try {
-      if (target === "All Active Accounts") {
-        const { items: accounts } = await accountsApi.getAccounts({ limit: 1000 });
-        const activeIds = accounts.filter((a) => a.status === "Active").map((a) => a.id);
-        if (activeIds.length === 0) {
-          toast.error("No active accounts found for bulk push.");
-          setIsInjecting(false);
-          return;
-        }
-        await injectApi.bulkPush(activeIds, activePreview);
-        setSuccessMessage(`Successfully bulk-pushed simulated ${activePreview.direction} trade of ${activePreview.lotSize} lot(s) on ${activePreview.symbol} to ${activeIds.length} active account(s).`);
-      } else {
-        await injectApi.executeInjection(target, activePreview);
-        setSuccessMessage(`Successfully injected simulated ${activePreview.direction} trade of ${activePreview.lotSize} lot(s) on ${activePreview.symbol} into account "${targetLabel}".`);
+      let activePreview = preview;
+
+      if (!activePreview) {
+        activePreview = await injectApi.previewInjection(prompt);
+        setPreview(activePreview);
       }
+
+      if (selectedTargets.length === 0) {
+        toast.error("Please select at least one account.");
+        return;
+      }
+
+      const execution = selectedTargets[0] === allActiveAccountsTarget
+        ? await (async () => {
+            const { items: accounts } = await accountsApi.getAccounts({ limit: 1000 });
+            const activeIds = accounts.filter((account) => account.status === "Active").map((account) => account.id);
+
+            if (activeIds.length === 0) {
+              toast.error("No active accounts found for bulk push.");
+              return null;
+            }
+
+            return injectApi.executeInjection({ prompt, accountIds: activeIds });
+          })()
+        : selectedTargets.length > 1
+          ? await injectApi.executeInjection({ prompt, accountIds: selectedTargets })
+          : await injectApi.executeInjection({ prompt, accountId: selectedTargets[0] });
+
+      if (!execution) {
+        return;
+      }
+
+      const summary = getResultSummary(execution.result);
+      const destination = execution.targetAccountIds.length > 1
+        ? `into ${execution.targetAccountIds.length} selected account(s)`
+        : `into account "${selectedTargetLabel}"`;
+
+      setSuccessMessage(
+        `Successfully injected simulated ${execution.preview.direction} trade of ${execution.preview.lotSize} lot(s) on ${execution.preview.symbol} ${destination}. ${summary}`,
+      );
       setPrompt("");
       setPreview(null);
-    } catch (err: any) {
-      console.error(err);
-      toast.error(err.response?.data?.message || "Failed to inject trade.");
+
+      if (options[0]) {
+        setSelectedTargets([options[0].value]);
+      }
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Failed to inject trade.");
     } finally {
       setIsInjecting(false);
     }
-  };
+  }, [options, preview, prompt, selectedTargetLabel, selectedTargets]);
 
-  if (loading) {
+  if (isLoadingTargets) {
     return (
       <div className="flex h-[400px] w-full items-center justify-center">
         <div className="text-muted-foreground animate-pulse">Loading injection targets...</div>
@@ -125,42 +213,108 @@ export default function AdminInjectPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 w-full">
+    <div className="flex w-full flex-col gap-6">
       <PageHeader
-        title="Inject Trades"
-        description="Inject simulated trade positions directly into simulated user trading history."
+        title="AI Trade Injection"
+        description="Describe the trade in plain English. The backend will parse the prompt, validate it against live market context, and generate a preview before injection."
       />
 
-      {successMessage && (
+      {successMessage ? (
         <div className="relative flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800 shadow-[0_2px_8px_rgba(16,185,129,0.08)]">
-          <CheckCircle2Icon className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
-          <div className="flex-1 text-sm font-medium">
-            {successMessage}
-          </div>
+          <CheckCircle2Icon className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+          <div className="flex-1 text-sm font-medium">{successMessage}</div>
           <button
+            type="button"
             onClick={() => setSuccessMessage(null)}
-            className="text-emerald-600 hover:text-emerald-800 transition-colors p-1 -m-1 rounded-lg hover:bg-emerald-100"
+            className="-m-1 rounded-lg p-1 text-emerald-600 transition-colors hover:bg-emerald-100 hover:text-emerald-800"
           >
             <XIcon className="h-4 w-4" />
           </button>
         </div>
-      )}
+      ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         <div className="flex flex-col gap-6">
+          <SectionCard
+            title="Prompt Starters"
+            description="Use these examples to see how the AI injection parser behaves."
+            icon={SparklesIcon}
+          >
+            <div className="flex flex-wrap gap-2">
+              {promptPresets.map((item) => (
+                <Button
+                  key={item}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="justify-start rounded-full border-dashed text-left"
+                  onClick={() => setPrompt(item)}
+                >
+                  <WandSparklesIcon className="mr-2 h-4 w-4 text-amber-500" />
+                  {item}
+                </Button>
+              ))}
+            </div>
+            <div className="mt-4 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+              <AlertTriangleIcon className="h-4 w-4 shrink-0 text-amber-500" />
+              <span>
+                Backend AI is live. If you mention a profit or loss amount, the injection preview will align to that target before execution.
+              </span>
+            </div>
+          </SectionCard>
+
           <InjectTradeForm
             prompt={prompt}
             setPrompt={setPrompt}
-            target={target}
-            setTarget={setTarget}
+            selectedTargets={selectedTargets}
+            onToggleTarget={handleToggleTarget}
+            onSelectAllActive={handleSelectAllActive}
+            onClearTargets={handleClearTargets}
             onPreview={handlePreview}
             onInject={handleInject}
             isInjecting={isInjecting}
             options={options}
           />
+
+          <SectionCard
+            title="Execution Mode"
+            description="The selected target determines whether the injection goes to a single account or all active accounts."
+            icon={Layers3Icon}
+          >
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-xl border bg-white p-4">
+                <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Selected target</div>
+                <div className="mt-1 text-sm font-semibold text-foreground">{selectedTargetLabel || "No target selected"}</div>
+              </div>
+              <div className="rounded-xl border bg-white p-4">
+                <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Recommended scope</div>
+                <div className="mt-1 text-sm font-semibold text-foreground">
+                  {preview?.recommendedScope === "BULK"
+                    ? "Bulk push recommended"
+                    : preview?.recommendedScope === "SINGLE"
+                      ? "Single account recommended"
+                      : "Preview pending"}
+                </div>
+              </div>
+            </div>
+
+            {preview?.recommendedScope === "BULK" && !isBulkTarget ? (
+              <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                The backend recommended a bulk push for this prompt. Switch to <strong>All Active Accounts</strong> to match the suggested scope.
+              </div>
+            ) : null}
+
+            <div className="mt-4 flex gap-2">
+              <Button type="button" variant="outline" onClick={handlePreview} disabled={!prompt.trim() || isPreviewing}>
+                {isPreviewing ? <Loader2Icon className="mr-2 h-4 w-4 animate-spin" /> : <SparklesIcon className="mr-2 h-4 w-4 text-amber-500" />}
+                {isPreviewing ? "Generating preview..." : "Refresh preview"}
+              </Button>
+            </div>
+          </SectionCard>
         </div>
+
         <div className="flex flex-col gap-6">
-          <PreviewPanel preview={preview} targetAccountLabel={targetLabel} />
+          <PreviewPanel preview={preview} targetAccountLabel={selectedTargetLabel} />
         </div>
       </div>
     </div>
