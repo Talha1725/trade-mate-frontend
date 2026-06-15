@@ -50,9 +50,12 @@ export const ROUTES = {
 
   /** Admin Module */
   ADMIN: {
+    ACCOUNTS:        `/api/admin/accounts`,
     TRADES:          `/api/admin/trades`,
     TRADE_BY_ID: (id: string) => `/api/admin/trades/${id}`,
     USERS:           `/api/admin/users`,
+    INJECT_PREVIEW:  `/api/admin/inject/preview`,
+    INJECT:          `/api/admin/inject`,
     BULK_PUSH:       `/api/admin/bulk-push`,
     AUDIT:           `/api/admin/audit`,
   },

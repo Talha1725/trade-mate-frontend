@@ -73,7 +73,11 @@ export type DataTableProps<TData, TValue> = {
   serverPagination?: {
     page: number;
     pageCount: number;
+    totalItems?: number;
+    pageSize?: number;
+    pageSizeOptions?: number[];
     onPageChange: (page: number) => void;
+    onPageSizeChange?: (pageSize: number) => void;
   };
 };
 

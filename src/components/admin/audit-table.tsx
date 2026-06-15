@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchIcon } from "lucide-react";
 import { auditApi } from "@/lib/services/audit.api";
-import { useTableQuery } from "@/hooks/use-table-query";
+import { useServerTablePagination } from "@/hooks/use-server-table-pagination";
 import type { AuditLogEntry } from "@/types/admin";
 import { toast } from "sonner";
 
@@ -63,34 +63,39 @@ const columns: ColumnDef<AuditLogEntry>[] = [
 export function AuditTable() {
   const [audits, setAudits] = useState<AuditLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [actionFilter, setActionFilter] = useState("All");
+  const [totalItems, setTotalItems] = useState(0);
+  const [pageCount, setPageCount] = useState(1);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const { page, pageSize, setPage, setPageSize } = useServerTablePagination({
+    defaultPageSize: 10,
+    pageSizeOptions: [10, 25, 50],
+  });
 
-  const searchText = useCallback(
-    (a: AuditLogEntry) => `${a.adminEmail} ${a.targetAccountId} ${a.details}`,
-    [],
-  );
-  const filterFn = useCallback(
-    (a: AuditLogEntry, f: Record<string, string>) =>
-      !f.action || f.action === "All" || a.action === f.action,
-    [],
-  );
-  const { search, setSearch, filters, setFilter, page, setPage, pageCount, rows } =
-    useTableQuery({ rows: audits, searchText, filterFn });
-
-  const fetchAudits = async () => {
+  const fetchAudits = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await auditApi.getAuditLogs();
-      setAudits(data);
+      const data = await auditApi.getAuditLogs({
+        page,
+        limit: pageSize,
+        search: search.trim() || undefined,
+        action: actionFilter,
+      });
+
+      setAudits(data.items);
+      setTotalItems(data.total);
+      setPageCount(data.pageCount);
     } catch {
       toast.error("Failed to load audit logs.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [actionFilter, page, pageSize, search]);
 
   useEffect(() => {
-    fetchAudits();
-  }, []);
+    void fetchAudits();
+  }, [fetchAudits, refreshKey]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -101,10 +106,19 @@ export function AuditTable() {
             placeholder="Search by admin, account or details..."
             className="pl-8"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
           />
         </div>
-        <Select value={filters.action ?? "All"} onValueChange={(value) => setFilter("action", value ?? "All")}>
+        <Select
+          value={actionFilter}
+          onValueChange={(value) => {
+            setActionFilter(value ?? "All");
+            setPage(1);
+          }}
+        >
           <SelectTrigger className="w-[170px]">
             <SelectValue placeholder="All Actions" />
           </SelectTrigger>
@@ -119,14 +133,25 @@ export function AuditTable() {
       </div>
 
       {loading ? (
-        <div className="text-center py-8 text-muted-foreground animate-pulse">
+        <div className="animate-pulse py-8 text-center text-muted-foreground">
           Loading audit logs...
         </div>
       ) : (
         <DataTable
           columns={columns}
-          data={rows}
-          serverPagination={{ page, pageCount, onPageChange: setPage }}
+          data={audits}
+          serverPagination={{
+            page,
+            pageCount,
+            totalItems,
+            pageSize,
+            pageSizeOptions: [10, 25, 50],
+            onPageChange: setPage,
+            onPageSizeChange: (nextPageSize) => {
+              setPageSize(nextPageSize);
+              setPage(1);
+            },
+          }}
         />
       )}
     </div>

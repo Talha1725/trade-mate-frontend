@@ -11,12 +11,15 @@ export function useSymbols() {
 export function useQuotes(symbols?: string[]) {
   return useQuery({
     queryKey: ["market", "quotes", symbols],
-    queryFn: () => terminalApi.getMarketQuotes(),
-    enabled: true,
+    queryFn: () => terminalApi.getMarketQuotes(symbols ?? []),
+    enabled: !!symbols?.length,
   });
 }
 
-export function useHistory(symbol: string | null, interval?: string) {
+export function useHistory(
+  symbol: string | null,
+  interval?: "1m" | "5m" | "15m" | "1h" | "1d",
+) {
   return useQuery({
     queryKey: ["market", "history", symbol, interval],
     queryFn: () => terminalApi.getMarketHistory(symbol!, interval),
