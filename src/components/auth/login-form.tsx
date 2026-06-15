@@ -47,9 +47,7 @@ export function LoginForm({
           password: values.password,
         });
         setStatus("success");
-        router.push(
-          redirectTo ?? (session.user.role === "admin" ? "/admin" : "/dashboard"),
-        );
+        router.push(redirectTo ?? "/dashboard");
         return;
       }
       setStatus("success");
