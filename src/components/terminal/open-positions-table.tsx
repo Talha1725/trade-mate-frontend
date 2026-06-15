@@ -1,59 +1,34 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useCallback } from "react";
 import { SearchIcon, FilterIcon } from "lucide-react";
-import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SectionCard } from "@/components/section-card";
 import { SortableColumnHeader } from "@/components/sortable-column-header";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
-import { usePositions, useCloseTrade } from "@/hooks/use-trades";
+import { mockPositions } from "@/lib/mock-data/positions";
+import { useTableQuery } from "@/hooks/use-table-query";
+import type { OpenPositionsTableProps } from "@/types";
 import type { Position } from "@/types/trade";
 
-export function OpenPositionsTable() {
-  const [search, setSearch] = useState("");
-  const [actionFilter, setActionFilter] = useState("All");
-  const { data: positions = [], isLoading } = usePositions();
-  const { mutate: closeTrade, isPending: isClosing } = useCloseTrade();
+export function OpenPositionsTable({ positions, onClosePosition }: OpenPositionsTableProps) {
+  const sourcePositions = positions?.length ? positions : mockPositions;
 
-  const sortedPositions = useMemo(() => {
-    let result = [...positions];
+  const searchText = useCallback((position: Position) => `${position.symbol} ${position.ticket}`, []);
+  const filterFn = useCallback(
+    (position: Position, filters: Record<string, string>) =>
+      !filters.action || filters.action === "All" || position.type === filters.action,
+    [],
+  );
 
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (p) =>
-          p.symbol.toLowerCase().includes(q) ||
-          p.ticket.toLowerCase().includes(q),
-      );
-    }
-
-    if (actionFilter !== "All") {
-      result = result.filter((p) => p.type === actionFilter);
-    }
-
-    return result;
-  }, [positions, actionFilter, search]);
-
-  const handleClose = (ticket: string) => {
-    closeTrade(ticket, {
-      onSuccess: () => {
-        toast.success(`Position ${ticket} closed`);
-      },
-      onError: (error) => {
-        toast.error(error.message || `Failed to close position ${ticket}`);
-      },
-    });
-  };
+  const { search, setSearch, filters, setFilter, page, setPage, pageCount, rows } = useTableQuery({
+    rows: sourcePositions,
+    searchText,
+    filterFn,
+  });
 
   const columns: ColumnDef<Position>[] = [
     {
@@ -62,40 +37,24 @@ export function OpenPositionsTable() {
     },
     {
       accessorKey: "symbol",
-      header: ({ column }) => (
-        <SortableColumnHeader column={column} label="Symbol" />
-      ),
-      cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("symbol")}</div>
-      ),
+      header: ({ column }) => <SortableColumnHeader column={column} label="Symbol" />,
+      cell: ({ row }) => <div className="font-medium">{row.getValue("symbol")}</div>,
     },
     {
       accessorKey: "type",
       header: "Type",
       cell: ({ row }) => {
         const type = row.getValue("type") as string;
-        return (
-          <div
-            className={
-              type === "Buy" ? "text-emerald-600" : "text-rose-600"
-            }
-          >
-            {type}
-          </div>
-        );
+        return <div className={type === "Buy" ? "text-emerald-600" : "text-rose-600"}>{type}</div>;
       },
     },
     {
       accessorKey: "volume",
-      header: ({ column }) => (
-        <SortableColumnHeader column={column} label="Volume" />
-      ),
+      header: ({ column }) => <SortableColumnHeader column={column} label="Volume" />,
     },
     {
       accessorKey: "openPrice",
-      header: ({ column }) => (
-        <SortableColumnHeader column={column} label="Open Price" />
-      ),
+      header: ({ column }) => <SortableColumnHeader column={column} label="Open Price" />,
     },
     {
       accessorKey: "sl",
@@ -109,21 +68,15 @@ export function OpenPositionsTable() {
     },
     {
       accessorKey: "current",
-      header: ({ column }) => (
-        <SortableColumnHeader column={column} label="Current" />
-      ),
+      header: ({ column }) => <SortableColumnHeader column={column} label="Current" />,
     },
     {
       accessorKey: "profit",
-      header: ({ column }) => (
-        <SortableColumnHeader column={column} label="Profit" />
-      ),
+      header: ({ column }) => <SortableColumnHeader column={column} label="Profit" />,
       cell: ({ row }) => {
         const profit = parseFloat(row.getValue("profit"));
         return (
-          <div
-            className={`font-medium ${profit > 0 ? "text-emerald-600" : "text-rose-600"}`}
-          >
+          <div className={`font-medium ${profit > 0 ? "text-emerald-600" : "text-rose-600"}`}>
             {profit > 0 ? "+" : ""}${profit.toFixed(2)}
           </div>
         );
@@ -136,24 +89,14 @@ export function OpenPositionsTable() {
           variant="outline"
           size="sm"
           className="h-7 text-xs"
-          disabled={isClosing}
-          onClick={() => handleClose(row.original.ticket)}
+          disabled={!onClosePosition}
+          onClick={() => onClosePosition?.(row.original)}
         >
           Close
         </Button>
       ),
     },
   ];
-
-  if (isLoading) {
-    return (
-      <SectionCard title="Open Positions">
-        <div className="flex items-center justify-center h-[200px] text-muted-foreground">
-          Loading positions...
-        </div>
-      </SectionCard>
-    );
-  }
 
   return (
     <SectionCard title="Open Positions">
@@ -165,14 +108,12 @@ export function OpenPositionsTable() {
             placeholder="Filter positions..."
             className="pl-8"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(event) => setSearch(event.target.value)}
           />
         </div>
+
         <div className="flex items-center gap-2">
-          <Select
-            value={actionFilter}
-            onValueChange={(value) => setActionFilter(value ?? "All")}
-          >
+          <Select value={filters.action ?? "All"} onValueChange={(value) => setFilter("action", value ?? "All")}>
             <SelectTrigger className="w-[130px]">
               <SelectValue placeholder="Action" />
             </SelectTrigger>
@@ -187,8 +128,13 @@ export function OpenPositionsTable() {
           </Button>
         </div>
       </div>
+
       <div className="overflow-y-auto max-h-[300px] min-h-[200px]">
-        <DataTable columns={columns} data={sortedPositions} />
+        <DataTable
+          columns={columns}
+          data={rows}
+          serverPagination={{ page, pageCount, onPageChange: setPage }}
+        />
       </div>
     </SectionCard>
   );

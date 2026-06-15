@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { toast } from "sonner";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -13,37 +13,33 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SectionCard } from "@/components/section-card";
-import { useOpenTrade } from "@/hooks/use-trades";
+import type { OrderTicketProps, TradeOrderDirection } from "@/types";
 
-type OrderTicketProps = {
-  symbol: string;
-};
-
-export function OrderTicket({ symbol }: OrderTicketProps) {
+export function OrderTicket({ accountId, symbol = "EURUSD", price, onSubmit, isSubmitting }: OrderTicketProps) {
   const [orderType, setOrderType] = useState("Market");
   const [volume, setVolume] = useState("1.0");
-  const [sl, setSl] = useState("");
-  const [tp, setTp] = useState("");
-  const { mutate: openTrade, isPending } = useOpenTrade();
+  const [stopLoss, setStopLoss] = useState("");
+  const [takeProfit, setTakeProfit] = useState("");
 
-  const handleTrade = (type: "Buy" | "Sell") => {
-    openTrade(
-      {
-        symbol,
-        type,
-        volume: parseFloat(volume),
-        sl: sl ? parseFloat(sl) : undefined,
-        tp: tp ? parseFloat(tp) : undefined,
-      },
-      {
-        onSuccess: () => {
-          toast.success(`${type} order placed for ${symbol}`);
-        },
-        onError: (error) => {
-          toast.error(error.message || `Failed to place ${type} order`);
-        },
-      },
-    );
+  const handlePlaceOrder = async (direction: TradeOrderDirection) => {
+    if (!onSubmit || !accountId) {
+      return;
+    }
+
+    const lots = Number(volume);
+
+    if (!Number.isFinite(lots) || lots <= 0) {
+      return;
+    }
+
+    await onSubmit({
+      accountId,
+      symbol,
+      direction,
+      lots,
+      stopLoss: stopLoss ? Number(stopLoss) : null,
+      takeProfit: takeProfit ? Number(takeProfit) : null,
+    });
   };
 
   return (
@@ -57,12 +53,10 @@ export function OrderTicket({ symbol }: OrderTicketProps) {
           <Label htmlFor="symbol">Symbol</Label>
           <Input id="symbol" value={symbol} disabled />
         </div>
+
         <div className="grid gap-2">
           <Label htmlFor="type">Order Type</Label>
-          <Select
-            value={orderType}
-            onValueChange={(value) => setOrderType(value ?? "Market")}
-          >
+          <Select value={orderType} onValueChange={(value) => setOrderType(value ?? "Market")}>
             <SelectTrigger id="type">
               <SelectValue placeholder="Select type" />
             </SelectTrigger>
@@ -72,16 +66,18 @@ export function OrderTicket({ symbol }: OrderTicketProps) {
             </SelectContent>
           </Select>
         </div>
+
         <div className="grid gap-2">
           <Label htmlFor="volume">Volume (Lots)</Label>
           <Input
             id="volume"
             type="number"
             value={volume}
-            onChange={(e) => setVolume(e.target.value)}
+            onChange={(event) => setVolume(event.target.value)}
             step="0.1"
           />
         </div>
+
         <div className="grid grid-cols-2 gap-4">
           <div className="grid gap-2">
             <Label htmlFor="sl">Stop Loss</Label>
@@ -89,35 +85,41 @@ export function OrderTicket({ symbol }: OrderTicketProps) {
               id="sl"
               type="number"
               placeholder="0.0000"
-              value={sl}
-              onChange={(e) => setSl(e.target.value)}
+              value={stopLoss}
+              onChange={(event) => setStopLoss(event.target.value)}
             />
           </div>
+
           <div className="grid gap-2">
             <Label htmlFor="tp">Take Profit</Label>
             <Input
               id="tp"
               type="number"
               placeholder="0.0000"
-              value={tp}
-              onChange={(e) => setTp(e.target.value)}
+              value={takeProfit}
+              onChange={(event) => setTakeProfit(event.target.value)}
             />
           </div>
         </div>
+
+        <p className="text-xs text-muted-foreground">
+          {symbol} {price != null ? `around ${price.toFixed(4)}` : "market order"}
+        </p>
       </div>
+
       <div className="mt-2 grid grid-cols-2 gap-4">
         <Button
           variant="destructive"
           className="w-full"
-          disabled={isPending}
-          onClick={() => handleTrade("Sell")}
+          disabled={!onSubmit || !accountId || isSubmitting}
+          onClick={() => handlePlaceOrder("SELL")}
         >
           Sell by Market
         </Button>
         <Button
           className="w-full bg-emerald-600 hover:bg-emerald-700"
-          disabled={isPending}
-          onClick={() => handleTrade("Buy")}
+          disabled={!onSubmit || !accountId || isSubmitting}
+          onClick={() => handlePlaceOrder("BUY")}
         >
           Buy by Market
         </Button>

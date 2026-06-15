@@ -7,6 +7,11 @@ export interface Trade {
   closeP: number;
   profit: number;
   time: string;
+  accountId?: string;
+  status?: "Open" | "Closed";
+  stopLoss?: number | null;
+  takeProfit?: number | null;
+  notes?: string | null;
 }
 
 export interface Position {
@@ -23,4 +28,20 @@ export interface Position {
 
 export type TradeEditorProps = {
   accountId: string;
+};
+
+export type TradeOrderDirection = "BUY" | "SELL";
+
+export type TradeOpenPayload = {
+  accountId: string;
+  symbol: string;
+  direction: TradeOrderDirection;
+  lots: number;
+  stopLoss?: number | null;
+  takeProfit?: number | null;
+};
+
+export type TradeClosePayload = {
+  positionId: string;
+  closePrice?: number | null;
 };

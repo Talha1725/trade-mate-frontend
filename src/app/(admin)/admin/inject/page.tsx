@@ -4,20 +4,47 @@ import * as React from "react";
 import { PageHeader } from "@/components/page-header";
 import { InjectTradeForm } from "@/components/admin/inject-trade-form";
 import { PreviewPanel } from "@/components/admin/preview-panel";
-import { mockInjectionTargetOptions } from "@/lib/mock-data/injection";
-import type { TradePreviewData } from "@/types/admin";
+import { injectApi } from "@/lib/services/inject.api";
+import { accountsApi } from "@/lib/services/accounts.api";
+import type { TradePreviewData, TradeInjectionTargetOption } from "@/types/admin";
 import { CheckCircle2Icon, XIcon } from "lucide-react";
+import { toast } from "sonner";
 
 export default function AdminInjectPage() {
   const [prompt, setPrompt] = React.useState("");
-  const [target, setTarget] = React.useState(mockInjectionTargetOptions[0]?.value || "");
+  const [options, setOptions] = React.useState<TradeInjectionTargetOption[]>([]);
+  const [target, setTarget] = React.useState("");
   const [preview, setPreview] = React.useState<TradePreviewData | null>(null);
   const [isInjecting, setIsInjecting] = React.useState(false);
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    async function loadOptions() {
+      setLoading(true);
+      try {
+        const list = await injectApi.getInjectionTargets();
+        // Insert bulk push option at the beginning
+        const formatted = [
+          { value: "All Active Accounts", label: "All Active Accounts" },
+          ...list
+        ];
+        setOptions(formatted);
+        if (formatted[0]) {
+          setTarget(formatted[0].value);
+        }
+      } catch {
+        toast.error("Failed to load account options.");
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadOptions();
+  }, []);
 
   const targetLabel = React.useMemo(() => {
-    return mockInjectionTargetOptions.find((opt) => opt.value === target)?.label || target;
-  }, [target]);
+    return options.find((opt) => opt.value === target)?.label || target;
+  }, [options, target]);
 
   const handlePreview = () => {
     if (!prompt.trim()) return;
@@ -56,19 +83,46 @@ export default function AdminInjectPage() {
     });
   };
 
-  const handleInject = () => {
-    if (!preview) {
-      // Generate preview first if they just click inject
+  const handleInject = async () => {
+    let activePreview = preview;
+    if (!activePreview) {
       handlePreview();
+      return;
     }
+
     setIsInjecting(true);
-    setTimeout(() => {
-      setIsInjecting(false);
-      setSuccessMessage(`Successfully injected simulated ${preview?.direction || "Buy"} trade of ${preview?.lotSize || 1.0} lot(s) on ${preview?.symbol || "EURUSD"} into account "${targetLabel}".`);
+    try {
+      if (target === "All Active Accounts") {
+        const { items: accounts } = await accountsApi.getAccounts({ limit: 1000 });
+        const activeIds = accounts.filter((a) => a.status === "Active").map((a) => a.id);
+        if (activeIds.length === 0) {
+          toast.error("No active accounts found for bulk push.");
+          setIsInjecting(false);
+          return;
+        }
+        await injectApi.bulkPush(activeIds, activePreview);
+        setSuccessMessage(`Successfully bulk-pushed simulated ${activePreview.direction} trade of ${activePreview.lotSize} lot(s) on ${activePreview.symbol} to ${activeIds.length} active account(s).`);
+      } else {
+        await injectApi.executeInjection(target, activePreview);
+        setSuccessMessage(`Successfully injected simulated ${activePreview.direction} trade of ${activePreview.lotSize} lot(s) on ${activePreview.symbol} into account "${targetLabel}".`);
+      }
       setPrompt("");
       setPreview(null);
-    }, 800);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Failed to inject trade.");
+    } finally {
+      setIsInjecting(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex h-[400px] w-full items-center justify-center">
+        <div className="text-muted-foreground animate-pulse">Loading injection targets...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6 w-full">
@@ -102,6 +156,7 @@ export default function AdminInjectPage() {
             onPreview={handlePreview}
             onInject={handleInject}
             isInjecting={isInjecting}
+            options={options}
           />
         </div>
         <div className="flex flex-col gap-6">

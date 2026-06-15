@@ -1,35 +1,51 @@
-import { ROUTES } from "@/constant/routes"
-import { get, post } from "@/lib/utils/api"
-import type { Position } from "@/types/trade"
+import { ROUTES } from "@/constant/routes";
+import { get, post } from "@/lib/utils/api";
+import type {
+  AccountLedgerResponse,
+  TradeCloseResponse,
+  TradeOpenResponse,
+  UserPortfolioResponse,
+} from "@/types/dashboard";
+import type { MarketHistoryResponse, MarketQuoteResponse, MarketSymbolResponse } from "@/types/market";
+import type { TradeClosePayload, TradeOpenPayload } from "@/types";
 
 export const terminalApi = {
-  getMarketQuotes(): Promise<Record<string, { bid: number; ask: number; change: number }>> {
-    return get(ROUTES.MARKET.QUOTES)
+  getMarketQuotes(symbols: string[], authToken?: string): Promise<MarketQuoteResponse> {
+    return get(ROUTES.MARKET.QUOTES, {
+      params: { symbols: symbols.join(",") },
+      headers: authToken ? { Authorization: `Bearer ${authToken}` } : undefined,
+    });
   },
 
-  getMarketHistory(symbol: string, timeframe?: string): Promise<{ time: number; open: number; high: number; low: number; close: number }[]> {
-    return get(ROUTES.MARKET.HISTORY, { params: { symbol, timeframe } })
+  getMarketHistory(symbol: string, interval: "1m" | "5m" | "15m" | "1h" | "1d" = "1d", limit = 120): Promise<MarketHistoryResponse> {
+    return get(ROUTES.MARKET.HISTORY, { params: { symbol, interval, limit } });
   },
 
-  getMarketSymbols(): Promise<{ symbol: string; description: string }[]> {
-    return get(ROUTES.MARKET.SYMBOLS)
+  getMarketSymbols(): Promise<MarketSymbolResponse> {
+    return get(ROUTES.MARKET.SYMBOLS);
   },
 
-  getOpenPositions(): Promise<Position[]> {
-    return get(ROUTES.POSITION.LIST)
+  getOpenPositions(authToken?: string): Promise<UserPortfolioResponse> {
+    return get(ROUTES.POSITION.LIST, {
+      headers: authToken ? { Authorization: `Bearer ${authToken}` } : undefined,
+    });
   },
 
-  placeOrder(order: {
-    symbol: string
-    type: "Buy" | "Sell"
-    volume: number
-    sl?: number
-    tp?: number
-  }): Promise<{ ticket: string }> {
-    return post(ROUTES.TRADE.OPEN, order)
+  getAccountLedger(accountId: string, authToken?: string): Promise<AccountLedgerResponse> {
+    return get(ROUTES.TRADE.ACCOUNT(accountId), {
+      headers: authToken ? { Authorization: `Bearer ${authToken}` } : undefined,
+    });
   },
 
-  closePosition(ticket: string): Promise<void> {
-    return post(ROUTES.POSITION.CLOSE(ticket))
+  placeOrder(order: TradeOpenPayload, authToken?: string): Promise<TradeOpenResponse> {
+    return post(ROUTES.TRADE.OPEN, order, {
+      headers: authToken ? { Authorization: `Bearer ${authToken}` } : undefined,
+    });
   },
-}
+
+  closeTrade(payload: TradeClosePayload, authToken?: string): Promise<TradeCloseResponse> {
+    return post(ROUTES.TRADE.CLOSE, payload, {
+      headers: authToken ? { Authorization: `Bearer ${authToken}` } : undefined,
+    });
+  },
+};

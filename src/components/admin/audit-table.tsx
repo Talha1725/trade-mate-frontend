@@ -1,26 +1,32 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { SortableColumnHeader } from "@/components/sortable-column-header";
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchIcon } from "lucide-react";
-import { auditActionTypes, mockAudits } from "@/lib/mock-data/audits";
+import { auditApi } from "@/lib/services/audit.api";
+import { useTableQuery } from "@/hooks/use-table-query";
 import type { AuditLogEntry } from "@/types/admin";
+import { toast } from "sonner";
 
 const ACTION_BADGE: Record<string, string> = {
   "Inject Trade": "bg-blue-100 text-blue-700",
   "Close Position": "bg-amber-100 text-amber-700",
   "Account Update": "bg-purple-100 text-purple-700",
+  "Bulk Push": "bg-indigo-100 text-indigo-700",
+  "Modify Trade": "bg-teal-100 text-teal-700",
 };
+
+const auditActionTypes = ["All", "Inject Trade", "Close Position", "Account Update", "Bulk Push", "Modify Trade"];
 
 const columns: ColumnDef<AuditLogEntry>[] = [
   {
     accessorKey: "timestamp",
     header: ({ column }) => <SortableColumnHeader column={column} label="Timestamp" />,
-    cell: ({ row }) => <div className="text-muted-foreground">{row.getValue("timestamp")}</div>,
+    cell: ({ row }) => <div className="text-muted-foreground text-xs">{row.getValue("timestamp")}</div>,
   },
   {
     accessorKey: "adminEmail",
@@ -41,6 +47,7 @@ const columns: ColumnDef<AuditLogEntry>[] = [
   {
     accessorKey: "targetAccountId",
     header: ({ column }) => <SortableColumnHeader column={column} label="Target Account" />,
+    cell: ({ row }) => <div className="font-mono text-xs">{row.getValue("targetAccountId")}</div>,
   },
   {
     accessorKey: "details",
@@ -54,25 +61,36 @@ const columns: ColumnDef<AuditLogEntry>[] = [
 ];
 
 export function AuditTable() {
-  const [search, setSearch] = useState("");
-  const [actionFilter, setActionFilter] = useState("All");
+  const [audits, setAudits] = useState<AuditLogEntry[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = useMemo(() => {
-    let result = [...mockAudits];
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (a) =>
-          a.adminEmail.toLowerCase().includes(q) ||
-          a.targetAccountId.toLowerCase().includes(q) ||
-          a.details.toLowerCase().includes(q)
-      );
+  const searchText = useCallback(
+    (a: AuditLogEntry) => `${a.adminEmail} ${a.targetAccountId} ${a.details}`,
+    [],
+  );
+  const filterFn = useCallback(
+    (a: AuditLogEntry, f: Record<string, string>) =>
+      !f.action || f.action === "All" || a.action === f.action,
+    [],
+  );
+  const { search, setSearch, filters, setFilter, page, setPage, pageCount, rows } =
+    useTableQuery({ rows: audits, searchText, filterFn });
+
+  const fetchAudits = async () => {
+    setLoading(true);
+    try {
+      const data = await auditApi.getAuditLogs();
+      setAudits(data);
+    } catch {
+      toast.error("Failed to load audit logs.");
+    } finally {
+      setLoading(false);
     }
-    if (actionFilter !== "All") {
-      result = result.filter((a) => a.action === actionFilter);
-    }
-    return result;
-  }, [search, actionFilter]);
+  };
+
+  useEffect(() => {
+    fetchAudits();
+  }, []);
 
   return (
     <div className="flex flex-col gap-4">
@@ -86,7 +104,7 @@ export function AuditTable() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <Select value={actionFilter} onValueChange={(value) => setActionFilter(value ?? "All")}>
+        <Select value={filters.action ?? "All"} onValueChange={(value) => setFilter("action", value ?? "All")}>
           <SelectTrigger className="w-[170px]">
             <SelectValue placeholder="All Actions" />
           </SelectTrigger>
@@ -99,7 +117,18 @@ export function AuditTable() {
           </SelectContent>
         </Select>
       </div>
-      <DataTable columns={columns} data={filtered} pageSize={100} />
+
+      {loading ? (
+        <div className="text-center py-8 text-muted-foreground animate-pulse">
+          Loading audit logs...
+        </div>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={rows}
+          serverPagination={{ page, pageCount, onPageChange: setPage }}
+        />
+      )}
     </div>
   );
 }

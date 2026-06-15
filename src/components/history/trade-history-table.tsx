@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { FilterIcon, SearchIcon } from "lucide-react";
 
 import { SectionCard } from "@/components/section-card";
@@ -18,39 +18,32 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { mockTrades } from "@/lib/mock-data/trades";
+import { useTableQuery } from "@/hooks/use-table-query";
+import type { TradeHistoryTableProps } from "@/types";
 import type { Trade } from "@/types/trade";
 
-export function TradeHistoryTable() {
-  const [search, setSearch] = useState("");
-  const [actionFilter, setActionFilter] = useState("All");
+export function TradeHistoryTable({ trades }: TradeHistoryTableProps) {
   const [timeFilter, setTimeFilter] = useState("30 Days");
   const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
+  const sourceTrades = trades?.length ? trades : mockTrades;
 
-  const filteredAndSorted = useMemo(() => {
-    let result = [...mockTrades];
-
-    // Search filter
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (t) => t.symbol.toLowerCase().includes(q) || t.id.includes(q)
-      );
-    }
-
-    // Action filter
-    if (actionFilter !== "All") {
-      result = result.filter((t) => t.type === actionFilter);
-    }
-
-    // Time filter (simple approximation on index for demo data)
+  // Time is a positional "scope" (not a per-row predicate), so it's applied
+  // before handing the rows to the shared search/filter/pagination hook.
+  const timeScoped = useMemo(() => {
     if (timeFilter === "7 Days") {
-      result = result.slice(0, 2);
-    } else if (timeFilter === "YTD") {
-      result = result; // all for demo
+      return sourceTrades.slice(0, 2);
     }
+    return sourceTrades;
+  }, [sourceTrades, timeFilter]);
 
-    return result;
-  }, [search, actionFilter, timeFilter]);
+  const searchText = useCallback((t: Trade) => `${t.symbol} ${t.id}`, []);
+  const filterFn = useCallback(
+    (t: Trade, f: Record<string, string>) =>
+      !f.action || f.action === "All" || t.type === f.action,
+    [],
+  );
+  const { search, setSearch, filters, setFilter, page, setPage, pageCount, rows } =
+    useTableQuery({ rows: timeScoped, searchText, filterFn });
 
   const columns: ColumnDef<Trade>[] = [
     {
@@ -136,7 +129,7 @@ export function TradeHistoryTable() {
           />
         </div>
         <div className="flex items-center gap-2">
-          <Select value={actionFilter} onValueChange={(value) => setActionFilter(value ?? "All")}>
+          <Select value={filters.action ?? "All"} onValueChange={(value) => setFilter("action", value ?? "All")}>
             <SelectTrigger className="w-[130px]">
               <SelectValue placeholder="Action" />
             </SelectTrigger>
@@ -162,7 +155,11 @@ export function TradeHistoryTable() {
         </div>
       </div>
 
-      <DataTable columns={columns} data={filteredAndSorted} pageSize={100} />
+      <DataTable
+        columns={columns}
+        data={rows}
+        serverPagination={{ page, pageCount, onPageChange: setPage }}
+      />
 
       {/* Centered Trade Detail Dialog */}
       <Dialog open={!!selectedTrade} onOpenChange={(open) => !open && setSelectedTrade(null)}>

@@ -19,7 +19,7 @@ const initialValues: LoginFormValues = {
 
 export function LoginForm({
   onSubmit,
-  redirectTo = "/dashboard",
+  redirectTo,
   className,
 }: LoginFormProps) {
   const router = useRouter();
@@ -42,11 +42,18 @@ export function LoginForm({
       if (onSubmit) {
         await onSubmit(values);
       } else {
-        await new Promise((resolve) => setTimeout(resolve, 400));
+        const session = await signIn({
+          email: values.email,
+          password: values.password,
+        });
+        setStatus("success");
+        router.push(
+          redirectTo ?? (session.user.role === "admin" ? "/admin" : "/dashboard"),
+        );
+        return;
       }
-      signIn(values);
       setStatus("success");
-      router.push(redirectTo);
+      router.push(redirectTo ?? "/dashboard");
     } catch (error) {
       setStatus("error");
       setErrorMessage(
@@ -68,7 +75,7 @@ export function LoginForm({
           Welcome back
         </h2>
         <p className="text-sm text-gray-500">
-          Access the internal review generation dashboard.
+          Access the internal admin dashboard.
         </p>
       </div>
 
