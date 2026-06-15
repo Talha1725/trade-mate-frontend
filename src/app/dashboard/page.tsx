@@ -30,7 +30,7 @@ export default function DashboardPage() {
           return;
         }
 
-        setToken(session.token);
+        setToken(session.token ?? null);
       })
       .catch(() => {
         if (isMounted) {

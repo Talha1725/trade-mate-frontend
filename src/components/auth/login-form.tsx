@@ -7,7 +7,6 @@ import { ArrowRightIcon, EyeIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { loginApi } from "@/lib/services/auth.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { cn } from "@/lib/utils";
 import type { AuthStatus, LoginFormValues, LoginFormProps } from "@/types";
@@ -20,7 +19,7 @@ const initialValues: LoginFormValues = {
 
 export function LoginForm({
   onSubmit,
-  redirectTo = "/admin",
+  redirectTo,
   className,
 }: LoginFormProps) {
   const router = useRouter();
@@ -43,11 +42,18 @@ export function LoginForm({
       if (onSubmit) {
         await onSubmit(values);
       } else {
-        const session = await loginApi.login(values);
-        signIn(session);
+        const session = await signIn({
+          email: values.email,
+          password: values.password,
+        });
+        setStatus("success");
+        router.push(
+          redirectTo ?? (session.user.role === "admin" ? "/admin" : "/dashboard"),
+        );
+        return;
       }
       setStatus("success");
-      router.push(redirectTo);
+      router.push(redirectTo ?? "/dashboard");
     } catch (error) {
       setStatus("error");
       setErrorMessage(

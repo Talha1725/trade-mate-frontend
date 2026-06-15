@@ -1,49 +1,53 @@
 import { ROUTES } from "@/constant/routes"
-import { post } from "@/lib/utils/api"
-import type { AuthLoginResponse, AuthSession, LoginCredentials } from "@/types/auth"
+import { get, post } from "@/lib/utils/api"
+import type { AuthSession, LoginCredentials } from "@/types/auth"
+import { useAuthStore } from "@/lib/stores/auth-store"
 
 export const loginApi = {
   async login(credentials: LoginCredentials): Promise<AuthSession> {
-    const response = await post<AuthLoginResponse>(ROUTES.AUTH.LOGIN, credentials)
-    const now = new Date().toISOString()
-
+    const res = await post<{ token: string; user: { id: string; email: string; name: string; role: string } }>(ROUTES.AUTH.LOGIN, credentials)
     return {
-      token: response.token,
       user: {
-        ...response.user,
-        createdAt: now,
+        id: res.user.id,
+        email: res.user.email,
+        name: res.user.name || "",
+        role: res.user.role.toLowerCase() as "admin" | "trader",
       },
-      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 8).toISOString(),
+      token: res.token,
     }
   },
 
   async demo(): Promise<AuthSession> {
-    const response = await post<AuthLoginResponse>(ROUTES.AUTH.DEMO)
+    const res = await post<{ token: string; user: { id: string; email: string; name: string; role: string } }>(ROUTES.AUTH.DEMO)
     const now = new Date().toISOString()
-
     return {
-      token: response.token,
       user: {
-        ...response.user,
+        id: res.user.id,
+        email: res.user.email,
+        name: res.user.name || "",
+        role: res.user.role.toLowerCase() as "admin" | "trader",
         createdAt: now,
       },
+      token: res.token,
       expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 8).toISOString(),
     }
   },
 
-  logout(): Promise<void> {
-    return post(ROUTES.AUTH.LOGOUT)
+  async me(): Promise<AuthSession> {
+    const res = await get<{ user: { id: string; email: string; name: string; role: string } }>(ROUTES.AUTH.ME)
+    const token = useAuthStore.getState().session?.token
+    return {
+      user: {
+        id: res.user.id,
+        email: res.user.email,
+        name: res.user.name || "",
+        role: res.user.role.toLowerCase() as "admin" | "trader",
+      },
+      token,
+    }
   },
 
-  refreshToken(): Promise<AuthSession> {
-    return post(ROUTES.AUTH.REFRESH)
-  },
-
-  forgotPassword(email: string): Promise<void> {
-    return post(ROUTES.AUTH.FORGOT_PASSWORD, { email })
-  },
-
-  resetPassword(token: string, password: string): Promise<void> {
-    return post(ROUTES.AUTH.RESET_PASSWORD, { token, password })
+  async signout(): Promise<void> {
+    useAuthStore.getState().clearToken()
   },
 }

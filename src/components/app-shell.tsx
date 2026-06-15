@@ -166,8 +166,8 @@ export function AppShell({
   const resolvedUserLabel = userLabel;
   const signOut = useAuthStore((state) => state.signOut);
 
-  const handleSignOut = () => {
-    signOut();
+  const handleSignOut = async () => {
+    await signOut();
 
     if (onSignOut) {
       onSignOut();
