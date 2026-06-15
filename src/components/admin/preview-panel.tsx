@@ -13,11 +13,12 @@ interface PreviewPanelProps {
 export function PreviewPanel({ preview, targetAccountLabel }: PreviewPanelProps) {
   return (
     <SectionCard
+      className="h-fit"
       title="AI Preview"
       description="The backend interprets the prompt, checks market context, and returns a trade draft before anything is injected."
     >
       {preview ? (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-5">
           <div className="flex items-center gap-2 text-emerald-600 font-medium pb-2 border-b">
             <CheckCircleIcon className="h-5 w-5" />
             <span>Parsed Instructions Successfully</span>
@@ -119,9 +120,9 @@ export function PreviewPanel({ preview, targetAccountLabel }: PreviewPanelProps)
           </div>
 
           {preview.rationale?.length ? (
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Why this preview was generated</p>
-              <ul className="mt-3 space-y-2 text-sm text-slate-700">
+              <ul className="mt-3 space-y-2.5 text-sm text-slate-700">
                 {preview.rationale.map((item) => (
                   <li key={item} className="flex gap-2">
                     <span className="mt-1 h-1.5 w-1.5 rounded-full bg-sky-500" />
@@ -133,11 +134,11 @@ export function PreviewPanel({ preview, targetAccountLabel }: PreviewPanelProps)
           ) : null}
 
           {preview.marketContext?.length ? (
-            <div className="rounded-xl border border-slate-200 bg-white p-4">
+            <div className="rounded-xl border border-slate-200 bg-white p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Market context used by the backend</p>
-              <div className="mt-3 grid gap-2">
+              <div className="mt-3 grid gap-2.5">
                 {preview.marketContext.slice(0, 5).map((item) => (
-                  <div key={item.symbol} className="flex items-center justify-between rounded-lg border bg-slate-50 px-3 py-2 text-sm">
+                  <div key={item.symbol} className="flex items-center justify-between rounded-lg border bg-slate-50 px-3 py-2.5 text-sm">
                     <div className="flex items-center gap-3">
                       <span className="font-semibold text-slate-900">{item.symbol}</span>
                       <span className="text-xs text-muted-foreground">{item.trend}</span>

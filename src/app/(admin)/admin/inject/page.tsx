@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { AlertTriangleIcon, CheckCircle2Icon, Layers3Icon, Loader2Icon, SparklesIcon, WandSparklesIcon, XIcon } from "lucide-react";
+import { CheckCircle2Icon, Layers3Icon, Loader2Icon, SparklesIcon, WandSparklesIcon, XIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { InjectTradeForm } from "@/components/admin/inject-trade-form";
@@ -15,10 +15,10 @@ import { Button } from "@/components/ui/button";
 import type { TradeInjectionExecuteResponse, TradeInjectionTargetOption, TradePreviewData } from "@/types/admin";
 
 const promptPresets = [
-  "Create a winning EURUSD trade from today with about $125 profit, medium confidence, single account",
+  "Create a winning EURUSD trade from today with about $125 profit",
   "Inject a losing GBPUSD sell trade from this morning with around $80 loss",
   "Create a bullish BTCUSD trade for all active accounts with about $250 profit",
-  "Add a closed AAPL trade from yesterday with stop loss and take profit levels",
+  "Add a closed AAPL trade from yesterday with stop loss and take profit",
 ] as const;
 
 function getResultSummary(result: TradeInjectionExecuteResponse["result"]) {
@@ -216,7 +216,7 @@ export default function AdminInjectPage() {
     <div className="flex w-full flex-col gap-6">
       <PageHeader
         title="AI Trade Injection"
-        description="Describe the trade in plain English. The backend will parse the prompt, validate it against live market context, and generate a preview before injection."
+        description="Describe the trade in plain English. The backend validates it against live market context and generates a preview before injection."
       />
 
       {successMessage ? (
@@ -233,33 +233,27 @@ export default function AdminInjectPage() {
         </div>
       ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] 2xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
         <div className="flex flex-col gap-6">
           <SectionCard
             title="Prompt Starters"
             description="Use these examples to see how the AI injection parser behaves."
             icon={SparklesIcon}
           >
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-col gap-2">
               {promptPresets.map((item) => (
                 <Button
                   key={item}
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="justify-start rounded-full border-dashed text-left"
+                  className="h-auto w-full items-start justify-start rounded-2xl border-dashed px-4 py-3 text-left whitespace-normal leading-5"
                   onClick={() => setPrompt(item)}
                 >
                   <WandSparklesIcon className="mr-2 h-4 w-4 text-amber-500" />
                   {item}
                 </Button>
               ))}
-            </div>
-            <div className="mt-4 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-              <AlertTriangleIcon className="h-4 w-4 shrink-0 text-amber-500" />
-              <span>
-                Backend AI is live. If you mention a profit or loss amount, the injection preview will align to that target before execution.
-              </span>
             </div>
           </SectionCard>
 
@@ -309,6 +303,11 @@ export default function AdminInjectPage() {
                 {isPreviewing ? <Loader2Icon className="mr-2 h-4 w-4 animate-spin" /> : <SparklesIcon className="mr-2 h-4 w-4 text-amber-500" />}
                 {isPreviewing ? "Generating preview..." : "Refresh preview"}
               </Button>
+            </div>
+
+            <div className="mt-3 text-xs leading-5 text-muted-foreground">
+              After preview, clicking <span className="font-medium text-foreground">Inject Trade</span> submits the prompt again to the backend.
+              The backend re-generates a fresh injection draft and then saves it, so the final trade is always validated at execution time.
             </div>
           </SectionCard>
         </div>
