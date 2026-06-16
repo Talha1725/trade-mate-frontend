@@ -69,6 +69,8 @@ export default function DashboardPage() {
           description="Account overview, equity curve, and trading performance."
         />
 
+        
+
         <LiveTradingView
           symbol={liveSymbol}
           positions={dashboardData?.openPositionsSummary}

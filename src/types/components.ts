@@ -10,6 +10,12 @@ import type {
   SymbolBreakdownDatum,
 } from "@/types/dashboard";
 import type { Position, Trade, TradeOrderDirection } from "@/types/trade";
+import type {
+  TradingFilterBarAsset,
+  TradingFilterBarOhlcv,
+  TradingFilterBarQuote,
+  TradingTimeframe,
+} from "@/types/trading-filter-bar";
 
 export type AppShellProps = {
   navItems: NavItem[];
@@ -105,6 +111,12 @@ export type LiveTradingViewProps = {
   symbol?: string;
   positions?: PositionSummary[];
   recentActivity?: RecentActivityItem[];
+  filterAssets?: TradingFilterBarAsset[];
+  filterQuote?: TradingFilterBarQuote;
+  filterOhlcv?: TradingFilterBarOhlcv;
+  filterTimeframe?: TradingTimeframe;
+  onFilterAssetChange?: (assetId: string) => void;
+  onFilterTimeframeChange?: (timeframe: TradingTimeframe) => void;
 };
 
 export type StatCardsProps = {
