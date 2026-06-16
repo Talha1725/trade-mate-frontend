@@ -41,9 +41,21 @@ const Toaster = ({ ...props }: ToasterProps) => {
       toastOptions={{
         classNames: {
           toast:
-            "group toast flex items-start gap-3 rounded-xl border border-border/70 bg-background/95 px-4 py-3 text-sm text-foreground shadow-lg shadow-black/5 backdrop-blur",
-          title: "font-medium leading-5",
-          description: "text-muted-foreground font-normal leading-5",
+            "group toast flex items-start gap-3 rounded-xl border px-4 py-3 text-sm backdrop-blur",
+          title: "!text-current font-medium leading-5",
+          description: "!text-current/80 font-normal leading-5",
+          default:
+            "!bg-background/95 !border-border/70 !text-foreground shadow-lg shadow-black/5",
+          success:
+            "!bg-emerald-50 !border-emerald-200 !text-emerald-900 dark:!bg-emerald-950/60 dark:!border-emerald-700/50 dark:!text-emerald-200",
+          info:
+            "!bg-blue-50 !border-blue-200 !text-blue-900 dark:!bg-blue-950/60 dark:!border-blue-700/50 dark:!text-blue-200",
+          warning:
+            "!bg-amber-50 !border-amber-200 !text-amber-900 dark:!bg-amber-950/60 dark:!border-amber-700/50 dark:!text-amber-200",
+          error:
+            "!bg-rose-50 !border-rose-200 !text-rose-900 dark:!bg-rose-950/60 dark:!border-rose-700/50 dark:!text-rose-200",
+          loading:
+            "!bg-slate-50 !border-slate-200 !text-slate-900 dark:!bg-slate-950/60 dark:!border-slate-700/50 dark:!text-slate-200",
           actionButton:
             "rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground shadow-none",
           cancelButton:
