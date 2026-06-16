@@ -17,22 +17,46 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { mockTrades } from "@/lib/mock-data/trades";
+import { formatMarketPrice } from "@/lib/utils/market-price";
+import { formatDateTimeLabel } from "@/lib/utils/trader-data";
 import { useTableQuery } from "@/hooks/use-table-query";
 import type { TradeHistoryTableProps } from "@/types";
 import type { Trade } from "@/types/trade";
 
 export function TradeHistoryTable({ trades }: TradeHistoryTableProps) {
-  const [timeFilter, setTimeFilter] = useState("30 Days");
+  const [timeFilter, setTimeFilter] = useState("All");
   const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
-  const sourceTrades = trades?.length ? trades : mockTrades;
+  const sourceTrades = trades ?? [];
 
   // Time is a positional "scope" (not a per-row predicate), so it's applied
   // before handing the rows to the shared search/filter/pagination hook.
   const timeScoped = useMemo(() => {
+    const now = new Date();
+    const cutoff = new Date();
+
     if (timeFilter === "7 Days") {
-      return sourceTrades.slice(0, 2);
+      cutoff.setDate(now.getDate() - 7);
+    } else if (timeFilter === "30 Days") {
+      cutoff.setDate(now.getDate() - 30);
+    } else if (timeFilter === "YTD") {
+      cutoff.setMonth(0, 1);
+      cutoff.setHours(0, 0, 0, 0);
     }
+
+    if (timeFilter === "7 Days" || timeFilter === "30 Days" || timeFilter === "YTD") {
+      return sourceTrades.filter((trade) => {
+        const openedAt = trade.openedAt ? new Date(trade.openedAt) : null;
+        const closedAt = trade.closedAt ? new Date(trade.closedAt) : null;
+        const tradeDate = closedAt ?? openedAt;
+
+        if (!tradeDate || Number.isNaN(tradeDate.getTime())) {
+          return true;
+        }
+
+        return tradeDate >= cutoff;
+      });
+    }
+
     return sourceTrades;
   }, [sourceTrades, timeFilter]);
 
@@ -54,7 +78,11 @@ export function TradeHistoryTable({ trades }: TradeHistoryTableProps) {
     {
       accessorKey: "time",
       header: ({ column }) => <SortableColumnHeader column={column} label="Open Time" className="w-full justify-start" />,
-      cell: ({ row }) => <div className="text-muted-foreground">{row.getValue("time")}</div>,
+      cell: ({ row }) => (
+        <div className="text-muted-foreground">
+          {row.original.openedAt ? formatDateTimeLabel(row.original.openedAt) : row.getValue("time")}
+        </div>
+      ),
     },
     {
       accessorKey: "symbol",
@@ -77,17 +105,21 @@ export function TradeHistoryTable({ trades }: TradeHistoryTableProps) {
     {
       accessorKey: "openP",
       header: ({ column }) => <SortableColumnHeader column={column} label="Open Price" className="w-full justify-start" />,
-      cell: ({ row }) => <div>{parseFloat(row.getValue("openP")).toFixed(4)}</div>,
+      cell: ({ row }) => <div>{formatMarketPrice(row.getValue("openP"), row.original.symbol)}</div>,
     },
     {
       id: "closeTime",
       header: "Close Time",
-      cell: ({ row }) => <div className="text-muted-foreground">{row.getValue("time")}</div>,
+      cell: ({ row }) => (
+        <div className="text-muted-foreground">
+          {row.original.closedAt ? formatDateTimeLabel(row.original.closedAt) : "-"}
+        </div>
+      ),
     },
     {
       accessorKey: "closeP",
       header: ({ column }) => <SortableColumnHeader column={column} label="Close Price" className="w-full justify-start" />,
-      cell: ({ row }) => <div>{parseFloat(row.getValue("closeP")).toFixed(4)}</div>,
+      cell: ({ row }) => <div>{formatMarketPrice(row.getValue("closeP"), row.original.symbol)}</div>,
     },
     {
       accessorKey: "profit",
@@ -139,11 +171,12 @@ export function TradeHistoryTable({ trades }: TradeHistoryTableProps) {
               <SelectItem value="Sell">Sell</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={timeFilter} onValueChange={(value) => setTimeFilter(value ?? "30 Days")}>
-            <SelectTrigger className="w-[130px]">
-              <SelectValue placeholder="Timeframe" />
-            </SelectTrigger>
-            <SelectContent>
+          <Select value={timeFilter} onValueChange={(value) => setTimeFilter(value ?? "All")}>
+              <SelectTrigger className="w-[130px]">
+                <SelectValue placeholder="Timeframe" />
+              </SelectTrigger>
+              <SelectContent>
+              <SelectItem value="All">All Time</SelectItem>
               <SelectItem value="7 Days">7 Days</SelectItem>
               <SelectItem value="30 Days">30 Days</SelectItem>
               <SelectItem value="YTD">YTD</SelectItem>
@@ -173,19 +206,35 @@ export function TradeHistoryTable({ trades }: TradeHistoryTableProps) {
           <div className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm py-2">
             <div className="flex flex-col gap-1 items-center text-center">
               <span className="text-muted-foreground">Open Price</span>
-              <span className="font-semibold">{selectedTrade?.openP.toFixed(4)}</span>
+              <span className="font-semibold">{selectedTrade ? formatMarketPrice(selectedTrade.openP, selectedTrade.symbol) : "-"}</span>
             </div>
             <div className="flex flex-col gap-1 items-center text-center">
               <span className="text-muted-foreground">Close Price</span>
-              <span className="font-semibold">{selectedTrade?.closeP.toFixed(4)}</span>
+              <span className="font-semibold">{selectedTrade ? formatMarketPrice(selectedTrade.closeP, selectedTrade.symbol) : "-"}</span>
+            </div>
+            <div className="flex flex-col gap-1 items-center text-center">
+              <span className="text-muted-foreground">Open Time</span>
+              <span className="font-semibold">
+                {selectedTrade?.openedAt ? formatDateTimeLabel(selectedTrade.openedAt) : selectedTrade?.time ?? "-"}
+              </span>
+            </div>
+            <div className="flex flex-col gap-1 items-center text-center">
+              <span className="text-muted-foreground">Close Time</span>
+              <span className="font-semibold">
+                {selectedTrade?.closedAt ? formatDateTimeLabel(selectedTrade.closedAt) : "-"}
+              </span>
             </div>
             <div className="flex flex-col gap-1 items-center text-center">
               <span className="text-muted-foreground">Stop Loss</span>
-              <span className="font-semibold">-</span>
+              <span className="font-semibold">
+                {selectedTrade?.stopLoss != null ? formatMarketPrice(selectedTrade.stopLoss, selectedTrade.symbol) : "-"}
+              </span>
             </div>
             <div className="flex flex-col gap-1 items-center text-center">
               <span className="text-muted-foreground">Take Profit</span>
-              <span className="font-semibold">-</span>
+              <span className="font-semibold">
+                {selectedTrade?.takeProfit != null ? formatMarketPrice(selectedTrade.takeProfit, selectedTrade.symbol) : "-"}
+              </span>
             </div>
             <div className="flex flex-col gap-1 items-center text-center">
               <span className="text-muted-foreground">Commission</span>

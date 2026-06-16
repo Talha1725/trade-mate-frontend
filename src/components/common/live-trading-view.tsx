@@ -1,12 +1,11 @@
 "use client";
 
 import { TradingChart } from "@/components/terminal/trading-chart";
-import { mockPositionSummary, mockRecentActivity } from "@/lib/mock-data/dashboard";
 import type { LiveTradingViewProps } from "@/types/trading-view";
 
 export function LiveTradingView({ symbol, positions, recentActivity }: LiveTradingViewProps) {
-  const viewPositions = positions?.length ? positions : mockPositionSummary;
-  const viewActivity = recentActivity?.length ? recentActivity : mockRecentActivity;
+  const viewPositions = positions ?? [];
+  const viewActivity = recentActivity ?? [];
   const resolvedSymbol = symbol ?? viewPositions[0]?.symbol ?? viewActivity[0]?.symbol ?? "EURUSD";
   const openPositions = viewPositions.length;
   const netPnl = viewPositions.reduce((sum, position) => sum + position.profit, 0);

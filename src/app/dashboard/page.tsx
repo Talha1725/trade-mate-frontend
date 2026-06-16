@@ -27,8 +27,9 @@ export default function DashboardPage() {
     }
 
     let isMounted = true;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-    (async () => {
+    const refreshDashboard = async () => {
       try {
         const accountSnapshot = await dashboardApi.getPortfolioSnapshot(token);
 
@@ -46,15 +47,23 @@ export default function DashboardPage() {
 
         setLedger(accountLedger);
       } catch {
+        // Keep the last successful snapshot/ledger visible if a refresh fails.
+      } finally {
         if (isMounted) {
-          setSnapshot(null);
-          setLedger(null);
+          timeoutId = setTimeout(() => {
+            void refreshDashboard();
+          }, 2500);
         }
       }
-    })();
+    };
+
+    void refreshDashboard();
 
     return () => {
       isMounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     };
   }, [token]);
 

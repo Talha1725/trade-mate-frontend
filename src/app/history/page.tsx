@@ -16,6 +16,7 @@ import type { AccountLedgerResponse } from "@/types/dashboard";
 
 export default function HistoryPage() {
   const [ledger, setLedger] = React.useState<AccountLedgerResponse | null>(null);
+  const [accountId, setAccountId] = React.useState<string | null>(null);
   const token = useAuthStore((state) => state.session?.token ?? null);
 
   React.useEffect(() => {
@@ -25,25 +26,60 @@ export default function HistoryPage() {
 
     let isMounted = true;
 
-    (async () => {
+    const loadAccount = async () => {
       try {
         const snapshot = await dashboardApi.getPortfolioSnapshot(token);
-        const accountLedger = await historyApi.getAccountLedger(snapshot.account.id, token);
 
         if (isMounted) {
-          setLedger(accountLedger);
+          setAccountId(snapshot.account.id);
         }
       } catch {
-        if (isMounted) {
-          setLedger(null);
-        }
+        // Keep the last loaded history visible if the account lookup fails.
       }
-    })();
+    };
+
+    void loadAccount();
 
     return () => {
       isMounted = false;
     };
   }, [token]);
+
+  React.useEffect(() => {
+    if (!token || !accountId) {
+      return;
+    }
+
+    let isMounted = true;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+    const refreshLedger = async () => {
+      try {
+        const accountLedger = await historyApi.getAccountLedger(accountId, token);
+
+        if (isMounted) {
+          setLedger(accountLedger);
+        }
+      } catch {
+        // Keep the last loaded trade history visible if a refresh fails.
+      } finally {
+        if (isMounted) {
+          timeoutId = setTimeout(() => {
+            void refreshLedger();
+          }, 2500);
+        }
+      }
+    };
+
+    void refreshLedger();
+
+    return () => {
+      isMounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [token, accountId]);
 
   const trades = ledger?.trades?.map(mapPortfolioTradeToTrade);
 

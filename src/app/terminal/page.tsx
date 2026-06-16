@@ -31,8 +31,9 @@ export default function TerminalPage() {
     }
 
     let isMounted = true;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-    (async () => {
+    const refreshTerminalSnapshot = async () => {
       try {
         const [snapshotResponse, symbolResponse] = await Promise.all([
           terminalApi.getOpenPositions(token),
@@ -48,17 +49,38 @@ export default function TerminalPage() {
 
         const initialSymbol =
           snapshotResponse.positions[0]?.symbol ?? symbolResponse.symbols[0]?.displaySymbol ?? "EURUSD";
-        setSelectedSymbol(initialSymbol);
+
+        setSelectedSymbol((currentSymbol) => {
+          if (
+            currentSymbol &&
+            (snapshotResponse.positions.some((position) => position.symbol === currentSymbol) ||
+              symbolResponse.symbols.some((record) => record.displaySymbol === currentSymbol))
+          ) {
+            return currentSymbol;
+          }
+
+          return initialSymbol;
+        });
       } catch {
+        if (!isMounted) {
+          return;
+        }
+      } finally {
         if (isMounted) {
-          setSnapshot(null);
-          setSymbols([]);
+          timeoutId = setTimeout(() => {
+            void refreshTerminalSnapshot();
+          }, 2500);
         }
       }
-    })();
+    };
+
+    void refreshTerminalSnapshot();
 
     return () => {
       isMounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     };
   }, [token]);
 
@@ -68,8 +90,9 @@ export default function TerminalPage() {
     }
 
     let isMounted = true;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-    (async () => {
+    const refreshQuotes = async () => {
       try {
         const quoteResponse = await terminalApi.getMarketQuotes([selectedSymbol], token);
 
@@ -79,14 +102,26 @@ export default function TerminalPage() {
 
         setQuotes(quoteResponse.quotes);
       } catch {
+        if (!isMounted) {
+          return;
+        }
+      } finally {
         if (isMounted) {
-          setQuotes([]);
+          timeoutId = setTimeout(() => {
+            void refreshQuotes();
+          }, 2500);
         }
       }
-    })();
+    };
+
+    setQuotes([]);
+    void refreshQuotes();
 
     return () => {
       isMounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     };
   }, [selectedSymbol, token]);
 
@@ -108,9 +143,7 @@ export default function TerminalPage() {
         const lastCandle = historyResponse.candles.at(-1);
         setHistoryClose(lastCandle?.close ?? null);
       } catch {
-        if (isMounted) {
-          setHistoryClose(null);
-        }
+        // Keep the last resolved fallback price if history refresh fails.
       }
     })();
 
