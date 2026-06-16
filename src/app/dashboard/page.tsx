@@ -14,7 +14,7 @@ import { BreakdownWidgets } from "@/components/dashboard/breakdown-widgets";
 import { StatCards } from "@/components/dashboard/stat-cards";
 import { OpenPositionsSummary } from "@/components/dashboard/open-positions-summary";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
-import { LiveTradingView } from "@/components/dashboard/live-trading-view";
+import { LiveTradingView } from "@/components/common/live-trading-view";
 
 export default function DashboardPage() {
   const [snapshot, setSnapshot] = React.useState<UserPortfolioResponse | null>(null);

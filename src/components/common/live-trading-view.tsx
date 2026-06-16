@@ -1,10 +1,8 @@
 "use client";
 
-import { ActivityIcon } from "lucide-react";
-
 import { TradingChart } from "@/components/terminal/trading-chart";
 import { mockPositionSummary, mockRecentActivity } from "@/lib/mock-data/dashboard";
-import type { LiveTradingViewProps } from "@/types";
+import type { LiveTradingViewProps } from "@/types/trading-view";
 
 export function LiveTradingView({ symbol, positions, recentActivity }: LiveTradingViewProps) {
   const viewPositions = positions?.length ? positions : mockPositionSummary;
@@ -38,11 +36,6 @@ export function LiveTradingView({ symbol, positions, recentActivity }: LiveTradi
           <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Bias</p>
           <p className="mt-2 text-xl font-semibold text-foreground">{activeDirection}</p>
         </div>
-      </div>
-
-      <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-        <ActivityIcon className="size-4 shrink-0" />
-        <span>Public market view for traders. No login required.</span>
       </div>
 
       <TradingChart

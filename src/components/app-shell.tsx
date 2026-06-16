@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useState } from "react";
-import { PanelLeftCloseIcon, PanelLeftOpenIcon, ChevronDownIcon } from "lucide-react";
+import { PanelLeftCloseIcon, PanelLeftOpenIcon, ChevronDownIcon, LogOutIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -28,6 +28,7 @@ function matchesPath(pathname: string | null, href: string) {
 function SidebarNav({
   items,
   collapsed,
+  onSignOut,
 }: AppShellSidebarNavProps) {
   const pathname = usePathname();
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
@@ -164,6 +165,29 @@ function SidebarNav({
           );
         })}
       </nav>
+
+      {onSignOut ? (
+        <div className="border-t border-gray-100 p-2">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={onSignOut}
+            title={collapsed ? "Sign out" : undefined}
+            className={cn(
+              "w-full justify-start gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-red-50 hover:text-red-600",
+              collapsed && "justify-center px-0",
+            )}
+          >
+            <LogOutIcon className="size-4 shrink-0" />
+            <span className={cn(
+              "truncate transition-all duration-300 ease-in-out",
+              collapsed ? "w-0 opacity-0 overflow-hidden" : "w-auto opacity-100"
+            )}>
+              Sign out
+            </span>
+          </Button>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -187,7 +211,7 @@ export function AppShell({
       return;
     }
 
-    window.location.href = "/login";
+    window.location.href = "/logout";
   };
 
   return (
@@ -200,6 +224,7 @@ export function AppShell({
         <SidebarNav
           items={navItems}
           collapsed={collapsed}
+          onSignOut={handleSignOut}
         />
       </aside>
 

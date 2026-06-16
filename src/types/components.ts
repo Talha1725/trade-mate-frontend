@@ -93,20 +93,6 @@ export type LoginFormProps = {
   className?: string;
 };
 
-export type TradingChartProps = {
-  symbol?: string;
-  title?: string;
-  description?: string;
-  className?: string;
-  contentClassName?: string;
-};
-
-export type LiveTradingViewProps = {
-  symbol?: string;
-  positions?: PositionSummary[];
-  recentActivity?: RecentActivityItem[];
-};
-
 export type StatCardsProps = {
   stats?: StatCardDatum[];
 };
