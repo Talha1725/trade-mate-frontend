@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     template: "%s | Trade Mate",
   },
   description:
-    "Trade Mate is a simulated brokerage and trading terminal built with Next.js and shadcn/ui.",
+    "Trade Mate is a simulated  brokerage and trading terminal built with Next.js and shadcn/ui.",
 };
 
 export default function RootLayout({ children }: RootLayoutProps) {
