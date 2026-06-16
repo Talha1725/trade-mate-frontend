@@ -32,7 +32,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       lang="en"
       className={`${suisseIntl.variable} font-sans h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col bg-black text-white">
         <Providers>
           <TooltipProvider>{children}</TooltipProvider>
         </Providers>
