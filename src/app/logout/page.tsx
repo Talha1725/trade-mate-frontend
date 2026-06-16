@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { LogOutIcon } from "lucide-react";
+import { toast } from "sonner";
 
 import { BrandMark } from "@/components/brand-mark";
 import { Spinner } from "@/components/ui/spinner";
@@ -16,8 +17,13 @@ export default function LogoutPage() {
     let isMounted = true;
 
     (async () => {
+      const toastId = toast.loading("Signing you out...");
       try {
         await signOut();
+        if (isMounted) {
+          toast.dismiss(toastId);
+          toast.success("Signed out successfully");
+        }
       } finally {
         if (isMounted) {
           router.replace("/login");

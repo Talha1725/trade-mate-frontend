@@ -5,6 +5,7 @@ import { useState } from "react";
 import { PanelLeftCloseIcon, PanelLeftOpenIcon, ChevronDownIcon, LogOutIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -204,7 +205,10 @@ export function AppShell({
   const signOut = useAuthStore((state) => state.signOut);
 
   const handleSignOut = async () => {
+    const toastId = toast.loading("Signing you out...");
     await signOut();
+    toast.dismiss(toastId);
+    toast.success("Signed out successfully");
 
     if (onSignOut) {
       onSignOut();

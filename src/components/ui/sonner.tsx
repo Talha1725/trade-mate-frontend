@@ -9,7 +9,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
 
   return (
     <Sonner
+      position="bottom-right"
       theme={theme as ToasterProps["theme"]}
+      richColors={false}
       className="toaster group"
       icons={{
         success: (
@@ -30,15 +32,22 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }}
       style={
         {
-          "--normal-bg": "var(--popover)",
-          "--normal-text": "var(--popover-foreground)",
+          "--normal-bg": "var(--background)",
+          "--normal-text": "var(--foreground)",
           "--normal-border": "var(--border)",
-          "--border-radius": "var(--radius)",
+          "--border-radius": "14px",
         } as React.CSSProperties
       }
       toastOptions={{
         classNames: {
-          toast: "cn-toast",
+          toast:
+            "group toast flex items-start gap-3 rounded-xl border border-border/70 bg-background/95 px-4 py-3 text-sm text-foreground shadow-lg shadow-black/5 backdrop-blur",
+          title: "font-medium leading-5",
+          description: "text-muted-foreground font-normal leading-5",
+          actionButton:
+            "rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground shadow-none",
+          cancelButton:
+            "rounded-md border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground shadow-none",
         },
       }}
       {...props}
