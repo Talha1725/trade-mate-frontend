@@ -106,6 +106,7 @@ export function mapPortfolioTradeToTrade(trade: PortfolioTrade): Trade {
 
 export function buildOpenPositionSummary(positions: PortfolioPosition[]): PositionSummary[] {
   return positions.map((position) => ({
+    id: position.id,
     symbol: position.symbol,
     type: position.direction === "BUY" ? "Buy" : "Sell",
     volume: toNumber(position.lots),
@@ -122,6 +123,7 @@ export function buildRecentActivity(trades: PortfolioTrade[]): RecentActivityIte
     })
     .slice(0, 5)
     .map((trade) => ({
+      id: trade.id,
       symbol: trade.symbol,
       action: trade.closedAt ? `Close ${trade.direction === "BUY" ? "Buy" : "Sell"}` : trade.direction === "BUY" ? "Buy" : "Sell",
       price: toNumber(trade.exitPrice ?? trade.entryPrice),

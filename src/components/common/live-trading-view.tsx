@@ -38,7 +38,6 @@ export function LiveTradingView({ symbol, positions, recentActivity }: LiveTradi
       </div>
 
       <TradingChart
-        key={resolvedSymbol}
         symbol={resolvedSymbol}
         title={`Chart - ${resolvedSymbol}`}
         description="TradingView chart for the selected market symbol."

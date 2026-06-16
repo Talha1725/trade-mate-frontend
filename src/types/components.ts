@@ -144,4 +144,5 @@ export type OpenPositionsTableProps = {
 
 export type TradeHistoryTableProps = {
   trades?: Trade[];
+  isLoading?: boolean;
 };

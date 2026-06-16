@@ -28,7 +28,7 @@ export function RecentActivity({ items }: RecentActivityProps) {
         <TableBody>
           {data.length > 0 ? (
             data.map((activity) => (
-              <TableRow key={`${activity.symbol}-${activity.dateLabel}`}>
+              <TableRow key={activity.id}>
                 <TableCell className="font-medium">{activity.symbol}</TableCell>
                 <TableCell>{activity.action}</TableCell>
                 <TableCell>{formatMarketPrice(activity.price, activity.symbol)}</TableCell>

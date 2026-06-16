@@ -9,6 +9,7 @@ export type EquityCurveDatum = {
 };
 
 export type PositionSummary = {
+  id: string;
   symbol: string;
   type: "Buy" | "Sell";
   volume: number;
@@ -16,6 +17,7 @@ export type PositionSummary = {
 };
 
 export type RecentActivityItem = {
+  id: string;
   symbol: string;
   action: string;
   price: number;

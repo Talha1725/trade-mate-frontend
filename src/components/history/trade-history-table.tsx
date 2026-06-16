@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DataTable } from "@/components/ui/data-table";
+import { Spinner } from "@/components/ui/spinner";
 import { ColumnDef } from "@tanstack/react-table";
 import {
   Dialog,
@@ -23,7 +24,7 @@ import { useTableQuery } from "@/hooks/use-table-query";
 import type { TradeHistoryTableProps } from "@/types";
 import type { Trade } from "@/types/trade";
 
-export function TradeHistoryTable({ trades }: TradeHistoryTableProps) {
+export function TradeHistoryTable({ trades, isLoading }: TradeHistoryTableProps) {
   const [timeFilter, setTimeFilter] = useState("All");
   const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
   const sourceTrades = trades ?? [];
@@ -188,11 +189,20 @@ export function TradeHistoryTable({ trades }: TradeHistoryTableProps) {
         </div>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={rows}
-        serverPagination={{ page, pageCount, onPageChange: setPage }}
-      />
+      {isLoading && sourceTrades.length === 0 ? (
+        <div className="flex min-h-[240px] items-center justify-center rounded-lg border border-dashed border-border/60 bg-muted/20">
+          <div className="flex flex-col items-center gap-3 text-sm text-muted-foreground">
+            <Spinner className="size-5" />
+            <span>Loading trade history...</span>
+          </div>
+        </div>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={rows}
+          serverPagination={{ page, pageCount, onPageChange: setPage }}
+        />
+      )}
 
       {/* Centered Trade Detail Dialog */}
       <Dialog open={!!selectedTrade} onOpenChange={(open) => !open && setSelectedTrade(null)}>

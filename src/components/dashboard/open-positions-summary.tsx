@@ -27,7 +27,7 @@ export function OpenPositionsSummary({ positions }: OpenPositionsSummaryProps) {
         <TableBody>
           {data.length > 0 ? (
             data.map((position) => (
-              <TableRow key={position.symbol}>
+              <TableRow key={position.id}>
                 <TableCell className="font-medium">{position.symbol}</TableCell>
                 <TableCell className={position.type === "Buy" ? "text-emerald-600" : "text-rose-600"}>
                   {position.type}

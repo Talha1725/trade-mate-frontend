@@ -9,6 +9,8 @@ import { dashboardApi } from "@/lib/services/dashboard.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { buildDashboardData } from "@/lib/utils/trader-data";
 import type { AccountLedgerResponse, UserPortfolioResponse } from "@/types/dashboard";
+import { usePriceStream } from "@/hooks/use-price-stream";
+import type { PriceSocketPortfolioMessage } from "@/types/price";
 import { EquityChart } from "@/components/dashboard/equity-chart";
 import { BreakdownWidgets } from "@/components/dashboard/breakdown-widgets";
 import { StatCards } from "@/components/dashboard/stat-cards";
@@ -69,6 +71,46 @@ export default function DashboardPage() {
 
   const dashboardData = snapshot ? buildDashboardData(snapshot, ledger ?? undefined) : null;
   const liveSymbol = dashboardData?.positions[0]?.symbol;
+  const openSymbols = React.useMemo(
+    () =>
+      Array.from(
+        new Set(
+          (dashboardData?.positions ?? [])
+            .filter((position) => position.status === "OPEN")
+            .map((position) => position.symbol),
+        ),
+      ),
+    [dashboardData?.positions],
+  );
+  const subscriptionSymbols = React.useMemo(
+    () => (openSymbols.length > 0 ? openSymbols : liveSymbol ? [liveSymbol] : []),
+    [liveSymbol, openSymbols],
+  );
+  const accountId = snapshot?.account.id ?? null;
+
+  usePriceStream({
+    enabled: !!token && !!accountId,
+    symbols: subscriptionSymbols,
+    accountIds: accountId ? [accountId] : [],
+    onPortfolio: (payload: PriceSocketPortfolioMessage) => {
+      const account = payload.accounts[0];
+
+      if (!account) {
+        return;
+      }
+
+      setSnapshot({
+        account,
+        positions: payload.positions,
+      });
+
+      setLedger({
+        account,
+        positions: payload.positions,
+        trades: payload.trades,
+      });
+    },
+  });
 
   return (
     <AppShell navItems={PRIMARY_NAV_ITEMS}>
