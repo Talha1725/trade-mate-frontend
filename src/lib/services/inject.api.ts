@@ -1,25 +1,32 @@
 import { ROUTES } from "@/constant/routes"
-import { get, post } from "@/lib/utils/api"
+import { post } from "@/lib/utils/api"
 import type {
-  InjectionPreview,
-  TradeInjectionPayload,
   TradeInjectionTargetOption,
+  TradePreviewData,
+  TradeInjectionExecuteResponse,
 } from "@/types/admin"
+import { accountsApi } from "./accounts.api"
 
 export const injectApi = {
-  getInjectionTargets(): Promise<TradeInjectionTargetOption[]> {
-    return get(ROUTES.ADMIN.ACCOUNTS)
+  async getInjectionTargets(): Promise<TradeInjectionTargetOption[]> {
+    const accounts = await accountsApi.getAllAccounts({ status: "Active" })
+    return accounts.map((a) => ({
+      value: a.id,
+      label: `${a.name} (${a.id}) - $${a.balance.toLocaleString()}`,
+    }))
   },
 
-  previewInjection(payload: TradeInjectionPayload): Promise<InjectionPreview> {
-    return post(ROUTES.ADMIN.INJECT, { ...payload, preview: true })
+  async previewInjection(prompt: string): Promise<TradePreviewData & { recommendedScope: "SINGLE" | "BULK" }> {
+    return post<TradePreviewData & { recommendedScope: "SINGLE" | "BULK" }>(
+      ROUTES.ADMIN.INJECT_PREVIEW,
+      { prompt },
+      { timeout: 60000 },
+    )
   },
 
-  executeInjection(payload: TradeInjectionPayload): Promise<{ success: boolean; message: string }> {
-    return post(ROUTES.ADMIN.INJECT, payload)
-  },
-
-  bulkPush(accountIds: string[], tradeData: unknown): Promise<{ success: boolean; affectedAccounts: number }> {
-    return post(ROUTES.ADMIN.BULK_PUSH, { accountIds, tradeData })
+  async executeInjection(
+    payload: { prompt: string; accountId?: string; accountIds?: string[] },
+  ): Promise<TradeInjectionExecuteResponse> {
+    return post<TradeInjectionExecuteResponse>(ROUTES.ADMIN.INJECT, payload, { timeout: 60000 })
   },
 }

@@ -1,5 +1,6 @@
 import * as React from "react";
+import { RouteGuard } from "@/components/auth/route-guard";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return <RouteGuard>{children}</RouteGuard>;
 }

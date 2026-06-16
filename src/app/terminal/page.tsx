@@ -6,46 +6,24 @@ import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { PRIMARY_NAV_ITEMS } from "@/constant/nav-config";
 import { terminalApi } from "@/lib/services/terminal.api";
-import { ensurePublicTraderSession } from "@/lib/services/public-trader-session";
+import { useAuthStore } from "@/lib/stores/auth-store";
 import { mapPortfolioPositionToPosition } from "@/lib/utils/trader-data";
-import type { MarketQuoteResponse, MarketSymbolResponse } from "@/types/market";
-import type { UserPortfolioResponse } from "@/types/dashboard";
-import type { Position } from "@/types/trade";
 import { SymbolSearch } from "@/components/terminal/symbol-search";
 import { TradingChart } from "@/components/terminal/trading-chart";
 import { OrderTicket } from "@/components/terminal/order-ticket";
 import { OpenPositionsTable } from "@/components/terminal/open-positions-table";
+import type { MarketQuoteResponse, MarketSymbolResponse } from "@/types/market";
+import type { UserPortfolioResponse } from "@/types/dashboard";
+import type { Position } from "@/types/trade";
 
 export default function TerminalPage() {
-  const [token, setToken] = React.useState<string | null>(null);
   const [snapshot, setSnapshot] = React.useState<UserPortfolioResponse | null>(null);
   const [symbols, setSymbols] = React.useState<MarketSymbolResponse["symbols"]>([]);
   const [quotes, setQuotes] = React.useState<MarketQuoteResponse["quotes"]>([]);
   const [historyClose, setHistoryClose] = React.useState<number | null>(null);
   const [selectedSymbol, setSelectedSymbol] = React.useState("EURUSD");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-
-  React.useEffect(() => {
-    let isMounted = true;
-
-    ensurePublicTraderSession()
-      .then((session) => {
-        if (!isMounted) {
-          return;
-        }
-
-        setToken(session.token);
-      })
-      .catch(() => {
-        if (isMounted) {
-          setToken(null);
-        }
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const token = useAuthStore((state) => state.session?.token ?? null);
 
   React.useEffect(() => {
     if (!token) {
@@ -68,7 +46,8 @@ export default function TerminalPage() {
         setSnapshot(snapshotResponse);
         setSymbols(symbolResponse.symbols);
 
-        const initialSymbol = snapshotResponse.positions[0]?.symbol ?? symbolResponse.symbols[0]?.displaySymbol ?? "EURUSD";
+        const initialSymbol =
+          snapshotResponse.positions[0]?.symbol ?? symbolResponse.symbols[0]?.displaySymbol ?? "EURUSD";
         setSelectedSymbol(initialSymbol);
       } catch {
         if (isMounted) {
@@ -200,10 +179,7 @@ export default function TerminalPage() {
   return (
     <AppShell navItems={PRIMARY_NAV_ITEMS}>
       <div className="flex w-full flex-col gap-6">
-        <PageHeader
-          title="Terminal"
-          description="Place trades, view charts, and manage positions."
-        />
+        <PageHeader title="Terminal" description="Place trades, view charts, and manage positions." />
 
         <div className="flex flex-col gap-6 w-full">
           <SymbolSearch

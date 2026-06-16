@@ -6,17 +6,20 @@ export type UserRole = "trader" | "admin";
 export type AuthUser = {
   id: ID;
   email: string;
+  assignedId?: string;
   name: string;
   role: UserRole;
-  createdAt: ISODateString;
+  createdAt?: ISODateString;
 };
 
 export type LoginCredentials = {
-  email: string;
+  assignedId: string;
   password: string;
 };
 
-export type AuthApiUser = Pick<AuthUser, "id" | "email" | "name" | "role">;
+export type AuthApiUser = Pick<AuthUser, "id" | "email" | "name" | "role"> & {
+  assignedId?: string;
+};
 
 export type AuthLoginResponse = {
   token: string;
@@ -25,11 +28,17 @@ export type AuthLoginResponse = {
 
 export type AuthSession = {
   user: AuthUser;
-  token: string;
-  expiresAt: ISODateString;
+  token?: string;
+  expiresAt?: ISODateString;
 };
 
 export type AuthStatus = "idle" | "submitting" | "success" | "error";
+
+export type AuthSessionStatus =
+  | "idle"
+  | "loading"
+  | "authenticated"
+  | "unauthenticated";
 
 export type LoginFormValues = LoginCredentials & {
   rememberMe: boolean;
@@ -37,11 +46,16 @@ export type LoginFormValues = LoginCredentials & {
 
 export type AuthStoreState = {
   session: AuthSession | null;
+  status: AuthSessionStatus;
+  hasHydrated: boolean;
 };
 
 export type AuthStoreActions = {
-  signIn: (session: AuthSession) => void;
-  signOut: () => void;
+  loadSession: () => Promise<AuthSession | null>;
+  signIn: (credentials: LoginCredentials) => Promise<AuthSession>;
+  signOut: () => Promise<void>;
+  clearToken: () => void;
+  setHasHydrated: (value: boolean) => void;
 };
 
 export type AuthStore = AuthStoreState & AuthStoreActions;

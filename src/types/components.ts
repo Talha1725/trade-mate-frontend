@@ -69,6 +69,16 @@ export type DataTableProps<TData, TValue> = {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   pageSize?: number;
+  // Server-side pagination
+  serverPagination?: {
+    page: number;
+    pageCount: number;
+    totalItems?: number;
+    pageSize?: number;
+    pageSizeOptions?: number[];
+    onPageChange: (page: number) => void;
+    onPageSizeChange?: (pageSize: number) => void;
+  };
 };
 
 export type SortableColumnHeaderProps<TData, TValue = unknown> = {

@@ -6,7 +6,7 @@ import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { PRIMARY_NAV_ITEMS } from "@/constant/nav-config";
 import { dashboardApi } from "@/lib/services/dashboard.api";
-import { ensurePublicTraderSession } from "@/lib/services/public-trader-session";
+import { useAuthStore } from "@/lib/stores/auth-store";
 import { buildDashboardData } from "@/lib/utils/trader-data";
 import type { AccountLedgerResponse, UserPortfolioResponse } from "@/types/dashboard";
 import { EquityChart } from "@/components/dashboard/equity-chart";
@@ -17,31 +17,9 @@ import { RecentActivity } from "@/components/dashboard/recent-activity";
 import { LiveTradingView } from "@/components/dashboard/live-trading-view";
 
 export default function DashboardPage() {
-  const [token, setToken] = React.useState<string | null>(null);
   const [snapshot, setSnapshot] = React.useState<UserPortfolioResponse | null>(null);
   const [ledger, setLedger] = React.useState<AccountLedgerResponse | null>(null);
-
-  React.useEffect(() => {
-    let isMounted = true;
-
-    ensurePublicTraderSession()
-      .then((session) => {
-        if (!isMounted) {
-          return;
-        }
-
-        setToken(session.token);
-      })
-      .catch(() => {
-        if (isMounted) {
-          setToken(null);
-        }
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const token = useAuthStore((state) => state.session?.token ?? null);
 
   React.useEffect(() => {
     if (!token) {

@@ -38,8 +38,26 @@ export const mockRecentActivity: RecentActivityItem[] = [
 ];
 
 export const mockStatCards: StatCardDatum[] = [
-  { title: "Account Balance", value: "$12,450.80", description: "+2.3% from last month" },
-  { title: "Open Positions", value: "4", description: "2 long / 2 short" },
-  { title: "Today's P&L", value: "+$184.20", description: "+1.5% today", tone: "success" },
-  { title: "Win Rate", value: "68%", description: "Last 30 trades" },
+  {
+    title: "Account Balance",
+    value: "$12,450.00",
+    description: "Current account balance",
+  },
+  {
+    title: "Equity",
+    value: "$12,780.50",
+    description: "Balance + floating P&L",
+  },
+  {
+    title: "Floating P&L",
+    value: "+$330.50",
+    description: "Unrealized profit / loss",
+    tone: "success",
+  },
+  {
+    title: "Win Rate",
+    value: "68%",
+    description: "All-time win rate",
+  },
 ];
+

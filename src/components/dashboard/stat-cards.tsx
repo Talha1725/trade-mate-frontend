@@ -10,7 +10,12 @@ export function StatCards({ stats }: StatCardsProps) {
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {data.map((stat) => (
         <SectionCard key={stat.title} title={stat.title}>
-          <p className={cn("text-3xl font-semibold tracking-tight", stat.tone === "success" && "text-emerald-600")}>
+          <p
+            className={cn(
+              "text-3xl font-semibold tracking-tight",
+              stat.tone === "success" && "text-emerald-600",
+            )}
+          >
             {stat.value}
           </p>
           <p className="text-sm text-muted-foreground">{stat.description}</p>

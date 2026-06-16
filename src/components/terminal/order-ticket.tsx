@@ -1,15 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { SectionCard } from "@/components/section-card";
 import type { OrderTicketProps, TradeOrderDirection } from "@/types";
 
 export function OrderTicket({ accountId, symbol = "EURUSD", price, onSubmit, isSubmitting }: OrderTicketProps) {
-  const [orderType, setOrderType] = useState("Market");
   const [volume, setVolume] = useState("1.0");
   const [stopLoss, setStopLoss] = useState("");
   const [takeProfit, setTakeProfit] = useState("");
@@ -36,20 +42,29 @@ export function OrderTicket({ accountId, symbol = "EURUSD", price, onSubmit, isS
   };
 
   return (
-    <SectionCard title="Order Ticket" className="h-full flex flex-col" contentClassName="flex-1 flex flex-col justify-between gap-4">
+    <SectionCard
+      title="Order Ticket"
+      className="h-full flex flex-col"
+      contentClassName="flex-1 flex flex-col justify-between gap-4"
+    >
       <div className="flex flex-col gap-4">
         <div className="grid gap-2">
+          <Label htmlFor="symbol">Symbol</Label>
+          <Input id="symbol" value={symbol} disabled />
+        </div>
+
+        <div className="grid gap-2">
           <Label htmlFor="type">Order Type</Label>
-          <Select value={orderType} onValueChange={(value) => setOrderType(value ?? "Market")}>
+          <Select value="Market" disabled>
             <SelectTrigger id="type">
               <SelectValue placeholder="Select type" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="Market">Market</SelectItem>
-              <SelectItem value="Limit">Limit</SelectItem>
             </SelectContent>
           </Select>
         </div>
+
         <div className="grid gap-2">
           <Label htmlFor="volume">Volume (Lots)</Label>
           <Input
@@ -60,6 +75,7 @@ export function OrderTicket({ accountId, symbol = "EURUSD", price, onSubmit, isS
             step="0.1"
           />
         </div>
+
         <div className="grid grid-cols-2 gap-4">
           <div className="grid gap-2">
             <Label htmlFor="sl">Stop Loss</Label>
@@ -71,6 +87,7 @@ export function OrderTicket({ accountId, symbol = "EURUSD", price, onSubmit, isS
               onChange={(event) => setStopLoss(event.target.value)}
             />
           </div>
+
           <div className="grid gap-2">
             <Label htmlFor="tp">Take Profit</Label>
             <Input
@@ -82,10 +99,12 @@ export function OrderTicket({ accountId, symbol = "EURUSD", price, onSubmit, isS
             />
           </div>
         </div>
+
         <p className="text-xs text-muted-foreground">
           {symbol} {price != null ? `around ${price.toFixed(4)}` : "market order"}
         </p>
       </div>
+
       <div className="mt-2 grid grid-cols-2 gap-4">
         <Button
           variant="destructive"

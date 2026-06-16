@@ -33,7 +33,7 @@ export function ProfileMenu({ userLabel, onSignOut }: ProfileMenuProps) {
       return;
     }
 
-    window.location.href = "/";
+    window.location.href = "/login";
   };
 
   return (

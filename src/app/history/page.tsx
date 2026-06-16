@@ -10,35 +10,13 @@ import { Button } from "@/components/ui/button";
 import { TradeHistoryTable } from "@/components/history/trade-history-table";
 import { dashboardApi } from "@/lib/services/dashboard.api";
 import { historyApi } from "@/lib/services/history.api";
-import { ensurePublicTraderSession } from "@/lib/services/public-trader-session";
+import { useAuthStore } from "@/lib/stores/auth-store";
 import { mapPortfolioTradeToTrade } from "@/lib/utils/trader-data";
 import type { AccountLedgerResponse } from "@/types/dashboard";
 
 export default function HistoryPage() {
-  const [token, setToken] = React.useState<string | null>(null);
   const [ledger, setLedger] = React.useState<AccountLedgerResponse | null>(null);
-
-  React.useEffect(() => {
-    let isMounted = true;
-
-    ensurePublicTraderSession()
-      .then((session) => {
-        if (!isMounted) {
-          return;
-        }
-
-        setToken(session.token);
-      })
-      .catch(() => {
-        if (isMounted) {
-          setToken(null);
-        }
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const token = useAuthStore((state) => state.session?.token ?? null);
 
   React.useEffect(() => {
     if (!token) {

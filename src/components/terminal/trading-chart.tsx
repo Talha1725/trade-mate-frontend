@@ -97,8 +97,7 @@ export function TradingChart({
   const [hasError, setHasError] = React.useState(false);
   const resolvedSymbol = resolveTradingViewSymbol(symbol);
   const chartTitle = title ?? `Chart - ${symbol.toUpperCase()}`;
-  const chartDescription =
-    description ?? "Live TradingView market view for the selected symbol.";
+  const chartDescription = description ?? "Live TradingView market view for the selected symbol.";
 
   React.useEffect(() => {
     let isMounted = true;
