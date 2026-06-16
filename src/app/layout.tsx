@@ -1,14 +1,20 @@
 import type { Metadata } from "next";
-import { Poppins } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Providers } from "./providers";
 import type { RootLayoutProps } from "@/types";
 
-const poppins = Poppins({
-  weight: ["300", "400", "500", "600", "700"],
+const suisseIntl = localFont({
+  src: [
+    {
+      path: "../../public/fonts/suisse-intl-regular.ttf",
+      weight: "400",
+      style: "normal",
+    },
+  ],
   variable: "--font-sans",
-  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -24,7 +30,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html
       lang="en"
-      className={`${poppins.variable} font-sans h-full antialiased`}
+      className={`${suisseIntl.variable} font-sans h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <Providers>
