@@ -1,34 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { AlertTriangleIcon, Loader2Icon, MoveUpRightIcon } from "lucide-react";
+import { AlertTriangleIcon, Loader2Icon } from "lucide-react";
 
 import { SectionCard } from "@/components/section-card";
 import { cn } from "@/lib/utils";
-import type { TradingChartProps } from "@/types";
-
-type TradingViewWidget = {
-  widget: new (config: {
-    autosize: boolean;
-    symbol: string;
-    interval: string;
-    timezone: string;
-    theme: "light" | "dark";
-    style: string;
-    locale: string;
-    toolbar_bg?: string;
-    enable_publishing?: boolean;
-    allow_symbol_change?: boolean;
-    hide_side_toolbar?: boolean;
-    hide_top_toolbar?: boolean;
-    save_image?: boolean;
-    container_id: string;
-  }) => unknown;
-};
-
-type TradingViewWindow = Window & {
-  TradingView?: TradingViewWidget;
-};
+import type { TradingChartProps, TradingViewWindow } from "@/types/trading-view";
 
 const TRADING_VIEW_SCRIPT_ID = "tradingview-widget-script";
 const TRADING_VIEW_SCRIPT_SRC = "https://s3.tradingview.com/tv.js";
@@ -184,10 +161,10 @@ export function TradingChart({
           </div>
         ) : null}
 
-        <div className="pointer-events-none absolute left-4 top-4 z-10 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white/90 px-3 py-1 text-xs font-medium text-emerald-700 shadow-sm backdrop-blur">
+        {/* <div className="pointer-events-none absolute left-4 top-4 z-10 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white/90 px-3 py-1 text-xs font-medium text-emerald-700 shadow-sm backdrop-blur">
           <MoveUpRightIcon className="size-3.5" />
           Live market view
-        </div>
+        </div> */}
       </div>
     </SectionCard>
   );

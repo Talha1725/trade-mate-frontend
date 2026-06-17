@@ -147,7 +147,14 @@ export function TradingFilterBar({
         className,
       )}
     >
-      <Select value={selectedAssetId} onValueChange={onAssetChange}>
+      <Select
+        value={selectedAssetId}
+        onValueChange={(value) => {
+          if (value) {
+            onAssetChange?.(value);
+          }
+        }}
+      >
         <SelectTrigger
           className="h-auto cursor-pointer border-white/20 bg-white/5 px-3 py-[18px] text-left text-sm! text-white shadow-none hover:border-primary hover:bg-white/15 focus-visible:border-primary focus-visible:ring-primary/20 data-placeholder:text-white/60 min-w-[240px]!"
         >

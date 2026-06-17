@@ -27,7 +27,7 @@ function formatMoney(value: number) {
   return `${sign}$${Math.abs(value).toFixed(2)}`;
 }
 
-function formatDateLabel(dateValue: string | null | undefined) {
+export function formatDateLabel(dateValue: string | null | undefined) {
   if (!dateValue) {
     return "-";
   }
@@ -41,6 +41,26 @@ function formatDateLabel(dateValue: string | null | undefined) {
   return date.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
+  });
+}
+
+export function formatDateTimeLabel(dateValue: string | null | undefined) {
+  if (!dateValue) {
+    return "-";
+  }
+
+  const date = new Date(dateValue);
+
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
+
+  return date.toLocaleString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
@@ -74,12 +94,19 @@ export function mapPortfolioTradeToTrade(trade: PortfolioTrade): Trade {
     openP: toNumber(trade.entryPrice),
     closeP: closePrice,
     profit: toNumber(trade.pnl),
-    time: formatDateLabel(trade.closedAt ?? trade.openedAt),
+    time: formatDateTimeLabel(trade.closedAt ?? trade.openedAt),
+    openedAt: trade.openedAt,
+    closedAt: trade.closedAt,
+    status: trade.status === "OPEN" ? "Open" : "Closed",
+    stopLoss: trade.stopLoss ? toNumber(trade.stopLoss) : null,
+    takeProfit: trade.takeProfit ? toNumber(trade.takeProfit) : null,
+    notes: trade.notes,
   };
 }
 
 export function buildOpenPositionSummary(positions: PortfolioPosition[]): PositionSummary[] {
   return positions.map((position) => ({
+    id: position.id,
     symbol: position.symbol,
     type: position.direction === "BUY" ? "Buy" : "Sell",
     volume: toNumber(position.lots),
@@ -96,6 +123,7 @@ export function buildRecentActivity(trades: PortfolioTrade[]): RecentActivityIte
     })
     .slice(0, 5)
     .map((trade) => ({
+      id: trade.id,
       symbol: trade.symbol,
       action: trade.closedAt ? `Close ${trade.direction === "BUY" ? "Buy" : "Sell"}` : trade.direction === "BUY" ? "Buy" : "Sell",
       price: toNumber(trade.exitPrice ?? trade.entryPrice),

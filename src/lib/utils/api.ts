@@ -36,7 +36,7 @@ api.interceptors.response.use(
       if (session) {
         void signOut()
         if (typeof window !== "undefined") {
-          window.location.href = "/dashboard"
+          window.location.href = "/login"
         }
       }
     }
