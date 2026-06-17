@@ -4,7 +4,6 @@ import * as React from "react";
 
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
-import { PRIMARY_NAV_ITEMS } from "@/constant/nav-config";
 import { dashboardApi } from "@/lib/services/dashboard.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { buildDashboardData } from "@/lib/utils/trader-data";
@@ -62,7 +61,7 @@ export default function DashboardPage() {
   const liveSymbol = dashboardData?.positions[0]?.symbol;
 
   return (
-    <AppShell navItems={PRIMARY_NAV_ITEMS}>
+    <AppShell>
       <div className="flex w-full flex-col gap-6">
         <PageHeader
           title="Dashboard"
