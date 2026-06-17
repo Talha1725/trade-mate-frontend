@@ -191,10 +191,10 @@ export function AppShell({
   };
 
   return (
-    <div className={cn("flex h-screen bg-[#fafafa] font-sans text-[#1a1a1a] overflow-hidden", className)}>
+    <div className={cn("flex h-screen  overflow-hidden", className)}>
       {/* Sidebar */}
       <aside className={cn(
-        "hidden md:flex flex-col shrink-0 border-r border-gray-200 bg-white transition-all duration-300 ease-in-out overflow-hidden",
+        "hidden md:flex flex-col shrink-0 border-r border-gray-200  transition-all duration-300 ease-in-out overflow-hidden",
         collapsed ? "w-[56px]" : "w-64"
       )}>
         <SidebarNav
@@ -206,7 +206,7 @@ export function AppShell({
       {/* Main content */}
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Top strip — holds the collapse toggle, aligned with sidebar brand header */}
-        <div className="flex h-14 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-3">
+        <div className="flex h-14 shrink-0 items-center justify-between border-b border-gray-200 px-3">
           <Button
             variant="ghost"
             size="icon"

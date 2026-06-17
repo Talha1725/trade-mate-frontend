@@ -1,12 +1,30 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { ActivityIcon } from "lucide-react";
 
+import { TradingFilterBar } from "@/components/dashboard/trading-filter-bar";
 import { TradingChart } from "@/components/terminal/trading-chart";
+import {
+  mockTradingFilterAssets,
+  mockTradingFilterOhlcv,
+  mockTradingFilterQuote,
+} from "@/lib/mock-data/trading-filter-bar";
 import { mockPositionSummary, mockRecentActivity } from "@/lib/mock-data/dashboard";
 import type { LiveTradingViewProps } from "@/types";
+import type { TradingTimeframe } from "@/types/trading-filter-bar";
 
-export function LiveTradingView({ symbol, positions, recentActivity }: LiveTradingViewProps) {
+export function LiveTradingView({
+  symbol,
+  positions,
+  recentActivity,
+  filterAssets,
+  filterQuote,
+  filterOhlcv,
+  filterTimeframe,
+  onFilterAssetChange,
+  onFilterTimeframeChange,
+}: LiveTradingViewProps) {
   const viewPositions = positions?.length ? positions : mockPositionSummary;
   const viewActivity = recentActivity?.length ? recentActivity : mockRecentActivity;
   const resolvedSymbol = symbol ?? viewPositions[0]?.symbol ?? viewActivity[0]?.symbol ?? "EURUSD";
@@ -14,41 +32,53 @@ export function LiveTradingView({ symbol, positions, recentActivity }: LiveTradi
   const netPnl = viewPositions.reduce((sum, position) => sum + position.profit, 0);
   const activeDirection = viewPositions[0]?.type ?? "Buy";
 
+  const assets = filterAssets ?? mockTradingFilterAssets;
+  const initialAssetId = useMemo(() => {
+    const matchedAsset = assets.find(
+      (asset) => asset.symbol.toUpperCase() === resolvedSymbol.toUpperCase(),
+    );
+
+    return matchedAsset?.id ?? assets[0]?.id ?? "btcusd";
+  }, [assets, resolvedSymbol]);
+
+  const [selectedAssetId, setSelectedAssetId] = useState(initialAssetId);
+  const [timeframe, setTimeframe] = useState<TradingTimeframe>(filterTimeframe ?? "4H");
+
+  useEffect(() => {
+    setSelectedAssetId(initialAssetId);
+  }, [initialAssetId]);
+
+  const selectedAsset =
+    assets.find((asset) => asset.id === selectedAssetId) ?? assets[0];
+  const chartSymbol = selectedAsset?.symbol ?? resolvedSymbol;
+
+  const handleAssetChange = (assetId: string) => {
+    setSelectedAssetId(assetId);
+    onFilterAssetChange?.(assetId);
+  };
+
+  const handleTimeframeChange = (nextTimeframe: TradingTimeframe) => {
+    setTimeframe(nextTimeframe);
+    onFilterTimeframeChange?.(nextTimeframe);
+  };
+
   return (
     <div className="flex w-full flex-col gap-4">
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-[0_2px_10px_rgb(0,0,0,0.04)]">
-          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Market Symbol</p>
-          <p className="mt-2 text-xl font-semibold text-foreground">{resolvedSymbol}</p>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-[0_2px_10px_rgb(0,0,0,0.04)]">
-          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Open Positions</p>
-          <p className="mt-2 text-xl font-semibold text-foreground">{openPositions}</p>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-[0_2px_10px_rgb(0,0,0,0.04)]">
-          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Demo P/L</p>
-          <p className={`mt-2 text-xl font-semibold ${netPnl >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-            {netPnl >= 0 ? "+" : ""}${netPnl.toFixed(2)}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-[0_2px_10px_rgb(0,0,0,0.04)]">
-          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Bias</p>
-          <p className="mt-2 text-xl font-semibold text-foreground">{activeDirection}</p>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-        <ActivityIcon className="size-4 shrink-0" />
-        <span>Public market view for traders. No login required.</span>
-      </div>
+    
+      <TradingFilterBar
+        assets={assets}
+        selectedAssetId={selectedAssetId}
+        onAssetChange={handleAssetChange}
+        quote={filterQuote ?? mockTradingFilterQuote}
+        ohlcv={filterOhlcv ?? mockTradingFilterOhlcv}
+        timeframe={timeframe}
+        onTimeframeChange={handleTimeframeChange}
+      />
 
       <TradingChart
-        key={resolvedSymbol}
-        symbol={resolvedSymbol}
-        title={`Chart - ${resolvedSymbol}`}
+        key={chartSymbol}
+        symbol={chartSymbol}
+        title={`Chart - ${chartSymbol}`}
         description="TradingView chart for the selected market symbol."
         className="min-h-[520px]"
         contentClassName="min-h-[420px]"
