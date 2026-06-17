@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIcon } from "lucide-react";
 
 import { TradingFilterBar } from "@/components/dashboard/trading-filter-bar";
 import { TradingChart } from "@/components/terminal/trading-chart";
@@ -28,9 +27,6 @@ export function LiveTradingView({
   const viewPositions = positions?.length ? positions : mockPositionSummary;
   const viewActivity = recentActivity?.length ? recentActivity : mockRecentActivity;
   const resolvedSymbol = symbol ?? viewPositions[0]?.symbol ?? viewActivity[0]?.symbol ?? "EURUSD";
-  const openPositions = viewPositions.length;
-  const netPnl = viewPositions.reduce((sum, position) => sum + position.profit, 0);
-  const activeDirection = viewPositions[0]?.type ?? "Buy";
 
   const assets = filterAssets ?? mockTradingFilterAssets;
   const initialAssetId = useMemo(() => {
@@ -64,7 +60,6 @@ export function LiveTradingView({
 
   return (
     <div className="flex w-full flex-col gap-4">
-    
       <TradingFilterBar
         assets={assets}
         selectedAssetId={selectedAssetId}

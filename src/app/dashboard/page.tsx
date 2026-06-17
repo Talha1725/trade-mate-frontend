@@ -8,12 +8,14 @@ import { dashboardApi } from "@/lib/services/dashboard.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { buildDashboardData } from "@/lib/utils/trader-data";
 import type { AccountLedgerResponse, UserPortfolioResponse } from "@/types/dashboard";
+import { usePriceStream } from "@/hooks/use-price-stream";
+import type { PriceSocketPortfolioMessage } from "@/types/price";
 import { EquityChart } from "@/components/dashboard/equity-chart";
 import { BreakdownWidgets } from "@/components/dashboard/breakdown-widgets";
 import { StatCards } from "@/components/dashboard/stat-cards";
 import { OpenPositionsSummary } from "@/components/dashboard/open-positions-summary";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
-import { LiveTradingView } from "@/components/dashboard/live-trading-view";
+import { LiveTradingView } from "@/components/common/live-trading-view";
 
 export default function DashboardPage() {
   const [snapshot, setSnapshot] = React.useState<UserPortfolioResponse | null>(null);
@@ -26,8 +28,9 @@ export default function DashboardPage() {
     }
 
     let isMounted = true;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-    (async () => {
+    const refreshDashboard = async () => {
       try {
         const accountSnapshot = await dashboardApi.getPortfolioSnapshot(token);
 
@@ -45,20 +48,68 @@ export default function DashboardPage() {
 
         setLedger(accountLedger);
       } catch {
+        // Keep the last successful snapshot/ledger visible if a refresh fails.
+      } finally {
         if (isMounted) {
-          setSnapshot(null);
-          setLedger(null);
+          timeoutId = setTimeout(() => {
+            void refreshDashboard();
+          }, 2500);
         }
       }
-    })();
+    };
+
+    void refreshDashboard();
 
     return () => {
       isMounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     };
   }, [token]);
 
   const dashboardData = snapshot ? buildDashboardData(snapshot, ledger ?? undefined) : null;
   const liveSymbol = dashboardData?.positions[0]?.symbol;
+  const openSymbols = React.useMemo(
+    () =>
+      Array.from(
+        new Set(
+          (dashboardData?.positions ?? [])
+            .filter((position) => position.status === "OPEN")
+            .map((position) => position.symbol),
+        ),
+      ),
+    [dashboardData?.positions],
+  );
+  const subscriptionSymbols = React.useMemo(
+    () => (openSymbols.length > 0 ? openSymbols : liveSymbol ? [liveSymbol] : []),
+    [liveSymbol, openSymbols],
+  );
+  const accountId = snapshot?.account.id ?? null;
+
+  usePriceStream({
+    enabled: !!token && !!accountId,
+    symbols: subscriptionSymbols,
+    accountIds: accountId ? [accountId] : [],
+    onPortfolio: (payload: PriceSocketPortfolioMessage) => {
+      const account = payload.accounts[0];
+
+      if (!account) {
+        return;
+      }
+
+      setSnapshot({
+        account,
+        positions: payload.positions,
+      });
+
+      setLedger({
+        account,
+        positions: payload.positions,
+        trades: payload.trades,
+      });
+    },
+  });
 
   return (
     <AppShell>

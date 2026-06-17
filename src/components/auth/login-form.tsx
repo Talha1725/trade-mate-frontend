@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRightIcon, EyeIcon } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,22 +38,28 @@ export function LoginForm({
 
     setErrorMessage(null);
     setStatus("submitting");
+    const toastId = toast.loading("Signing you in...");
 
     try {
       if (onSubmit) {
         await onSubmit(values);
       } else {
-        const session = await signIn({
+        await signIn({
           assignedId: values.assignedId,
           password: values.password,
         });
-        setStatus("success");
-        router.push(redirectTo ?? "/dashboard");
-        return;
       }
+      toast.dismiss(toastId);
+      toast.success("Signed in successfully");
       setStatus("success");
       router.push(redirectTo ?? "/dashboard");
     } catch (error) {
+      toast.dismiss(toastId);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Unable to sign in. Please try again.",
+      );
       setStatus("error");
       setErrorMessage(
         error instanceof Error

@@ -12,19 +12,17 @@ export default function LoginPage() {
   const router = useRouter();
   const session = useAuthStore((state) => state.session);
   const status = useAuthStore((state) => state.status);
-  const loadSession = useAuthStore((state) => state.loadSession);
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
 
   React.useEffect(() => {
-    if (status === "idle") {
-      void loadSession();
+    if (!hasHydrated) {
+      return;
     }
-  }, [loadSession, status]);
 
-  React.useEffect(() => {
     if (status === "authenticated" && session?.token) {
       router.replace("/dashboard");
     }
-  }, [router, session?.token, status]);
+  }, [hasHydrated, router, session?.token, status]);
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(98,77,255,0.18),_transparent_32%),radial-gradient(circle_at_bottom_right,_rgba(32,201,151,0.16),_transparent_28%),linear-gradient(180deg,_#f8fbff_0%,_#eef3fb_100%)]">
@@ -73,7 +71,13 @@ export default function LoginPage() {
             </section>
 
             <section className="mx-auto w-full max-w-md rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_20px_80px_rgba(15,23,42,0.12)] backdrop-blur sm:p-8">
-              <LoginForm redirectTo="/dashboard" />
+              {!hasHydrated ? (
+                <div className="flex min-h-[360px] items-center justify-center text-sm text-slate-500">
+                  Checking your session...
+                </div>
+              ) : (
+                <LoginForm redirectTo="/dashboard" />
+              )}
             </section>
           </div>
         </div>
