@@ -1,5 +1,11 @@
 import type { PositionSummary } from "@/types/dashboard";
 import type { RecentActivityItem } from "@/types/dashboard";
+import type {
+  TradingFilterBarAsset,
+  TradingFilterBarOhlcv,
+  TradingFilterBarQuote,
+  TradingTimeframe,
+} from "@/types/trading-filter-bar";
 
 export type TradingChartProps = {
   symbol?: string;
@@ -13,6 +19,12 @@ export type LiveTradingViewProps = {
   symbol?: string;
   positions?: PositionSummary[];
   recentActivity?: RecentActivityItem[];
+  filterAssets?: TradingFilterBarAsset[];
+  filterQuote?: TradingFilterBarQuote;
+  filterOhlcv?: TradingFilterBarOhlcv;
+  filterTimeframe?: TradingTimeframe;
+  onFilterAssetChange?: (assetId: string) => void;
+  onFilterTimeframeChange?: (timeframe: TradingTimeframe) => void;
 };
 
 export type TradingViewWidget = {

@@ -10,9 +10,14 @@ import type {
   SymbolBreakdownDatum,
 } from "@/types/dashboard";
 import type { Position, Trade, TradeOrderDirection } from "@/types/trade";
+import type {
+  TradingFilterBarAsset,
+  TradingFilterBarOhlcv,
+  TradingFilterBarQuote,
+  TradingTimeframe,
+} from "@/types/trading-filter-bar";
 
 export type AppShellProps = {
-  navItems: NavItem[];
   userLabel?: string;
   onSignOut?: () => void;
   children: React.ReactNode;

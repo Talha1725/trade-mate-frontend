@@ -4,7 +4,6 @@ import * as React from "react";
 
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
-import { PRIMARY_NAV_ITEMS } from "@/constant/nav-config";
 import { terminalApi } from "@/lib/services/terminal.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { mapPortfolioPositionToPosition } from "@/lib/utils/trader-data";
@@ -235,7 +234,7 @@ export default function TerminalPage() {
   );
 
   return (
-    <AppShell navItems={PRIMARY_NAV_ITEMS}>
+    <AppShell>
       <div className="flex w-full flex-col gap-6">
         <PageHeader title="Terminal" description="Place trades, view charts, and manage positions." />
 

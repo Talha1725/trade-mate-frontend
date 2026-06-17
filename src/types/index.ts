@@ -26,4 +26,5 @@ export type * from "@/types/dashboard";
 export type * from "@/types/market";
 export type * from "@/types/price";
 export type * from "@/types/trading-view";
+export type * from "@/types/trading-filter-bar";
 export type { TradeClosePayload, TradeOpenPayload, TradeOrderDirection } from "@/types/trade";
