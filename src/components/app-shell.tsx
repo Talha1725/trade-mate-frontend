@@ -29,9 +29,9 @@ export function AppShell({
   };
 
   return (
-    <div className={cn("flex h-screen overflow-hidden bg-black text-white", className)}>
+    <div className={cn("flex h-screen bg-black text-white", className)}>
       {/* Sidebar */}
-      <div className="hidden md:flex flex-col shrink-0 pl-2 pt-2 pb-2 h-full overflow-y-auto">
+      <div className="hidden md:flex flex-col shrink-0 h-full">
         <Sidebar />
       </div>
 
