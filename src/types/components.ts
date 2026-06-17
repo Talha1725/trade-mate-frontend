@@ -18,7 +18,6 @@ import type {
 } from "@/types/trading-filter-bar";
 
 export type AppShellProps = {
-  navItems: NavItem[];
   userLabel?: string;
   onSignOut?: () => void;
   children: React.ReactNode;

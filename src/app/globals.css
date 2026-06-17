@@ -33,8 +33,10 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary: var(--secondary);
   --color-primary-text: var(--primary);
+  --color-dark-blue: var(--dark-blue);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-teal-blue: var(--teal-blue);
   --color-blue: var(--blue);
   --color-orange: var(--orange);
   --color-cyan: var(--cyan);
@@ -60,8 +62,11 @@
   --popover-foreground: oklch(0.145 0 0);
   --primary: #22E0A2;
   --primary-foreground: #0c0c0e;
+  --teal-blue: #10896180;
+  --dark-blue: #0F172A33;
   --blue: #3B82F6;
   --orange: #FF8000;
+  --destructive: #EF4444;
   --cyan: #03D5D5;
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -69,7 +74,6 @@
   --muted-foreground: oklch(0.556 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
@@ -132,6 +136,6 @@
   pointer-events: none;
 }
 
-btn-grey{
-  @apply bg-white/5 border border-white/20 rounded-[10px] py-2.5 px-3.5;
+.btn-grey {
+  @apply rounded-[10px] border border-white/20 bg-white/5 px-3.5 py-2.5;
 }
