@@ -9,6 +9,8 @@ import type {
 
 export type TradingChartProps = {
   symbol?: string;
+  compareSymbol?: string | null;
+  interval?: string;
   title?: string;
   description?: string;
   className?: string;
@@ -17,6 +19,8 @@ export type TradingChartProps = {
 
 export type LiveTradingViewProps = {
   symbol?: string;
+  compareSymbol?: string | null;
+  interval?: string;
   positions?: PositionSummary[];
   recentActivity?: RecentActivityItem[];
   filterAssets?: TradingFilterBarAsset[];
