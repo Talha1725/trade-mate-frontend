@@ -1,6 +1,11 @@
 import { execFileSync } from 'node:child_process';
 
-const output = execFileSync('git', ['ls-files'], { encoding: 'utf8' });
+const stagedOnly = process.argv.includes('--staged');
+const output = stagedOnly
+  ? execFileSync('git', ['diff', '--cached', '--name-only', '--diff-filter=ACMR'], {
+      encoding: 'utf8',
+    })
+  : execFileSync('git', ['ls-files'], { encoding: 'utf8' });
 const matches = output
   .split('\n')
   .map((line) => line.trim())
