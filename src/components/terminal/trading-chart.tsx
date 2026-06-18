@@ -4,179 +4,119 @@ import * as React from "react";
 import { AlertTriangleIcon, Loader2Icon, MoveUpRightIcon } from "lucide-react";
 
 import { SectionCard } from "@/components/section-card";
+import {
+  buildAdvancedChartEmbedUrl,
+  resolveTradingViewSymbol,
+} from "@/lib/utils/trading-view";
 import { cn } from "@/lib/utils";
 import type { TradingChartProps } from "@/types";
 
-type TradingViewWidget = {
-  widget: new (config: {
-    autosize: boolean;
-    symbol: string;
-    interval: string;
-    timezone: string;
-    theme: "light" | "dark";
-    style: string;
-    locale: string;
-    toolbar_bg?: string;
-    enable_publishing?: boolean;
-    allow_symbol_change?: boolean;
-    hide_side_toolbar?: boolean;
-    hide_top_toolbar?: boolean;
-    save_image?: boolean;
-    container_id: string;
-  }) => unknown;
-};
-
-type TradingViewWindow = Window & {
-  TradingView?: TradingViewWidget;
-};
-
-const TRADING_VIEW_SCRIPT_ID = "tradingview-widget-script";
-const TRADING_VIEW_SCRIPT_SRC = "https://s3.tradingview.com/tv.js";
-
-let tradingViewScriptPromise: Promise<void> | null = null;
-
-function loadTradingViewScript() {
-  if (typeof window === "undefined") {
-    return Promise.reject(new Error("TradingView can only be loaded in the browser."));
-  }
-
-  const tradingViewWindow = window as TradingViewWindow;
-
-  if (tradingViewWindow.TradingView) {
-    return Promise.resolve();
-  }
-
-  if (!tradingViewScriptPromise) {
-    tradingViewScriptPromise = new Promise((resolve, reject) => {
-      const existingScript = document.getElementById(TRADING_VIEW_SCRIPT_ID) as HTMLScriptElement | null;
-
-      if (existingScript) {
-        existingScript.addEventListener("load", () => resolve(), { once: true });
-        existingScript.addEventListener("error", () => reject(new Error("Unable to load TradingView widget.")), {
-          once: true,
-        });
-        return;
-      }
-
-      const script = document.createElement("script");
-      script.id = TRADING_VIEW_SCRIPT_ID;
-      script.async = true;
-      script.src = TRADING_VIEW_SCRIPT_SRC;
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error("Unable to load TradingView widget."));
-      document.head.appendChild(script);
-    });
-  }
-
-  return tradingViewScriptPromise;
-}
-
-function resolveTradingViewSymbol(symbol: string) {
-  const normalizedSymbol = symbol.trim().toUpperCase();
-
-  if (!normalizedSymbol) {
-    return "OANDA:EURUSD";
-  }
-
-  if (normalizedSymbol.includes(":")) {
-    return normalizedSymbol;
-  }
-
-  return `OANDA:${normalizedSymbol}`;
-}
-
 export function TradingChart({
   symbol = "EURUSD",
+  compareSymbol = null,
+  interval = "60",
   title,
   description,
   className,
   contentClassName,
 }: TradingChartProps) {
-  const containerId = React.useId().replace(/:/g, "-");
+  const containerRef = React.useRef<HTMLDivElement>(null);
   const [isReady, setIsReady] = React.useState(false);
   const [hasError, setHasError] = React.useState(false);
   const resolvedSymbol = resolveTradingViewSymbol(symbol);
+  const resolvedCompareSymbol = compareSymbol
+    ? resolveTradingViewSymbol(compareSymbol)
+    : null;
   const chartTitle = title ?? `Chart - ${symbol.toUpperCase()}`;
-  const chartDescription = description ?? "Live TradingView market view for the selected symbol.";
+  const chartDescription =
+    description ??
+    (compareSymbol
+      ? `Comparing ${symbol.toUpperCase()} with ${compareSymbol.toUpperCase()}.`
+      : "Live TradingView market view for the selected symbol.");
 
   React.useEffect(() => {
-    let isMounted = true;
-    const container = document.getElementById(containerId);
+    const container = containerRef.current;
 
     if (!container) {
       return undefined;
     }
 
-    container.innerHTML = "";
+    let isMounted = true;
+    setIsReady(false);
+    setHasError(false);
 
-    loadTradingViewScript()
-      .then(() => {
-        if (!isMounted) {
-          return;
-        }
+    const iframe = document.createElement("iframe");
+    iframe.title = "TradingView Advanced Chart";
+    iframe.lang = "en";
+    iframe.setAttribute("allowtransparency", "true");
+    iframe.setAttribute("frameborder", "0");
+    iframe.setAttribute("scrolling", "no");
+    iframe.style.width = "100%";
+    iframe.style.height = "100%";
+    iframe.style.display = "block";
+    iframe.style.border = "0";
+    iframe.src = buildAdvancedChartEmbedUrl({
+      symbol: resolvedSymbol,
+      interval,
+      compareSymbol: resolvedCompareSymbol,
+    });
 
-        const tradingViewWindow = window as TradingViewWindow;
-
-        if (!tradingViewWindow.TradingView) {
-          throw new Error("TradingView widget is unavailable.");
-        }
-
-        container.innerHTML = "";
-        new tradingViewWindow.TradingView.widget({
-          autosize: true,
-          symbol: resolvedSymbol,
-          interval: "60",
-          timezone: "Etc/UTC",
-          theme: "light",
-          style: "1",
-          locale: "en",
-          toolbar_bg: "#f8fafc",
-          enable_publishing: false,
-          allow_symbol_change: true,
-          hide_side_toolbar: false,
-          hide_top_toolbar: false,
-          save_image: false,
-          container_id: containerId,
-        });
+    const handleLoad = () => {
+      if (isMounted) {
         setIsReady(true);
-      })
-      .catch(() => {
-        if (isMounted) {
-          setHasError(true);
-        }
-      });
+      }
+    };
+
+    const handleError = () => {
+      if (isMounted) {
+        setHasError(true);
+      }
+    };
+
+    const readyFallbackTimer = window.setTimeout(() => {
+      if (isMounted) {
+        setIsReady(true);
+      }
+    }, 1800);
+
+    iframe.addEventListener("load", handleLoad);
+    iframe.addEventListener("error", handleError);
+    container.replaceChildren(iframe);
 
     return () => {
       isMounted = false;
-      container.innerHTML = "";
+      window.clearTimeout(readyFallbackTimer);
+      iframe.removeEventListener("load", handleLoad);
+      iframe.removeEventListener("error", handleError);
+      container.replaceChildren();
     };
-  }, [containerId, resolvedSymbol]);
+  }, [interval, resolvedCompareSymbol, resolvedSymbol]);
 
   return (
     <SectionCard
       title={chartTitle}
       description={chartDescription}
-      className={cn("h-full min-h-[480px] flex flex-col overflow-hidden", className)}
+      className={cn(
+        "flex h-full min-h-[480px] md:min-h-[778px] flex-col overflow-hidden border-none bg-white/5 shadow-none ring-white/20",
+        className,
+      )}
       contentClassName={cn("flex-1", contentClassName)}
     >
-      <div className="relative h-full min-h-[360px] overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-b from-white via-white to-slate-50">
-        <div
-          id={containerId}
-          className={cn("absolute inset-0", isReady || hasError ? "opacity-100" : "opacity-0")}
-        />
+      <div className="relative h-full min-h-[360px] overflow-hidden rounded-2xl border-none bg-transparent">
+        <div ref={containerRef} className="absolute inset-0" />
 
         {!isReady && !hasError ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-muted-foreground">
-            <Loader2Icon className="size-5 animate-spin" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white/60">
+            <Loader2Icon className="size-5 animate-spin text-primary" />
             <span className="text-sm font-medium">Loading TradingView chart</span>
           </div>
         ) : null}
 
         {hasError ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center text-muted-foreground">
-            <AlertTriangleIcon className="size-6 text-amber-500" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center text-white/60">
+            <AlertTriangleIcon className="size-6 text-orange" />
             <div className="space-y-1">
-              <p className="text-sm font-semibold text-foreground">Trading chart unavailable</p>
+              <p className="text-sm font-semibold text-white">Trading chart unavailable</p>
               <p className="text-sm">
                 The TradingView widget could not load, so the chart area is temporarily disabled.
               </p>
@@ -184,9 +124,9 @@ export function TradingChart({
           </div>
         ) : null}
 
-        <div className="pointer-events-none absolute left-4 top-4 z-10 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white/90 px-3 py-1 text-xs font-medium text-emerald-700 shadow-sm backdrop-blur">
+        <div className="pointer-events-none absolute left-4 top-4 z-10 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-white/5 px-3 py-1 text-xs font-medium text-primary shadow-sm backdrop-blur">
           <MoveUpRightIcon className="size-3.5" />
-          Live market view
+          {compareSymbol ? "Comparison view" : "Live market view"}
         </div>
       </div>
     </SectionCard>

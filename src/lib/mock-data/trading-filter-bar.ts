@@ -23,6 +23,30 @@ export const mockTradingFilterAssets: TradingFilterBarAsset[] = [
     icon: "bitcoin",
   },
   {
+    id: "ethusd",
+    label: "Ethereum / US Dollar",
+    symbol: "ETHUSD",
+    icon: "stock",
+  },
+  {
+    id: "solusd",
+    label: "Solana / US Dollar",
+    symbol: "SOLUSD",
+    icon: "stock",
+  },
+  {
+    id: "xrpusd",
+    label: "Ripple / US Dollar",
+    symbol: "XRPUSD",
+    icon: "stock",
+  },
+  {
+    id: "adausd",
+    label: "Cardano / US Dollar",
+    symbol: "ADAUSD",
+    icon: "stock",
+  },
+  {
     id: "eurusd",
     label: "Euro / US Dollar",
     symbol: "EURUSD",

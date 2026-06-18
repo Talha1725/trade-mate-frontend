@@ -21,24 +21,8 @@ export function SectionCard({
   children,
 }: SectionCardProps) {
   return (
-    <Card className={cn("rounded-2xl border border-gray-200 bg-white shadow-[0_2px_10px_rgb(0,0,0,0.04)] flex flex-col", className)}>
-      <CardHeader>
-        <div className="flex items-start gap-3">
-          {Icon ? (
-            <span className="mt-0.5 grid size-9 place-items-center rounded-xl bg-[#eff3f8] text-gray-500">
-              <Icon className="size-4" />
-            </span>
-          ) : null}
-          <div className="min-w-0 flex-1 space-y-1">
-            <CardTitle className="text-base font-semibold text-[#1a1a1a]">{title}</CardTitle>
-            {description ? (
-              <CardDescription className="text-gray-500">{description}</CardDescription>
-            ) : null}
-          </div>
-          {action ? <div className="shrink-0">{action}</div> : null}
-        </div>
-      </CardHeader>
-      <CardContent className={contentClassName}>{children}</CardContent>
+    <Card className={cn("p-0 px-0! border-none flex flex-col", className)}>
+      <CardContent className={`${contentClassName} p-0 px-0! border-none`}>{children}</CardContent>
     </Card>
   );
 }
