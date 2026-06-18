@@ -144,20 +144,21 @@ export function Sidebar() {
         <SidebarItem
           icon={HiMiniChartBar}
           label="Chart View"
-          href="/terminal"
-          active={isTabActive("/terminal")}
-        />
-        <SidebarItem
-          iconSrc="/sidebar icons/round graph.svg"
-          label="Portfolio"
           href="/dashboard"
           active={isTabActive("/dashboard")}
         />
         <SidebarItem
+          iconSrc="/sidebar icons/round graph.svg"
+          label="Portfolio"
+          href="/porfolio"
+          active={isTabActive("/porfolio")}
+        />
+        <SidebarItem
           iconSrc="/sidebar icons/reorder.svg"
           label="Orders"
-          href="/terminal"
+          href="/orders"
           badge="2"
+          active={isTabActive("/orders")}
         />
         <SidebarItem
           icon={History}

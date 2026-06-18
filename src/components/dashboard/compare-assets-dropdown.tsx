@@ -121,15 +121,18 @@ export function CompareAssetsDropdown({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        className={cn(
-          "flex cursor-pointer items-center gap-1.5 rounded-lg border border-white/20 bg-linear-to-r from-white/5 to-white/7 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10",
-          compareAssetId && "border-primary/40 text-primary",
-          className,
-        )}
-      >
-        <ArrowLeftRightIcon className="size-3.5" />
-        Compare
+      <DropdownMenuTrigger>
+        <button
+          type="button"
+          className={cn(
+            "flex cursor-pointer items-center gap-1.5 rounded-lg border border-white/20 bg-linear-to-r from-white/5 to-white/7 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10",
+            compareAssetId && "border-primary/40 text-primary",
+            className,
+          )}
+        >
+          <ArrowLeftRightIcon className="size-3.5" />
+          Compare
+        </button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
