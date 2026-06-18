@@ -93,24 +93,21 @@ export function IndicatorsDropdown({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          className={cn(
-            "flex items-center cursor-pointer gap-1.5 rounded-lg border border-white/20 bg-linear-to-r from-white/5 to-white/7 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10",
-            className,
-          )}
-        >
-          <Image src="/images/icons/setting.svg" alt="Indicators" width={16} height={16} />
-          Indicators
-        </button>
+      <DropdownMenuTrigger
+        className={cn(
+          "flex items-center cursor-pointer gap-1.5 rounded-lg border border-white/20 bg-linear-to-r from-white/5 to-white/7 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10",
+          className,
+        )}
+      >
+        <Image src="/images/icons/setting.svg" alt="Indicators" width={16} height={16} />
+        Indicators
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
         align="start"
         sideOffset={8}
         className="w-[333px] max-w-[333px] max-h-[615px] overflow-y-auto rounded-xl border border-white/20 bg-black/50 p-0 text-white backdrop-blur-sm py-6"
-        onCloseAutoFocus={(event) => event.preventDefault()}
+        finalFocus={false}
       >
         <div className="sticky top-0 z-10  md:px-6 px-4 pb-3">
           <h4 className="text-base md:text-lg font-medium text-white/80">Indicators</h4>

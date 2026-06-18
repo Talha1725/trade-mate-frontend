@@ -121,25 +121,22 @@ export function CompareAssetsDropdown({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          className={cn(
-            "flex cursor-pointer items-center gap-1.5 rounded-lg border border-white/20 bg-linear-to-r from-white/5 to-white/7 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10",
-            compareAssetId && "border-primary/40 text-primary",
-            className,
-          )}
-        >
-          <ArrowLeftRightIcon className="size-3.5" />
-          Compare
-        </button>
+      <DropdownMenuTrigger
+        className={cn(
+          "flex cursor-pointer items-center gap-1.5 rounded-lg border border-white/20 bg-linear-to-r from-white/5 to-white/7 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10",
+          compareAssetId && "border-primary/40 text-primary",
+          className,
+        )}
+      >
+        <ArrowLeftRightIcon className="size-3.5" />
+        Compare
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
         align="start"
         sideOffset={8}
         className="w-[333px] max-w-[333px] max-h-[615px] overflow-y-auto rounded-xl border border-white/20 bg-black/50 p-0 py-6 text-white backdrop-blur-sm"
-        onCloseAutoFocus={(event) => event.preventDefault()}
+        finalFocus={false}
       >
         <div className="sticky top-0 z-10 px-4 pb-3 md:px-6">
           <h4 className="text-base font-medium text-white/80 md:text-lg">Compare Asset</h4>
