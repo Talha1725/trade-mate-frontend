@@ -7,6 +7,8 @@ export interface Trade {
   closeP: number;
   profit: number;
   time: string;
+  openedAt?: string;
+  closedAt?: string | null;
   accountId?: string;
   status?: "Open" | "Closed";
   stopLoss?: number | null;

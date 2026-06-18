@@ -24,6 +24,8 @@ export type { RootLayoutProps } from "@/types/layout";
 export type * from "@/types/components";
 export type * from "@/types/dashboard";
 export type * from "@/types/market";
+export type * from "@/types/price";
+export type * from "@/types/trading-view";
 export type * from "@/types/trading-filter-bar";
 export type * from "@/types/market-watch-card";
 export type * from "@/types/market-snapshot";

@@ -9,13 +9,13 @@ import { SectionCard } from "@/components/section-card";
 import { SortableColumnHeader } from "@/components/sortable-column-header";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
-import { mockPositions } from "@/lib/mock-data/positions";
 import { useTableQuery } from "@/hooks/use-table-query";
+import { formatMarketPrice } from "@/lib/utils/market-price";
 import type { OpenPositionsTableProps } from "@/types";
 import type { Position } from "@/types/trade";
 
 export function OpenPositionsTable({ positions, onClosePosition }: OpenPositionsTableProps) {
-  const sourcePositions = positions?.length ? positions : mockPositions;
+  const sourcePositions = positions ?? [];
 
   const searchText = useCallback((position: Position) => `${position.symbol} ${position.ticket}`, []);
   const filterFn = useCallback(
@@ -55,20 +55,22 @@ export function OpenPositionsTable({ positions, onClosePosition }: OpenPositions
     {
       accessorKey: "openPrice",
       header: ({ column }) => <SortableColumnHeader column={column} label="Open Price" />,
+      cell: ({ row }) => formatMarketPrice(row.getValue("openPrice"), row.original.symbol),
     },
     {
       accessorKey: "sl",
       header: "S/L",
-      cell: ({ row }) => <div>{row.getValue("sl") ?? "-"}</div>,
+      cell: ({ row }) => <div>{formatMarketPrice(row.getValue("sl"), row.original.symbol)}</div>,
     },
     {
       accessorKey: "tp",
       header: "T/P",
-      cell: ({ row }) => <div>{row.getValue("tp") ?? "-"}</div>,
+      cell: ({ row }) => <div>{formatMarketPrice(row.getValue("tp"), row.original.symbol)}</div>,
     },
     {
       accessorKey: "current",
       header: ({ column }) => <SortableColumnHeader column={column} label="Current" />,
+      cell: ({ row }) => formatMarketPrice(row.getValue("current"), row.original.symbol),
     },
     {
       accessorKey: "profit",

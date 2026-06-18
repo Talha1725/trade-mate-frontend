@@ -13,12 +13,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SectionCard } from "@/components/section-card";
+import { formatMarketPrice, getMarketPricePrecision } from "@/lib/utils/market-price";
 import type { OrderTicketProps, TradeOrderDirection } from "@/types";
 
 export function OrderTicket({ accountId, symbol = "EURUSD", price, onSubmit, isSubmitting }: OrderTicketProps) {
   const [volume, setVolume] = useState("1.0");
   const [stopLoss, setStopLoss] = useState("");
   const [takeProfit, setTakeProfit] = useState("");
+  const pricePrecision = getMarketPricePrecision(symbol);
+  const priceStep = pricePrecision === 2 ? "0.01" : "0.00001";
 
   const handlePlaceOrder = async (direction: TradeOrderDirection) => {
     if (!onSubmit || !accountId) {
@@ -82,9 +85,10 @@ export function OrderTicket({ accountId, symbol = "EURUSD", price, onSubmit, isS
             <Input
               id="sl"
               type="number"
-              placeholder="0.0000"
+              placeholder={formatMarketPrice(0, symbol)}
               value={stopLoss}
               onChange={(event) => setStopLoss(event.target.value)}
+              step={priceStep}
             />
           </div>
 
@@ -93,15 +97,16 @@ export function OrderTicket({ accountId, symbol = "EURUSD", price, onSubmit, isS
             <Input
               id="tp"
               type="number"
-              placeholder="0.0000"
+              placeholder={formatMarketPrice(0, symbol)}
               value={takeProfit}
               onChange={(event) => setTakeProfit(event.target.value)}
+              step={priceStep}
             />
           </div>
         </div>
 
         <p className="text-xs text-muted-foreground">
-          {symbol} {price != null ? `around ${price.toFixed(4)}` : "market order"}
+          {symbol} {price != null ? `around ${formatMarketPrice(price, symbol)}` : "market order"}
         </p>
       </div>
 

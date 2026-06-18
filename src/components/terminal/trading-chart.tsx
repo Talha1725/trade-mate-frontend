@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { AlertTriangleIcon, Loader2Icon, MoveUpRightIcon } from "lucide-react";
+import { AlertTriangleIcon, Loader2Icon } from "lucide-react";
 
 import { SectionCard } from "@/components/section-card";
 import {
@@ -124,10 +124,11 @@ export function TradingChart({
           </div>
         ) : null}
 
-        <div className="pointer-events-none absolute left-4 top-4 z-10 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-white/5 px-3 py-1 text-xs font-medium text-primary shadow-sm backdrop-blur">
+
+        {/* <div className="pointer-events-none absolute left-4 top-4 z-10 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white/90 px-3 py-1 text-xs font-medium text-emerald-700 shadow-sm backdrop-blur">
           <MoveUpRightIcon className="size-3.5" />
-          {compareSymbol ? "Comparison view" : "Live market view"}
-        </div>
+          Live market view
+        </div> */}
       </div>
     </SectionCard>
   );

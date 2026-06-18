@@ -11,11 +11,9 @@ import { SymbolSearch } from "@/components/terminal/symbol-search";
 import { TradingChart } from "@/components/terminal/trading-chart";
 import { OrderTicket } from "@/components/terminal/order-ticket";
 import { OpenPositionsTable } from "@/components/terminal/open-positions-table";
-import { usePriceStream } from "@/hooks/use-price-stream";
 import type { MarketQuoteResponse, MarketSymbolResponse } from "@/types/market";
 import type { UserPortfolioResponse } from "@/types/dashboard";
 import type { Position } from "@/types/trade";
-import type { PriceSocketQuote } from "@/types/price";
 
 export default function TerminalPage() {
   const [snapshot, setSnapshot] = React.useState<UserPortfolioResponse | null>(null);
@@ -32,9 +30,8 @@ export default function TerminalPage() {
     }
 
     let isMounted = true;
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-    const refreshTerminalSnapshot = async () => {
+    (async () => {
       try {
         const [snapshotResponse, symbolResponse] = await Promise.all([
           terminalApi.getOpenPositions(token),
@@ -50,38 +47,17 @@ export default function TerminalPage() {
 
         const initialSymbol =
           snapshotResponse.positions[0]?.symbol ?? symbolResponse.symbols[0]?.displaySymbol ?? "EURUSD";
-
-        setSelectedSymbol((currentSymbol) => {
-          if (
-            currentSymbol &&
-            (snapshotResponse.positions.some((position) => position.symbol === currentSymbol) ||
-              symbolResponse.symbols.some((record) => record.displaySymbol === currentSymbol))
-          ) {
-            return currentSymbol;
-          }
-
-          return initialSymbol;
-        });
+        setSelectedSymbol(initialSymbol);
       } catch {
-        if (!isMounted) {
-          return;
-        }
-      } finally {
         if (isMounted) {
-          timeoutId = setTimeout(() => {
-            void refreshTerminalSnapshot();
-          }, 2500);
+          setSnapshot(null);
+          setSymbols([]);
         }
       }
-    };
-
-    void refreshTerminalSnapshot();
+    })();
 
     return () => {
       isMounted = false;
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
     };
   }, [token]);
 
@@ -91,9 +67,8 @@ export default function TerminalPage() {
     }
 
     let isMounted = true;
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-    const refreshQuotes = async () => {
+    (async () => {
       try {
         const quoteResponse = await terminalApi.getMarketQuotes([selectedSymbol], token);
 
@@ -103,26 +78,14 @@ export default function TerminalPage() {
 
         setQuotes(quoteResponse.quotes);
       } catch {
-        if (!isMounted) {
-          return;
-        }
-      } finally {
         if (isMounted) {
-          timeoutId = setTimeout(() => {
-            void refreshQuotes();
-          }, 2500);
+          setQuotes([]);
         }
       }
-    };
-
-    setQuotes([]);
-    void refreshQuotes();
+    })();
 
     return () => {
       isMounted = false;
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
     };
   }, [selectedSymbol, token]);
 
@@ -144,7 +107,9 @@ export default function TerminalPage() {
         const lastCandle = historyResponse.candles.at(-1);
         setHistoryClose(lastCandle?.close ?? null);
       } catch {
-        // Keep the last resolved fallback price if history refresh fails.
+        if (isMounted) {
+          setHistoryClose(null);
+        }
       }
     })();
 
@@ -156,30 +121,7 @@ export default function TerminalPage() {
   const accountId = snapshot?.account.id;
   const selectedQuote = quotes[0];
   const availableSymbols = symbols.map((item) => item.displaySymbol);
-  const openPositions = React.useMemo(
-    () => snapshot?.positions.map(mapPortfolioPositionToPosition) ?? [],
-    [snapshot?.positions],
-  );
-  const openSymbols = React.useMemo(
-    () =>
-      Array.from(
-        new Set(openPositions.map((position) => position.symbol)),
-      ),
-    [openPositions],
-  );
-  const subscriptionSymbols = React.useMemo(
-    () => (selectedSymbol ? Array.from(new Set([selectedSymbol, ...openSymbols])) : openSymbols),
-    [openSymbols, selectedSymbol],
-  );
-
-  usePriceStream({
-    enabled: !!token && (!!accountId || openSymbols.length > 0 || !!selectedSymbol),
-    symbols: subscriptionSymbols,
-    accountIds: accountId ? [accountId] : [],
-    onQuotes: (incomingQuotes: PriceSocketQuote[]) => {
-      setQuotes(incomingQuotes);
-    },
-  });
+  const openPositions = snapshot?.positions.map(mapPortfolioPositionToPosition) ?? [];
 
   const refreshSnapshot = React.useCallback(async () => {
     if (!token) {

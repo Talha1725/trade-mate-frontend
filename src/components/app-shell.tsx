@@ -3,9 +3,9 @@
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
+import { Sidebar } from "@/components/sidebar";
 import { ProfileMenu } from "@/components/profile-menu";
 import { useAuthStore } from "@/lib/stores/auth-store";
-import { Sidebar } from "@/components/sidebar";
 import type { AppShellProps } from "@/types";
 
 export function AppShell({
@@ -25,13 +25,13 @@ export function AppShell({
       return;
     }
 
-    window.location.href = "/login";
+    window.location.href = "/logout";
   };
 
   return (
-    <div className={cn("flex h-screen overflow-hidden bg-black text-white", className)}>
+    <div className={cn("flex h-screen bg-black text-white", className)}>
       {/* Sidebar */}
-      <div className="hidden md:flex flex-col shrink-0 pl-2 pt-2 pb-2 h-full overflow-y-auto">
+      <div className="hidden md:flex flex-col shrink-0 h-full">
         <Sidebar />
       </div>
 

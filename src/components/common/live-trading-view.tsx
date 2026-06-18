@@ -1,5 +1,7 @@
 "use client";
+import { useEffect, useMemo, useState } from "react";
 
+import { TradingFilterBar } from "@/components/dashboard/trading-filter-bar";
 import { TradingChart } from "@/components/terminal/trading-chart";
 import type { LiveTradingViewProps } from "@/types";
 

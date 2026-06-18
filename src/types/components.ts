@@ -108,6 +108,7 @@ export type LiveTradingViewProps = {
   interval?: string;
 };
 
+
 export type StatCardsProps = {
   stats?: StatCardDatum[];
 };
@@ -159,4 +160,5 @@ export type OpenPositionsTableProps = {
 
 export type TradeHistoryTableProps = {
   trades?: Trade[];
+  isLoading?: boolean;
 };
