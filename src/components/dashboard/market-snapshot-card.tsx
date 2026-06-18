@@ -1,0 +1,119 @@
+"use client";
+
+import { GaugeIcon, GlobeIcon, HeartPulseIcon } from "lucide-react";
+
+import { SparklineChart } from "@/components/dashboard/sparkline-chart";
+import { mockMarketSnapshot } from "@/lib/mock-data/market-snapshot";
+import { cn } from "@/lib/utils";
+import type {
+  MarketSnapshotBadge,
+  MarketSnapshotCardProps,
+  MarketSnapshotStat,
+} from "@/types/market-snapshot";
+import Image from "next/image";
+
+function formatPrice(value: number) {
+  return value.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+function formatPercent(value: number) {
+  const prefix = value >= 0 ? "+" : "";
+  return `${prefix}${value.toFixed(2)}%`;
+}
+
+function SnapshotBadge({ badge }: { badge: MarketSnapshotBadge }) {
+  const Icon = badge.icon === "momentum" ? "/images/momentum.svg" : "/images/hearts.svg";
+
+  return (
+    <span className="inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/5 px-2.5 py-2 text-sm font-medium text-white">
+      <Image src={Icon} alt={badge.label} className="" width={14} height={14} />
+      {badge.label}
+    </span>
+  );
+}
+
+function SnapshotStatRow({ stat }: { stat: MarketSnapshotStat }) {
+  return (
+    <div className="flex items-center justify-between gap-3 text-sm">
+      <span className="text-white/60 text-sm">{stat.label}</span>
+      <span
+        className={cn(
+          "font-semibold",
+          stat.tone === "primary" ? "text-primary" : "text-white",
+        )}
+      >
+        {stat.value}
+      </span>
+    </div>
+  );
+}
+
+export function MarketSnapshotCard({ data, className }: MarketSnapshotCardProps) {
+  const snapshot = data ?? mockMarketSnapshot;
+  const isPositive = snapshot.changePercent >= 0;
+  const sparklinePalette = isPositive ? "profit" : "loss";
+
+  return (
+    <div
+      className={cn(
+        "card-green overflow-hidden rounded-xl border border-white/20 p-4 md:p-6",
+        className,
+      )}
+    >
+      <div className="relative">
+        <div className="pointer-events-none absolute right-0 bottom-0 h-[73px] w-[146px]">
+          <SparklineChart
+            data={snapshot.sparkline}
+            palette={sparklinePalette}
+            fromZero={false}
+          />
+        </div>
+
+        <div className="relative z-10">
+          <div className="flex items-center gap-2.5 text-primary">
+            <span className="">
+              <Image src="/images/globe.svg" alt="logo" className="" width={32} height={32} />
+            </span>
+            <span className="text-sm font-regular">Market Snapshot</span>
+          </div>
+
+          <div className="mt-2.5 flex flex-wrap items-end gap-2">
+            <span className="text-2xl font-medium tracking-tight text-white md:text-[32px]">
+              {formatPrice(snapshot.price)}
+            </span>
+            <span
+              className={cn(
+                "pb-1 text-sm font-normal",
+                isPositive ? "text-primary" : "text-destructive",
+              )}
+            >
+              {formatPercent(snapshot.changePercent)}
+            </span>
+          </div>
+
+          {snapshot.isLive ? (
+            <div className="mt-1 flex items-center gap-2 text-sm md:text-base font-medium text-primary">
+              <span className="size-2.5 animate-pulse rounded-full bg-primary shadow-[0_0_10px_var(--primary)]" />
+              Live Market
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        {snapshot.badges.map((badge) => (
+          <SnapshotBadge key={badge.id} badge={badge} />
+        ))}
+      </div>
+
+      <div className="mt-3.5 space-y-1 ">
+        {snapshot.stats.map((stat) => (
+          <SnapshotStatRow key={stat.id} stat={stat} />
+        ))}
+      </div>
+    </div>
+  );
+}

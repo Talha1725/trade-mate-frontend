@@ -33,8 +33,10 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary: var(--secondary);
   --color-primary-text: var(--primary);
+  --color-dark-blue: var(--dark-blue);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-teal-blue: var(--teal-blue);
   --color-blue: var(--blue);
   --color-orange: var(--orange);
   --color-cyan: var(--cyan);
@@ -60,8 +62,11 @@
   --popover-foreground: oklch(0.145 0 0);
   --primary: #22E0A2;
   --primary-foreground: #0c0c0e;
+  --teal-blue: #10896180;
+  --dark-blue: #0F172A33;
   --blue: #3B82F6;
   --orange: #FF8000;
+  --destructive: #EF4444;
   --cyan: #03D5D5;
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -69,7 +74,6 @@
   --muted-foreground: oklch(0.556 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
@@ -102,7 +106,6 @@
   }
 }
 
-
 .btn-green {
   position: relative;
   background: radial-gradient(
@@ -118,6 +121,7 @@
   position: absolute;
   inset: 0;
   padding: 1px;
+  padding-bottom: 2px;
   border-radius: inherit;
   background: linear-gradient(
     180deg,
@@ -132,6 +136,82 @@
   pointer-events: none;
 }
 
-btn-grey{
-  @apply bg-white/5 border border-white/20 rounded-[10px] py-2.5 px-3.5;
+.btn-blue {
+  position: relative;
+  background: radial-gradient(
+    52.13% 193.91% at 47.87% 20%,
+    #3B82F680 ,
+    #0F172A33 
+  );
+  border-radius: 12px;
+}
+
+.btn-blue::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    #3B82F680,
+    #0B4AB2 
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.btn-orange {
+  position: relative;
+  background: radial-gradient(
+    52.13% 193.91% at 47.87% 20%,
+    #FF800080 ,
+    #0F172A33 
+  );
+  border-radius: 12px;
+}
+
+.btn-orange::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    #FFB265,
+    #FF8000 
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+
+.btn-grey {
+  @apply rounded-[10px] border border-white/20 bg-white/5 px-3.5 py-2.5;
+}
+
+.card-green {
+  background: radial-gradient(
+    52.13% 193.91% at 47.87% 100%,
+    #10896180,
+    rgba(15, 23, 42, 0.2) 100%
+  );
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

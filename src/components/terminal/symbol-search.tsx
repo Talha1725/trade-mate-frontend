@@ -6,6 +6,7 @@ import { SearchIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SectionCard } from "@/components/section-card";
+import { formatMarketPrice } from "@/lib/utils/market-price";
 import type { SymbolSearchProps } from "@/types";
 
 export function SymbolSearch({ symbol = "EURUSD", price, symbols, onSymbolChange }: SymbolSearchProps) {
@@ -39,7 +40,7 @@ export function SymbolSearch({ symbol = "EURUSD", price, symbols, onSymbolChange
 
           <div className="flex items-center gap-4 text-2xl font-bold tracking-tight">
             <span>{symbol}</span>
-            <span className="text-emerald-600">{price != null ? price.toFixed(4) : "—"}</span>
+            <span className="text-emerald-600">{formatMarketPrice(price, symbol)}</span>
           </div>
         </div>
 
