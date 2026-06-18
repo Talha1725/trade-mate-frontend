@@ -5,7 +5,7 @@ import * as React from "react";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { TradingFilterBar } from "@/components/dashboard/trading-filter-bar";
-import { LiveTradingView } from "@/components/dashboard/live-trading-view";
+import { LiveTradingView } from "@/components/common/live-trading-view";
 import { MarketWatchCard } from "@/components/dashboard/market-watch-card";
 import { MarketSnapshotCard } from "@/components/dashboard/market-snapshot-card";
 import { OpenPositionsStripCard } from "@/components/dashboard/open-positions-strip-card";
@@ -27,6 +27,8 @@ import { mapTimeframeToTradingViewInterval } from "@/lib/utils/trading-view";
 import { buildDashboardData } from "@/lib/utils/trader-data";
 import type { AccountLedgerResponse, UserPortfolioResponse } from "@/types/dashboard";
 import type { TradingTimeframe } from "@/types/trading-filter-bar";
+import { usePriceStream } from "@/hooks/use-price-stream";
+import { PriceSocketPortfolioMessage } from "@/types";
 
 export default function DashboardPage() {
   const [snapshot, setSnapshot] = React.useState<UserPortfolioResponse | null>(null);
