@@ -193,79 +193,111 @@ export function Sidebar() {
     </div>
 
       {/* Account Widget Card */}
-      <div className="p-4 rounded-[20px] card-green from-neutral-900/80 to-[#0C0C0E]/90 border border-white/20 flex flex-col gap-3.5 relative overflow-hidden">
-        {/* Decorative Green Glow Spot */}
-        <div className="absolute -bottom-12 -left-12 size-24 bg-[#22E0A2]/10 blur-[30px] rounded-full pointer-events-none" />
+      {pathname === "/dashboard" ? (
+        <div
+          className="p-4 rounded-[20px] card-green border border-white/20 flex flex-col"
+          style={{ height: 258, width: 246 }}
+        >
+          <div className="absolute -bottom-12 -left-12 size-24 blur-[30px] rounded-full pointer-events-none" />
 
-        {/* Card Header & Balance */}
-        <div className="flex flex-col gap-1.5">
-          <span className="text-[14px] font-regular leading-3.5 text-neutral-400">
-            Free Account
-          </span>
-          <div className="flex items-center justify-between">
-            <span className="text-[24px] font-medium leading-6 text-white-500">
-              {showBalance ? "$50,842.12" : "•••••••"}
+          <div className="flex justify-center">
+            <Image src="/sidebar icons/diamond.svg" alt="diamond" width={214} height={88} />
+          </div>
+
+          <div className="flex flex-col items-center gap-2.5 py-5 text-center">
+            <span className="text-[18px] font-medium text-white-500 leading-4.5">
+              Unlock Pro Insights
             </span>
-            <button
-              onClick={() => setShowBalance(!showBalance)}
-              className="text-neutral-500 hover:text-white transition-colors p-1 cursor-pointer rounded"
-              title={showBalance ? "Hide Balance" : "Show Balance"}
-            >
-              {showBalance ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
-            </button>
+            <span className="text-[12px] text-regular-400 leading-3 letter-spacing-[-1px]">
+              Get AI-powered analytics and advanced features.
+            </span>
           </div>
-        </div>
 
-        {/* Daily P&L */}
-        <div className="flex flex-col gap-1">
-          <div className="flex justify-between items-center text-[10px]">
-            <span className="text-[12px] leading-3 text-neutral-500 font-medium">Daily P&L</span>
-            <span className="text-[#22E0A2] font-bold">+$2,315 (4.78%)</span>
+          <Link
+            href="/dashboard?tab=analytics"
+            className="w-full py-2 px- rounded-sm bg-white/5 border border-white/20 flex items-center justify-between justify-center gap-1.5"
+          >
+            <span className="text-[14px] leading-3.5 font-medium text-[#22E0A2]">
+              Upgrade to Pro
+            </span>
+            <Image src="/sidebar icons/upload.svg" alt="upload" width={14} height={14} className="size-3.5" />
+          </Link>
+        </div>
+      ) : (
+        <div className="p-4 rounded-[20px] card-green from-neutral-900/80 to-[#0C0C0E]/90 border border-white/20 flex flex-col gap-3.5 relative overflow-hidden">
+          {/* Decorative Green Glow Spot */}
+          <div className="absolute -bottom-12 -left-12 size-24 bg-[#22E0A2]/10 blur-[30px] rounded-full pointer-events-none" />
+
+          {/* Card Header & Balance */}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[14px] font-regular leading-3.5 text-neutral-400">
+              Free Account
+            </span>
+            <div className="flex items-center justify-between">
+              <span className="text-[24px] font-medium leading-6 text-white-500">
+                {showBalance ? "$50,842.12" : "•••••••"}
+              </span>
+              <button
+                onClick={() => setShowBalance(!showBalance)}
+                className="text-neutral-500 hover:text-white transition-colors p-1 cursor-pointer rounded"
+                title={showBalance ? "Hide Balance" : "Show Balance"}
+              >
+                {showBalance ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
+              </button>
+            </div>
           </div>
-          <div className="w-full bg-neutral-800 h-1 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-[#22E0A2] to-[#0CE9A0] rounded-full shadow-[0_0_8px_rgba(34,224,162,0.4)]"
-              style={{ width: "70%" }}
+
+          {/* Daily P&L */}
+          <div className="flex flex-col gap-1">
+            <div className="flex justify-between items-center text-[10px]">
+              <span className="text-[12px] leading-3 text-neutral-500 font-medium">Daily P&L</span>
+              <span className="text-[#22E0A2] font-bold">+$2,315 (4.78%)</span>
+            </div>
+            <div className="w-full bg-neutral-800 h-1 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-[#22E0A2] to-[#0CE9A0] rounded-full shadow-[0_0_8px_rgba(34,224,162,0.4)]"
+                style={{ width: "70%" }}
+              />
+            </div>
+          </div>
+
+          {/* Reusable Card Rows */}
+          <div className="flex flex-col gap-2">
+            <CardRow
+              iconSrc="/sidebar icons/open p&l.svg"
+              label="Open P&L"
+              subLabel="Today"
+              value="$29,995.88"
+            />
+            <CardRow
+              iconSrc="/sidebar icons/winrate.svg"
+              label="Win Rate"
+              subLabel="Last 30 Days"
+              value="68.4%"
+            />
+            <CardRow
+              iconSrc="/sidebar icons/cup star.svg"
+              label="Best Asset"
+              subLabel="Last 30 Days"
+              value="BTCUSD"
+              valueIcon={
+                <Image src="/sidebar icons/bitcoin logo.svg" alt="Bitcoin" width={14} height={14} className="size-3.5" />
+              }
             />
           </div>
-        </div>
 
-        {/* Reusable Card Rows */}
-        <div className="flex flex-col gap-2">
-          <CardRow
-            iconSrc="/sidebar icons/open p&l.svg"
-            label="Open P&L"
-            subLabel="Today"
-            value="$29,995.88"
-          />
-          <CardRow
-            iconSrc="/sidebar icons/winrate.svg"
-            label="Win Rate"
-            subLabel="Last 30 Days"
-            value="68.4%"
-          />
-          <CardRow
-            iconSrc="/sidebar icons/cup star.svg"
-            label="Best Asset"
-            subLabel="Last 30 Days"
-            value="BTCUSD"
-            valueIcon={
-              <Image src="/sidebar icons/bitcoin logo.svg" alt="Bitcoin" width={14} height={14} className="size-3.5" />
-            }
-          />
+          {/* Action Button */}
+          <Link
+            href="/dashboard?tab=analytics"
+            className="w-full mt-1 py-2 px-3 rounded-sm bg-white/5 border border-white/20  flex items-center justify-center gap-1.5 cursor-pointer group"
+          >
+            <span className="text-[12px] leading-3 font-medium text-[#22E0A2] ">
+              View Full Analytics
+            </span>
+            <ChevronRight className="size-3.5 text-[#22E0A2]" />
+          </Link>
         </div>
-
-        {/* Action Button */}
-        <Link
-          href="/dashboard?tab=analytics"
-          className="w-full mt-1 py-2 px-3 rounded-sm bg-white/5 border border-white/20  flex items-center justify-center gap-1.5 cursor-pointer group"
-        >
-          <span className="text-[12px] leading-3 font-medium text-[#22E0A2] ">
-            View Full Analytics
-          </span>
-          <ChevronRight className="size-3.5 text-[#22E0A2]" />
-        </Link>
-      </div>
+      )}
     </aside>
   );
 }
