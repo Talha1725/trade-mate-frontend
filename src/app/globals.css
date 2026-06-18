@@ -121,6 +121,7 @@
   position: absolute;
   inset: 0;
   padding: 1px;
+  padding-bottom: 2px;
   border-radius: inherit;
   background: linear-gradient(
     180deg,

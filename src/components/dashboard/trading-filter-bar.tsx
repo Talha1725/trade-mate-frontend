@@ -1,11 +1,9 @@
 "use client";
 
-import {
-  ArrowLeftRightIcon,
-  CirclePlayIcon,
-  SlidersHorizontalIcon,
-} from "lucide-react";
+import { CirclePlayIcon } from "lucide-react";
 
+import { CompareAssetsDropdown } from "@/components/dashboard/compare-assets-dropdown";
+import { IndicatorsDropdown } from "@/components/dashboard/indicators-dropdown";
 import {
   Select,
   SelectContent,
@@ -22,15 +20,11 @@ import type {
   TradingFilterBarProps,
 } from "@/types/trading-filter-bar";
 
-const FILTER_BAR_ACTIONS: TradingFilterBarAction[] = [
-  { id: "indicators", label: "Indicators" },
-  { id: "compare", label: "Compare" },
+const FILTER_BAR_ACTIONS = [
   { id: "replay", label: "Replay" },
-];
+] as const satisfies ReadonlyArray<TradingFilterBarAction>;
 
 const ACTION_ICON_MAP = {
-  indicators: SlidersHorizontalIcon,
-  compare: ArrowLeftRightIcon,
   replay: CirclePlayIcon,
 } as const;
 
@@ -115,7 +109,7 @@ function OhlcvStat({
         className={cn(
           "text-sm font-medium",
           tone === "positive" && "text-primary",
-          tone === "negative" && "text-[#EF4444]",
+          tone === "negative" && "text-destructive",
           tone === "neutral" && "text-white",
         )}
       >
@@ -133,6 +127,9 @@ export function TradingFilterBar({
   ohlcv,
   timeframe,
   onTimeframeChange,
+  compareItems,
+  compareAssetId = null,
+  onCompareChange,
   onActionClick,
   className,
 }: TradingFilterBarProps) {
@@ -143,7 +140,7 @@ export function TradingFilterBar({
   return (
     <div
       className={cn(
-        "flex flex-wrap md:flex-nowrap justify-between items-center gap-3 rounded-xl border border-white/20 bg-white/5 px-3 py-1.5",
+        "flex flex-wrap xl:flex-nowrap justify-between items-center gap-3 rounded-xl border border-white/20 bg-white/5 px-3 py-1.5",
         className,
       )}
     >
@@ -156,7 +153,7 @@ export function TradingFilterBar({
         }}
       >
         <SelectTrigger
-          className="h-auto cursor-pointer border-white/20 bg-white/5 px-3 py-[18px] text-left text-sm! text-white shadow-none hover:border-primary hover:bg-white/15 focus-visible:border-primary focus-visible:ring-primary/20 data-placeholder:text-white/60 min-w-[240px]!"
+          className="h-auto cursor-pointer border-white/20 bg-white/5 px-3 py-[18px] text-left text-sm! text-white shadow-none hover:border-primary hover:bg-white/15 focus-visible:border-primary focus-visible:ring-primary/20 data-placeholder:text-white/60 w-full md:w-auto md:min-w-[240px]!"
         >
           <SelectValue className="font-medium">
             {selectedAsset ? <AssetOptionLabel asset={selectedAsset} /> : null}
@@ -201,7 +198,7 @@ export function TradingFilterBar({
               className={cn(
                 "px-2.5 py-2 min-w-[40px] text-sm font-medium rounded-lg transition-colors cursor-pointer",
                 isActive
-                  ? "bg-linear-to-r  from-[#0F172A33] via-[#10896180] to-[#0F172A33] text-primary border-[#0CE9A0] border"
+                  ? "border border-primary bg-linear-to-r from-dark-blue via-teal-blue to-dark-blue text-primary"
                   : "text-white/60 hover:text-white/80",
               )}
             >
@@ -212,6 +209,14 @@ export function TradingFilterBar({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
+        <IndicatorsDropdown />
+        <CompareAssetsDropdown
+          items={compareItems}
+          primaryAssetId={selectedAssetId}
+          compareAssetId={compareAssetId}
+          onCompareChange={onCompareChange}
+        />
+
         {FILTER_BAR_ACTIONS.map((action) => {
           const Icon = ACTION_ICON_MAP[action.id];
 
@@ -220,7 +225,7 @@ export function TradingFilterBar({
               key={action.id}
               type="button"
               onClick={() => onActionClick?.(action.id)}
-              className="flex items-center gap-1.5 py-2 px-3.5 cursor-pointer rounded-lg text-sm font-medium text-white  transition-colors bg-linear-to-r from-white/5 to-white/7 hover:bg-white/10 border border-white/20"
+              className="flex items-center gap-1.5 py-2 px-3.5 cursor-pointer rounded-lg text-sm font-medium text-white transition-colors bg-linear-to-r from-white/5 to-white/7 hover:bg-white/10 border border-white/20"
             >
               <Icon className="size-3.5 text-white" />
               {action.label}
