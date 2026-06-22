@@ -1,8 +1,17 @@
+"use client";
+
 import * as React from "react";
 import Image from "next/image";
-import { Search, Bell, ChevronDown } from "lucide-react";
+import { Search, Bell, ChevronDown, LogOutIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import type { PageHeaderProps } from "@/types";
 
@@ -16,20 +25,20 @@ export function PageHeader({
   return (
     <header
       className={cn(
-        "flex items-center justify-between py-4 border-b border-neutral-800",
+        "flex items-center justify-between gap-6 py-4 border-b border-neutral-800",
         className,
       )}
     >
       {/* Center: Search Bar */}
-      <div className="flex-1 max-w-[520px]">
-        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-neutral-900 border border-neutral-700">
-          <Search className="size-4 text-neutral-500" />
-          <input
-            type="text"
-            placeholder="Search"
-            className="bg-transparent text-sm text-white placeholder-neutral-500 outline-none w-full"
-          />
-        </div>
+      <div className="flex-1 min-w-[160px] max-w-[520px]">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-neutral-900 border border-neutral-700">
+            <Search className="size-4 text-neutral-500" />
+            <input
+              type="text"
+              placeholder="Search"
+              className="bg-transparent text-sm text-white placeholder-neutral-500 outline-none w-full"
+            />
+          </div>
       </div>
 
       {/* Right: Actions */}
@@ -57,13 +66,23 @@ export function PageHeader({
           </span>
         </button>
 
-        <button className="flex items-center gap-2 px-3 py-1 rounded-lg leading-2 border border-neutral-700 text-white-500 ">
-          <div className="size-8 rounded-full flex items-center justify-center text-sm font-medium">
-            <Image src="/header/at.svg" alt="avatar" width={20} height={20} className="size-5" />
-          </div>
-          <span className="text-sm">Alex Travis</span>
-          <ChevronDown className="size-4 text-white-500" />
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1 rounded-lg leading-2 border border-neutral-700 text-white-500 outline-none">
+            <div className="size-8 rounded-full flex items-center justify-center text-sm font-medium">
+              <Image src="/header/at.svg" alt="avatar" width={20} height={20} className="size-5" />
+            </div>
+            <span className="text-sm">Alex Travis</span>
+            <ChevronDown className="size-4 text-white-500" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-40">
+            <DropdownMenuGroup>
+              <DropdownMenuItem variant="destructive" className="cursor-pointer">
+                <LogOutIcon className="h-4 w-4" />
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );
