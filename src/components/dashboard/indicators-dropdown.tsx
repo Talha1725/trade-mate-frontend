@@ -62,9 +62,9 @@ function ResetTemplateRow({
         <p className="text-sm md:text-base font-medium text-white">Reset Template</p>
         <p className="text-xs md:text-sm text-white/60">{label}</p>
       </div>
-      <button className="flex size-6 cursor-pointer shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/60 text-black hover:bg-white/80 transition-colors">
+      <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/60 text-black">
         <FaArrowsRotate className="size-3" />
-      </button>
+      </span>
     </button>
   );
 }
@@ -93,17 +93,14 @@ export function IndicatorsDropdown({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
-        <button
-          type="button"
-          className={cn(
-            "flex items-center cursor-pointer gap-1.5 rounded-lg border border-white/20 bg-linear-to-r from-white/5 to-white/7 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10",
-            className,
-          )}
-        >
-          <Image src="/images/icons/setting.svg" alt="Indicators" width={16} height={16} />
-          Indicators
-        </button>
+      <DropdownMenuTrigger
+        className={cn(
+          "flex items-center cursor-pointer gap-1.5 rounded-lg border border-white/20 bg-linear-to-r from-white/5 to-white/7 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10",
+          className,
+        )}
+      >
+        <Image src="/images/icons/setting.svg" alt="Indicators" width={16} height={16} />
+        Indicators
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
