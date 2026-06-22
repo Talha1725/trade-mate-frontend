@@ -136,6 +136,23 @@
   pointer-events: none;
 }
 
+.trade-btn {
+  
+   border: 1px solid transparent;
+     background:
+      linear-gradient(180deg,
+        rgba(110,110,110,.1)100%,
+        rgba(19,19,21,.02) 200%
+      ) border-box,
+
+      linear-gradient(180deg,
+        #0CE9A0,
+        #108961 50%
+      ) padding-box;
+  }
+
+
+
 .btn-blue {
   position: relative;
   background: radial-gradient(
@@ -193,7 +210,6 @@
   mask-composite: exclude;
   pointer-events: none;
 }
-
 
 .btn-grey {
   @apply rounded-[10px] border border-white/20 bg-white/5 px-3.5 py-2.5;

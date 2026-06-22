@@ -37,18 +37,6 @@ export function AppShell({
 
       {/* Main content */}
       <div className="flex flex-col flex-1 overflow-hidden">
-        {/* Top strip — holds the profile menu and alignment elements */}
-        <div className="flex h-14 shrink-0 items-center justify-end border-b border-neutral-800/60 bg-[#0C0C0E]/40 backdrop-blur-md px-6">
-          {resolvedUserLabel ? (
-            <div className="flex items-center gap-3">
-              <span className="hidden text-sm text-neutral-400 sm:inline">
-                {resolvedUserLabel}
-              </span>
-              <ProfileMenu userLabel={resolvedUserLabel} onSignOut={handleSignOut} />
-            </div>
-          ) : null}
-        </div>
-
         {/* Page content */}
         <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8 bg-black">
           {children}

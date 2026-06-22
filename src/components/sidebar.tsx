@@ -209,7 +209,7 @@ export function Sidebar() {
             <span className="text-[18px] font-medium text-white-500 leading-4.5">
               Unlock Pro Insights
             </span>
-            <span className="text-[12px] text-regular-400 leading-3 letter-spacing-[-1px]">
+            <span className="text-[12px] text-regular-400 leading-3 letter-spacing-[-1px]" style={{ color: "#FFFFFF99" }}>
               Get AI-powered analytics and advanced features.
             </span>
           </div>
