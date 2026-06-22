@@ -65,7 +65,7 @@ export function MiniAreaLineChart({
   const resolvedStrokeId = strokeId ?? `mini-area-line-${generatedId}`;
   const width = 180;
   const height = 86;
-  const padding = 4;
+  const padding = 0;
 
   if (!values.length) {
     return null;

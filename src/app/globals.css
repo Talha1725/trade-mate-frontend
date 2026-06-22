@@ -215,3 +215,31 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+[data-slot="table-header"][data-variant="gradient"] [data-slot="table-row"] {
+  overflow: hidden;
+  
+}
+
+[data-slot="table-header"][data-variant="gradient"] [data-slot="table-head"] {
+  background: linear-gradient(
+    180deg,
+    rgba(19, 19, 21, 0.02) 0%,
+    rgba(255, 255, 255, 0.06) 100%
+  );
+  border-bottom: 1px solid #222222;
+  border-top: 1px solid #222222;
+  
+}
+
+[data-slot="table-header"][data-variant="gradient"] [data-slot="table-head"]:first-child {
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+  border-left: 1px solid #222222;
+}
+
+[data-slot="table-header"][data-variant="gradient"] [data-slot="table-head"]:last-child {
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+  border-right: 1px solid #222222;
+}
