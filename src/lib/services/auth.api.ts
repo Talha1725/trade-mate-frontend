@@ -1,25 +1,39 @@
 import { ROUTES } from "@/constant/routes"
-import { post } from "@/lib/utils/api"
+import { get, post } from "@/lib/utils/api"
 import type { AuthSession, LoginCredentials } from "@/types/auth"
+import { useAuthStore } from "@/lib/stores/auth-store"
 
 export const loginApi = {
-  login(credentials: LoginCredentials): Promise<AuthSession> {
-    return post(ROUTES.AUTH.LOGIN, credentials)
+  async login(credentials: LoginCredentials): Promise<AuthSession> {
+    const res = await post<{ token: string; user: { id: string; email: string; assignedId?: string; name: string; role: string } }>(ROUTES.AUTH.LOGIN, credentials)
+    return {
+      user: {
+        id: res.user.id,
+        email: res.user.email,
+        assignedId: res.user.assignedId,
+        name: res.user.name || "",
+        role: res.user.role.toLowerCase() as "admin" | "trader",
+      },
+      token: res.token,
+    }
   },
 
-  logout(): Promise<void> {
-    return post(ROUTES.AUTH.LOGOUT)
+  async me(): Promise<AuthSession> {
+    const res = await get<{ user: { id: string; email: string; assignedId?: string; name: string; role: string } }>(ROUTES.AUTH.ME)
+    const token = useAuthStore.getState().session?.token
+    return {
+      user: {
+        id: res.user.id,
+        email: res.user.email,
+        assignedId: res.user.assignedId,
+        name: res.user.name || "",
+        role: res.user.role.toLowerCase() as "admin" | "trader",
+      },
+      token,
+    }
   },
 
-  refreshToken(): Promise<AuthSession> {
-    return post(ROUTES.AUTH.REFRESH)
-  },
-
-  forgotPassword(email: string): Promise<void> {
-    return post(ROUTES.AUTH.FORGOT_PASSWORD, { email })
-  },
-
-  resetPassword(token: string, password: string): Promise<void> {
-    return post(ROUTES.AUTH.RESET_PASSWORD, { token, password })
+  async signout(): Promise<void> {
+    useAuthStore.getState().clearToken()
   },
 }

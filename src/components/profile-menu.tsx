@@ -33,14 +33,14 @@ export function ProfileMenu({ userLabel, onSignOut }: ProfileMenuProps) {
       return;
     }
 
-    window.location.href = "/";
+    window.location.href = "/logout";
   };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label="Open profile menu"
-        className="flex size-9 items-center justify-center rounded-full outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+        className="flex size-10 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm outline-none transition-all hover:border-slate-300 hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring"
       >
         <Avatar>
           <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">

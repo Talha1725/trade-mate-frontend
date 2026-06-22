@@ -7,10 +7,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { mockRecentActivity } from "@/lib/mock-data/dashboard";
+import { formatMarketPrice } from "@/lib/utils/market-price";
+import type { RecentActivityProps } from "@/types";
 
+export function RecentActivity({ items }: RecentActivityProps) {
+  const data = items ?? [];
 
-export function RecentActivity() {
   return (
     <SectionCard title="Recent Activity">
       <div className="rounded-md border">
@@ -24,14 +26,22 @@ export function RecentActivity() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {mockRecentActivity.map((activity) => (
-            <TableRow key={`${activity.symbol}-${activity.dateLabel}`}>
-              <TableCell className="font-medium">{activity.symbol}</TableCell>
-              <TableCell>{activity.action}</TableCell>
-              <TableCell>{activity.price.toFixed(4)}</TableCell>
-              <TableCell className="text-right text-muted-foreground">{activity.dateLabel}</TableCell>
+          {data.length > 0 ? (
+            data.map((activity) => (
+              <TableRow key={activity.id}>
+                <TableCell className="font-medium">{activity.symbol}</TableCell>
+                <TableCell>{activity.action}</TableCell>
+                <TableCell>{formatMarketPrice(activity.price, activity.symbol)}</TableCell>
+                <TableCell className="text-right text-muted-foreground">{activity.dateLabel}</TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                No recent activity.
+              </TableCell>
             </TableRow>
-          ))}
+          )}
         </TableBody>
         </Table>
       </div>

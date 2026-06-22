@@ -26,20 +26,37 @@ export const mockEquityCurve: EquityCurveDatum[] = [
 ];
 
 export const mockPositionSummary: PositionSummary[] = [
-  { symbol: "EURUSD", type: "Buy", volume: 1.0, profit: 45.2 },
-  { symbol: "GBPUSD", type: "Sell", volume: 0.5, profit: -12.5 },
-  { symbol: "XAUUSD", type: "Buy", volume: 0.1, profit: 150 },
+  { id: "mock-position-1", symbol: "EURUSD", type: "Buy", volume: 1.0, profit: 45.2 },
+  { id: "mock-position-2", symbol: "GBPUSD", type: "Sell", volume: 0.5, profit: -12.5 },
+  { id: "mock-position-3", symbol: "XAUUSD", type: "Buy", volume: 0.1, profit: 150 },
 ];
 
 export const mockRecentActivity: RecentActivityItem[] = [
-  { symbol: "EURUSD", action: "Buy", price: 1.085, dateLabel: "10 mins ago" },
-  { symbol: "GBPUSD", action: "Sell", price: 1.264, dateLabel: "1 hr ago" },
-  { symbol: "XAUUSD", action: "Close Buy", price: 2045.5, dateLabel: "3 hrs ago" },
+  { id: "mock-activity-1", symbol: "EURUSD", action: "Buy", price: 1.085, dateLabel: "10 mins ago" },
+  { id: "mock-activity-2", symbol: "GBPUSD", action: "Sell", price: 1.264, dateLabel: "1 hr ago" },
+  { id: "mock-activity-3", symbol: "XAUUSD", action: "Close Buy", price: 2045.5, dateLabel: "3 hrs ago" },
 ];
 
 export const mockStatCards: StatCardDatum[] = [
-  { title: "Account Balance", value: "$12,450.80", description: "+2.3% from last month" },
-  { title: "Open Positions", value: "4", description: "2 long / 2 short" },
-  { title: "Today's P&L", value: "+$184.20", description: "+1.5% today", tone: "success" },
-  { title: "Win Rate", value: "68%", description: "Last 30 trades" },
+  {
+    title: "Account Balance",
+    value: "$12,450.00",
+    description: "Current account balance",
+  },
+  {
+    title: "Equity",
+    value: "$12,780.50",
+    description: "Balance + floating P&L",
+  },
+  {
+    title: "Floating P&L",
+    value: "+$330.50",
+    description: "Unrealized profit / loss",
+    tone: "success",
+  },
+  {
+    title: "Win Rate",
+    value: "68%",
+    description: "All-time win rate",
+  },
 ];

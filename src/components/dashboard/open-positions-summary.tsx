@@ -7,10 +7,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { mockPositionSummary } from "@/lib/mock-data/dashboard";
+import type { OpenPositionsSummaryProps } from "@/types";
 
+export function OpenPositionsSummary({ positions }: OpenPositionsSummaryProps) {
+  const data = positions ?? [];
 
-export function OpenPositionsSummary() {
   return (
     <SectionCard title="Open Positions Summary">
       <div className="rounded-md border">
@@ -24,18 +25,26 @@ export function OpenPositionsSummary() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {mockPositionSummary.map((position) => (
-            <TableRow key={position.symbol}>
-              <TableCell className="font-medium">{position.symbol}</TableCell>
-              <TableCell className={position.type === "Buy" ? "text-emerald-600" : "text-rose-600"}>
-                {position.type}
-              </TableCell>
-              <TableCell>{position.volume}</TableCell>
-              <TableCell className={`text-right ${position.profit > 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                {position.profit > 0 ? "+" : ""}${position.profit.toFixed(2)}
+          {data.length > 0 ? (
+            data.map((position) => (
+              <TableRow key={position.id}>
+                <TableCell className="font-medium">{position.symbol}</TableCell>
+                <TableCell className={position.type === "Buy" ? "text-emerald-600" : "text-rose-600"}>
+                  {position.type}
+                </TableCell>
+                <TableCell>{position.volume}</TableCell>
+                <TableCell className={`text-right ${position.profit > 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                  {position.profit > 0 ? "+" : ""}${position.profit.toFixed(2)}
+                </TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                No open positions.
               </TableCell>
             </TableRow>
-          ))}
+          )}
         </TableBody>
         </Table>
       </div>

@@ -1,212 +1,244 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { FilterIcon, SearchIcon } from "lucide-react";
+import { useState, useMemo, useCallback } from "react";
+import Image from "next/image";
+import { PiDownloadFill } from "react-icons/pi";
+import { TrophyIcon, ClockIcon } from "lucide-react";
+import { IoIosTrendingDown, IoIosTrendingUp } from "react-icons/io";
 
-import { SectionCard } from "@/components/section-card";
-import { SortableColumnHeader } from "@/components/sortable-column-header";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DataTable } from "@/components/ui/data-table";
-import { ColumnDef } from "@tanstack/react-table";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { mockTrades } from "@/lib/mock-data/trades";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Spinner } from "@/components/ui/spinner";
+import { MARKET_WATCH_ICON_IMAGES } from "@/lib/mock-data/market-watch-card";
+import { formatMarketPrice } from "@/lib/utils/market-price";
+import { formatDateTimeLabel } from "@/lib/utils/trader-data";
+import { cn } from "@/lib/utils";
+import type { TradeHistoryTableProps } from "@/types";
 import type { Trade } from "@/types/trade";
+import { mockTrades } from "@/lib/mock-data/trades";
 
-export function TradeHistoryTable() {
-  const [search, setSearch] = useState("");
-  const [actionFilter, setActionFilter] = useState("All");
-  const [timeFilter, setTimeFilter] = useState("30 Days");
-  const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
+// Symbol → coin icon path mapping
+const SYMBOL_ICON_MAP: Record<string, string> = {
+  BTCUSD: MARKET_WATCH_ICON_IMAGES.bitcoin,
+  ETHUSD: MARKET_WATCH_ICON_IMAGES.ethereum,
+  SOLUSD: MARKET_WATCH_ICON_IMAGES.solana,
+  XRPUSD: MARKET_WATCH_ICON_IMAGES.ripple,
+  ADAUSD: MARKET_WATCH_ICON_IMAGES.cardano,
+};
 
-  const filteredAndSorted = useMemo(() => {
-    let result = [...mockTrades];
+function getSymbolIcon(symbol: string): string | null {
+  return SYMBOL_ICON_MAP[symbol.toUpperCase()] ?? null;
+}
 
-    // Search filter
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (t) => t.symbol.toLowerCase().includes(q) || t.id.includes(q)
-      );
-    }
+function SymbolCell({ symbol }: { symbol: string }) {
+  const icon = getSymbolIcon(symbol);
+  return (
+    <div className="flex items-center gap-2.5">
+      {icon ? (
+        <Image
+          src={icon}
+          alt={symbol}
+          width={24}
+          height={24}
+          unoptimized
+          className="shrink-0 object-contain"
+        />
+      ) : (
+        <span className="size-6 rounded-full bg-white/10 shrink-0" />
+      )}
+      <span className="font-medium text-white">{symbol}</span>
+    </div>
+  );
+}
 
-    // Action filter
-    if (actionFilter !== "All") {
-      result = result.filter((t) => t.type === actionFilter);
-    }
+function SideBadge({ side }: { side: "Buy" | "Sell" }) {
+  const isBuy = side === "Buy";
+  const Icon = isBuy ? IoIosTrendingUp : IoIosTrendingDown;
+  return (
+    <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-1 py-1 pr-2.5 text-sm font-normal text-white">
+      <span
+        className={cn(
+          "flex size-6 items-center justify-center rounded-full",
+          isBuy
+            ? "bg-linear-to-b from-[#00EB6E] to-[#00853E]"
+            : "bg-linear-to-b from-[#EF4444] to-[#980000]",
+        )}
+      >
+        <Icon className="size-3 text-white" />
+      </span>
+      {isBuy ? "Buy" : "Sell"}
+    </span>
+  );
+}
 
-    // Time filter (simple approximation on index for demo data)
-    if (timeFilter === "7 Days") {
-      result = result.slice(0, 2);
-    } else if (timeFilter === "YTD") {
-      result = result; // all for demo
-    }
+function PnlCell({ value }: { value: number }) {
+  const isPositive = value > 0;
+  return (
+    <span
+      className={cn(
+        "font-medium",
+        isPositive ? "text-primary" : "text-destructive",
+      )}
+    >
+      {isPositive ? "+" : ""}${value.toFixed(2)}
+    </span>
+  );
+}
 
-    return result;
-  }, [search, actionFilter, timeFilter]);
+function StatusBadge({ status }: { status?: string }) {
+  const isClosed = !status || status === "Closed";
+  return (
+    <span
+      className={cn(
+        "text-sm font-medium",
+        isClosed ? "text-primary" : "text-orange-400",
+      )}
+    >
+      {isClosed ? "Closed" : "Open"}
+    </span>
+  );
+}
 
-  const columns: ColumnDef<Trade>[] = [
-    {
-      accessorKey: "id",
-      header: ({ column }) => <SortableColumnHeader column={column} label="Ticket" className="w-full justify-start" />,
-      cell: ({ row }) => <div>{row.getValue("id")}</div>,
-    },
-    {
-      accessorKey: "time",
-      header: ({ column }) => <SortableColumnHeader column={column} label="Open Time" className="w-full justify-start" />,
-      cell: ({ row }) => <div className="text-muted-foreground">{row.getValue("time")}</div>,
-    },
-    {
-      accessorKey: "symbol",
-      header: ({ column }) => <SortableColumnHeader column={column} label="Symbol" className="w-full justify-start" />,
-      cell: ({ row }) => <div className="font-medium">{row.getValue("symbol")}</div>,
-    },
-    {
-      accessorKey: "type",
-      header: "Type",
-      cell: ({ row }) => {
-        const type = row.getValue("type") as string;
-        return <div className={type === "Buy" ? "text-emerald-600" : "text-rose-600"}>{type}</div>;
-      },
-    },
-    {
-      accessorKey: "vol",
-      header: ({ column }) => <SortableColumnHeader column={column} label="Volume" className="w-full justify-start" />,
-      cell: ({ row }) => <div>{row.getValue("vol")}</div>,
-    },
-    {
-      accessorKey: "openP",
-      header: ({ column }) => <SortableColumnHeader column={column} label="Open Price" className="w-full justify-start" />,
-      cell: ({ row }) => <div>{parseFloat(row.getValue("openP")).toFixed(4)}</div>,
-    },
-    {
-      id: "closeTime",
-      header: "Close Time",
-      cell: ({ row }) => <div className="text-muted-foreground">{row.getValue("time")}</div>,
-    },
-    {
-      accessorKey: "closeP",
-      header: ({ column }) => <SortableColumnHeader column={column} label="Close Price" className="w-full justify-start" />,
-      cell: ({ row }) => <div>{parseFloat(row.getValue("closeP")).toFixed(4)}</div>,
-    },
-    {
-      accessorKey: "profit",
-      header: ({ column }) => <SortableColumnHeader column={column} label="Profit" className="w-full justify-start" />,
-      cell: ({ row }) => {
-        const profit = parseFloat(row.getValue("profit"));
-        return (
-          <div className={`font-medium ${profit > 0 ? "text-emerald-600" : "text-rose-600"}`}>
-            {profit > 0 ? "+" : ""}${profit.toFixed(2)}
-          </div>
-        );
-      },
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => (
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-7 text-xs font-medium"
-          onClick={() => setSelectedTrade(row.original)}
-        >
-          Details
-        </Button>
-      ),
-    },
-  ];
+export function TradeHistoryTable({ isLoading }: Omit<TradeHistoryTableProps, "trades">) {
+  const sourceTrades = mockTrades;
+
+  // Stats derived from trades
+  const stats = useMemo(() => {
+    const total = sourceTrades.length;
+    const winning = sourceTrades.filter((t) => t.profit > 0).length;
+    const winRate = total > 0 ? Math.round((winning / total) * 100) : 0;
+    return { total, winRate };
+  }, [sourceTrades]);
+
+  const handleExport = useCallback(() => {
+    if (sourceTrades.length === 0) return;
+    const headers = ["Date/Time", "Symbol", "Side", "Type", "Qty", "Entry", "Exit", "P&L", "Status"];
+    const rows = sourceTrades.map((t) => [
+      t.openedAt ? formatDateTimeLabel(t.openedAt) : t.time,
+      t.symbol,
+      t.type,
+      "Market",
+      t.vol,
+      t.openP,
+      t.closeP,
+      t.profit.toFixed(2),
+      t.status ?? "Closed",
+    ]);
+    const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "trade-history.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [sourceTrades]);
 
   return (
-    <SectionCard title="Trade History" className="p-4">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
-        <div className="flex flex-1 items-center max-w-sm relative">
-          <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by symbol or ticket..."
-            className="pl-8"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <Select value={actionFilter} onValueChange={(value) => setActionFilter(value ?? "All")}>
-            <SelectTrigger className="w-[130px]">
-              <SelectValue placeholder="Action" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="All">All Actions</SelectItem>
-              <SelectItem value="Buy">Buy</SelectItem>
-              <SelectItem value="Sell">Sell</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={timeFilter} onValueChange={(value) => setTimeFilter(value ?? "30 Days")}>
-            <SelectTrigger className="w-[130px]">
-              <SelectValue placeholder="Timeframe" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7 Days">7 Days</SelectItem>
-              <SelectItem value="30 Days">30 Days</SelectItem>
-              <SelectItem value="YTD">YTD</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="secondary" size="icon">
-            <FilterIcon className="h-4 w-4" />
-          </Button>
+    <section className="overflow-hidden rounded-[20px] border border-white/20 bg-white/5 p-4 md:p-5">
+      {/* Card header */}
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <h3 className="text-base font-semibold text-white md:text-lg">
+          Trade History
+        </h3>
+
+        <div className="flex items-center gap-3">
+          {/* Trades count */}
+          <div className="inline-flex items-center gap-2.5 rounded-full border border-[#222222] bg-[linear-gradient(180deg,rgba(19,19,21,0.02)_0%,rgba(255,255,255,0.06)_100%)] px-5 py-2.5 text-xs font-medium text-white/60">
+            <ClockIcon className="size-3.5" />
+            <span className="text-white">{stats.total} trades</span>
+          </div>
+
+          {/* Win rate */}
+          <div className="inline-flex items-center gap-2.5 rounded-full border border-[#222222] bg-[linear-gradient(180deg,rgba(19,19,21,0.02)_0%,rgba(255,255,255,0.06)_100%)] px-5 py-2.5 text-xs font-medium text-white/60">
+            <Image src="/sidebar icons/cup star.svg" alt="win rate" width={14} height={14} className="opacity-60" />
+            <span className="text-white">{stats.winRate}% win rate</span>
+          </div>
+
+          {/* Export */}
+          <button
+            type="button" 
+            onClick={handleExport}
+            className="inline-flex cursor-pointer items-center gap-2.5 rounded-full border border-[#222222] bg-[linear-gradient(180deg,rgba(19,19,21,0.02)_0%,rgba(255,255,255,0.06)_100%)] px-4.5 py-2.5 text-xs font-medium text-white/60 transition-colors hover:bg-white/5"
+          >
+            <PiDownloadFill className="size-3.5" />
+            <span className="text-white">Export</span>
+          </button>
         </div>
       </div>
 
-      <DataTable columns={columns} data={filteredAndSorted} pageSize={100} />
-
-      {/* Centered Trade Detail Dialog */}
-      <Dialog open={!!selectedTrade} onOpenChange={(open) => !open && setSelectedTrade(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Trade Details #{selectedTrade?.id}</DialogTitle>
-            <DialogDescription>
-              {selectedTrade?.symbol} — {selectedTrade?.type} {selectedTrade?.vol} Lots
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm py-2">
-            <div className="flex flex-col gap-1 items-center text-center">
-              <span className="text-muted-foreground">Open Price</span>
-              <span className="font-semibold">{selectedTrade?.openP.toFixed(4)}</span>
-            </div>
-            <div className="flex flex-col gap-1 items-center text-center">
-              <span className="text-muted-foreground">Close Price</span>
-              <span className="font-semibold">{selectedTrade?.closeP.toFixed(4)}</span>
-            </div>
-            <div className="flex flex-col gap-1 items-center text-center">
-              <span className="text-muted-foreground">Stop Loss</span>
-              <span className="font-semibold">-</span>
-            </div>
-            <div className="flex flex-col gap-1 items-center text-center">
-              <span className="text-muted-foreground">Take Profit</span>
-              <span className="font-semibold">-</span>
-            </div>
-            <div className="flex flex-col gap-1 items-center text-center">
-              <span className="text-muted-foreground">Commission</span>
-              <span className="font-semibold">$0.00</span>
-            </div>
-            <div className="flex flex-col gap-1 items-center text-center">
-              <span className="text-muted-foreground">Swap</span>
-              <span className="font-semibold">$0.00</span>
-            </div>
-            <div className="col-span-2 flex flex-col gap-1 items-center text-center border-t pt-3">
-              <span className="text-muted-foreground">Net Profit</span>
-              <span className={`text-lg font-bold ${selectedTrade && selectedTrade.profit > 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                {selectedTrade && selectedTrade.profit > 0 ? "+" : ""}${selectedTrade?.profit.toFixed(2)}
-              </span>
-            </div>
+      {/* Table */}
+      {isLoading && sourceTrades.length === 0 ? (
+        <div className="flex min-h-[240px] items-center justify-center rounded-lg border border-dashed border-white/10">
+          <div className="flex flex-col items-center gap-3 text-sm text-white/50">
+            <Spinner className="size-5" />
+            <span>Loading trade history...</span>
           </div>
-        </DialogContent>
-      </Dialog>
-    </SectionCard>
+        </div>
+      ) : sourceTrades.length === 0 ? (
+        <div className="flex min-h-[240px] items-center justify-center rounded-lg border border-dashed border-white/10">
+          <p className="text-sm text-white/40">No trades found.</p>
+        </div>
+      ) : (
+        <Table className="min-w-[860px]">
+          <TableHeader variant="gradient">
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Date/Time</TableHead>
+              <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Symbol</TableHead>
+              <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Side</TableHead>
+              <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Type</TableHead>
+              <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Qty</TableHead>
+              <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Entry</TableHead>
+              <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Exit</TableHead>
+              <TableHead className="h-11 px-4 text-sm font-medium text-white/60">P&amp;L</TableHead>
+              <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Status</TableHead>
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            {sourceTrades.map((trade: Trade) => (
+              <TableRow
+                key={trade.id}
+                className="border-white/10 border-b-0! hover:bg-white/5 data-[state=selected]:bg-white/5"
+              >
+                <TableCell className="px-4 py-3 text-sm text-white/60">
+                  {trade.openedAt ? formatDateTimeLabel(trade.openedAt) : trade.time}
+                </TableCell>
+                <TableCell className="px-4 py-3">
+                  <SymbolCell symbol={trade.symbol} />
+                </TableCell>
+                <TableCell className="px-4 py-3">
+                  <SideBadge side={trade.type} />
+                </TableCell>
+                <TableCell className="px-4 py-3 text-sm text-white/60">
+                  Market
+                </TableCell>
+                <TableCell className="px-4 py-3 text-sm text-white/60 font-medium">
+                  {Number(trade.vol).toFixed(4)}
+                </TableCell>
+                <TableCell className="px-4 py-3 text-sm text-white/60 font-medium">
+                  {formatMarketPrice(trade.openP, trade.symbol)}
+                </TableCell>
+                <TableCell className="px-4 py-3 text-sm text-white/60 font-medium">
+                  {formatMarketPrice(trade.closeP, trade.symbol)}
+                </TableCell>
+                <TableCell className="px-4 py-3">
+                  <PnlCell value={trade.profit} />
+                </TableCell>
+                <TableCell className="px-4 py-3">
+                  <StatusBadge status={trade.status} />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </section>
   );
 }

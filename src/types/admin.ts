@@ -47,6 +47,19 @@ export type TradeInjectionTargetOption = {
   label: string;
 };
 
+export interface TradeInjectionMarketSnapshot {
+  symbol: string;
+  price: number;
+  bid: number | null;
+  ask: number | null;
+  change: number | null;
+  changePercent: number | null;
+  trend: "UP" | "DOWN" | "FLAT";
+  rangeHigh: number;
+  rangeLow: number;
+  source: string;
+}
+
 export type PreviewAction = {
   action: string;
   symbol?: string;
@@ -65,5 +78,32 @@ export interface TradePreviewData {
   exit: number;
   lotSize: number;
   profit: number;
+  confidence?: number;
+  rationale?: string[];
+  timeframe?: string;
+  stopLoss?: number | null;
+  takeProfit?: number | null;
+  openedAt?: string | null;
+  closedAt?: string | null;
+  recommendedScope?: "SINGLE" | "BULK";
+  source?: string;
+  marketContext?: TradeInjectionMarketSnapshot[];
 }
 
+export interface TradeInjectionExecuteResult {
+  trade?: {
+    id: string;
+    pnl?: string;
+  };
+  pushedCount?: number;
+  results?: Array<{
+    accountId: string;
+    trade?: { id: string; pnl?: string };
+  }>;
+}
+
+export interface TradeInjectionExecuteResponse {
+  preview: TradePreviewData & { recommendedScope: "SINGLE" | "BULK" };
+  result: TradeInjectionExecuteResult | Record<string, unknown>;
+  targetAccountIds: string[];
+}

@@ -1,18 +1,11 @@
-import { ROUTES } from "@/constant/routes"
-import { get } from "@/lib/utils/api"
-import type { Trade } from "@/types/trade"
+import { ROUTES } from "@/constant/routes";
+import { get } from "@/lib/utils/api";
+import type { AccountLedgerResponse } from "@/types/dashboard";
 
 export const historyApi = {
-  getTradeHistory(filters?: {
-    symbol?: string
-    type?: "Buy" | "Sell"
-    dateFrom?: string
-    dateTo?: string
-  }): Promise<Trade[]> {
-    return get(ROUTES.TRADE.HISTORY, { params: filters })
+  getAccountLedger(accountId: string, authToken?: string): Promise<AccountLedgerResponse> {
+    return get(ROUTES.TRADE.ACCOUNT(accountId), {
+      headers: authToken ? { Authorization: `Bearer ${authToken}` } : undefined,
+    });
   },
-
-  getTradeById(id: string): Promise<Trade> {
-    return get(ROUTES.TRADE.BY_ID(id))
-  },
-}
+};

@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRightIcon, EyeIcon } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,14 +13,14 @@ import { cn } from "@/lib/utils";
 import type { AuthStatus, LoginFormValues, LoginFormProps } from "@/types";
 
 const initialValues: LoginFormValues = {
-  email: "",
+  assignedId: "",
   password: "",
   rememberMe: true,
 };
 
 export function LoginForm({
   onSubmit,
-  redirectTo = "/dashboard",
+  redirectTo,
   className,
 }: LoginFormProps) {
   const router = useRouter();
@@ -37,17 +38,28 @@ export function LoginForm({
 
     setErrorMessage(null);
     setStatus("submitting");
+    const toastId = toast.loading("Signing you in...");
 
     try {
       if (onSubmit) {
         await onSubmit(values);
       } else {
-        await new Promise((resolve) => setTimeout(resolve, 400));
+        await signIn({
+          assignedId: values.assignedId,
+          password: values.password,
+        });
       }
-      signIn(values);
+      toast.dismiss(toastId);
+      toast.success("Signed in successfully");
       setStatus("success");
-      router.push(redirectTo);
+      router.push(redirectTo ?? "/dashboard");
     } catch (error) {
+      toast.dismiss(toastId);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Unable to sign in. Please try again.",
+      );
       setStatus("error");
       setErrorMessage(
         error instanceof Error
@@ -68,23 +80,23 @@ export function LoginForm({
           Welcome back
         </h2>
         <p className="text-sm text-gray-500">
-          Access the internal review generation dashboard.
+          Sign in with your assigned ID to access the trader dashboard.
         </p>
       </div>
 
       <div className="space-y-4">
         <div className="space-y-1.5">
-          <Label htmlFor="login-email" className="text-sm font-semibold text-[#1a1a1a]">
-            Email
+          <Label htmlFor="login-assigned-id" className="text-sm font-semibold text-[#1a1a1a]">
+            Assigned ID
           </Label>
           <Input
-            id="login-email"
-            type="email"
-            autoComplete="email"
-            placeholder="admin@trademate.local"
-            value={values.email}
+            id="login-assigned-id"
+            type="text"
+            autoComplete="username"
+            placeholder="TM-1001"
+            value={values.assignedId}
             onChange={(event) =>
-              setValues((prev) => ({ ...prev, email: event.target.value }))
+              setValues((prev) => ({ ...prev, assignedId: event.target.value }))
             }
             required
             disabled={isSubmitting}
@@ -93,18 +105,9 @@ export function LoginForm({
         </div>
 
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="login-password" className="text-sm font-semibold text-[#1a1a1a]">
-              Password
-            </Label>
-            <button
-              type="button"
-              className="text-sm font-medium text-[#1a1a1a] hover:underline"
-              disabled={isSubmitting}
-            >
-              Forgot password?
-            </button>
-          </div>
+          <Label htmlFor="login-password" className="text-sm font-semibold text-[#1a1a1a]">
+            Password
+          </Label>
           <div className="relative">
             <Input
               id="login-password"
@@ -150,14 +153,7 @@ export function LoginForm({
       </Button>
 
       <div className="text-center text-sm text-gray-500">
-        Do not have an account?{" "}
-        <button
-          type="button"
-          className="font-semibold text-[#1a1a1a] hover:underline"
-          disabled={isSubmitting}
-        >
-          Sign up
-        </button>
+        Contact support if you do not have assigned login credentials.
       </div>
     </form>
   );
