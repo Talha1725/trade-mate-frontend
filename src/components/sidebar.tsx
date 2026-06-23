@@ -16,15 +16,7 @@ import {
 import { HiMiniChartBar } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
-
-interface SidebarItemProps {
-  icon?: React.ComponentType<{ className?: string }>;
-  iconSrc?: string;
-  label: string;
-  href: string;
-  active?: boolean;
-  badge?: string | number;
-}
+import type { SidebarItemProps, CardRowProps } from "@/types/components";
 
 export function SidebarItem({ icon: Icon, iconSrc, label, href, active, badge }: SidebarItemProps) {
   return (
@@ -64,17 +56,6 @@ export function SidebarItem({ icon: Icon, iconSrc, label, href, active, badge }:
       )}
     </Link>
   );
-}
-
-interface CardRowProps {
-  icon?: LucideIcon;
-  iconSrc?: string;
-  label: string;
-  subLabel: string;
-  value: string;
-  iconColorClass?: string;
-  iconBgClass?: string;
-  valueIcon?: React.ReactNode;
 }
 
 function CardRow({
@@ -188,7 +169,7 @@ export function Sidebar() {
         <SidebarItem
           icon={Settings}
           label="Settings"
-          href="/dashboard?tab=settings"
+          href="/settings"
         />
       </div>
     </div>

@@ -35,10 +35,14 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
         showCloseButton={false}
       >
         <DialogTitle className="sr-only">Place Order</DialogTitle>
-        <DialogClose render={<button className="absolute top-4 right-5 p-2 rounded-lg border border-[#222] bg-[#141414] hover:opacity-90 transition-opacity text-white/50 hover:text-white flex items-center justify-center cursor-pointer" />}>
-          <X className="size-4" />
-          <span className="sr-only">Close</span>
-        </DialogClose>
+        <DialogClose
+          render={
+            <button className="absolute top-6 right-6 size-6 rounded-full bg-white hover:opacity-90 transition-opacity text-black flex items-center justify-center cursor-pointer">
+              <X className="size-3.5" />
+              <span className="sr-only">Close</span>
+            </button>
+          }
+        />
         {/* Header */}
         <div className="flex items-start justify-between mb-5">
           <div>

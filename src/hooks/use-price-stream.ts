@@ -3,16 +3,7 @@
 import * as React from "react";
 
 import { getPriceSocketUrl } from "@/lib/utils/price-stream";
-import type { PriceSocketPortfolioMessage, PriceSocketQuote, PriceSocketServerMessage } from "@/types/price";
-
-type PriceStreamOptions = {
-  symbols?: string[];
-  accountIds?: string[];
-  enabled?: boolean;
-  onQuotes?: (quotes: PriceSocketQuote[]) => void;
-  onPortfolio?: (payload: PriceSocketPortfolioMessage) => void;
-  onError?: (message: string) => void;
-};
+import type { PriceSocketPortfolioMessage, PriceSocketQuote, PriceSocketServerMessage, PriceStreamOptions } from "@/types/price";
 
 function normalize(values?: string[]) {
   return Array.from(new Set((values ?? []).map((value) => value.trim()).filter((value) => value.length > 0)));

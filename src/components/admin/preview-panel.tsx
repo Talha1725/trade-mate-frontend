@@ -2,13 +2,8 @@
 
 import { SectionCard } from "@/components/section-card";
 import { CheckCircleIcon, HelpCircleIcon, BrainIcon, TimerIcon, RadarIcon, CloudLightningIcon } from "lucide-react";
-import type { TradePreviewData } from "@/types/admin";
+import type { TradePreviewData, PreviewPanelProps } from "@/types/admin";
 import { cn } from "@/lib/utils";
-
-interface PreviewPanelProps {
-  preview: TradePreviewData | null;
-  targetAccountLabel?: string;
-}
 
 export function PreviewPanel({ preview, targetAccountLabel }: PreviewPanelProps) {
   return (

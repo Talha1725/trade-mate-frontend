@@ -2,14 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-
-type UseServerTablePaginationOptions = {
-  defaultPage?: number;
-  defaultPageSize?: number;
-  pageParam?: string;
-  pageSizeParam?: string;
-  pageSizeOptions?: number[];
-};
+import type { UseServerTablePaginationOptions } from "@/types/table";
 
 function parsePositiveInt(value: string | null, fallback: number) {
   if (!value) {

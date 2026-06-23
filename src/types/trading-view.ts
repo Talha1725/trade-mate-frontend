@@ -53,3 +53,9 @@ export type TradingViewWidget = {
 export type TradingViewWindow = Window & {
   TradingView?: TradingViewWidget;
 };
+
+export type TradingViewAdvancedChartConfig = {
+  symbol: string;
+  interval: string;
+  compareSymbol?: string | null;
+};
