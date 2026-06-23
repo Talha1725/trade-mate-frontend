@@ -26,7 +26,7 @@ export function PageHeader({
   return (
     <header
       className={cn(
-        "flex items-center justify-between gap-6 py-4 border-b border-neutral-800",
+        "flex items-center justify-between gap-6",
         className,
       )}
     >
