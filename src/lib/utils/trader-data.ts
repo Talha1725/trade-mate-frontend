@@ -13,6 +13,7 @@ import type {
   SymbolBreakdownDatum,
 } from "@/types/dashboard";
 import type { Position, Trade } from "@/types/trade";
+import { resolveMarketWatchIcon } from "@/lib/utils/market-symbol-icon";
 
 function toNumber(value: string | number | null | undefined) {
   if (value == null) {
@@ -89,6 +90,7 @@ export function mapPortfolioTradeToTrade(trade: PortfolioTrade): Trade {
   return {
     id: trade.id,
     symbol: trade.symbol,
+    icon: resolveMarketWatchIcon(trade.symbol),
     type: direction,
     vol: toNumber(trade.lots),
     openP: toNumber(trade.entryPrice),

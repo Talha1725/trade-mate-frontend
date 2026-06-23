@@ -72,7 +72,7 @@ export function PortfolioAllocationCard({
   return (
     <article
       className={cn(
-        "relative flex h-full  flex-col overflow-hidden rounded-[20px] border border-white/20 bg-white/5 p-4 md:p-6",
+        "relative flex h-full flex-col overflow-hidden rounded-[20px] border border-white/20 bg-white/5 p-4 md:p-6",
         className,
       )}
     >
@@ -87,7 +87,7 @@ export function PortfolioAllocationCard({
 
       <h3 className="relative z-10 text-base font-semibold text-white md:text-lg">{title}</h3>
 
-      <div className="relative z-10 mt-4 flex flex-1 flex-col gap-5 lg:flex-row lg:items-center">
+      <div className="relative z-10 mt-4 flex flex-1 flex-col gap-5 min-[1700px]:flex-row lg:items-center">
         <ChartContainer
           config={chartConfig}
           className="mx-auto aspect-square h-[233px] w-[233px] shrink-0 rotate-160 lg:mx-0"
