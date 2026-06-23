@@ -136,6 +136,36 @@
   pointer-events: none;
 }
 
+.btn-red {
+  position: relative;
+  background: radial-gradient(
+    52.13% 193.91% at 47.87% 100%,
+    rgba(152, 0, 0, 0.5) 0%,
+    rgba(15, 23, 42, 0.2) 100%
+  );
+  border-radius: 12px;
+}
+
+.btn-red::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  padding-bottom: 2px;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    #EF4444 0%,
+    #980000 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
 .trade-btn {
   
    border: 1px solid transparent;
@@ -258,4 +288,17 @@
   border-top-right-radius: 10px;
   border-bottom-right-radius: 10px;
   border-right: 1px solid #222222;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #333;
+  border-radius: 9999px;
 }

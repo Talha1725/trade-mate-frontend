@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import type { PageHeaderProps } from "@/types";
+import { PlaceOrderDialog } from "@/components/ui/place-order-dialog";
 
 export function PageHeader({
   title,
@@ -43,10 +44,12 @@ export function PageHeader({
 
       {/* Right: Actions */}
       <div className="flex items-center gap-3">
-        <button className="flex gap-2 item-center justify-center trade-btn px-4 py-2 rounded-lg btn-new-trade text-white text-base font-medium whitespace-nowrap shrink-0">
-          <Image src="/header/add circle.svg" alt="add" width={18} height={18} className="size-5" item-center="true"/>
-          New Trade
-        </button>
+        <PlaceOrderDialog>
+          <button className="flex gap-2 item-center justify-center trade-btn px-4 py-2 rounded-lg btn-new-trade text-white text-base font-medium whitespace-nowrap shrink-0">
+            <Image src="/header/add circle.svg" alt="add" width={18} height={18} className="size-5" item-center="true"/>
+            New Trade
+          </button>
+        </PlaceOrderDialog>
 
         <button className="flex items-center gap-2 px-4 py-2 rounded-full border border-neutral-700 text-medium-500 text-sm">
           <span className="size-2.5 animate-pulse rounded-full bg-primary shadow-[0_0_10px_var(--primary)]" />
