@@ -13,10 +13,8 @@ import { accountsApi } from "@/lib/services/accounts.api";
 import { post, patch, del } from "@/lib/utils/api";
 import { useServerTablePagination } from "@/hooks/use-server-table-pagination";
 import { ROUTES } from "@/constant/routes";
-import type { Trade, TradeEditorProps } from "@/types/trade";
+import type { Trade, TradeEditorProps, TradeStatusFilter } from "@/types/trade";
 import { toast } from "sonner";
-
-type TradeStatusFilter = "All" | "Open" | "Closed";
 
 export function TradeEditor({ accountId }: TradeEditorProps) {
   const [trades, setTrades] = useState<Trade[]>([]);

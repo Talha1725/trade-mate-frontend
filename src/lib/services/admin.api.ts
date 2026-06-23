@@ -1,23 +1,8 @@
 import { ROUTES } from "@/constant/routes";
 import { get, patch, del } from "@/lib/utils/api";
 import type { Trade } from "@/types/trade";
+import type { AdminTradesQuery, PaginatedTradesResponse } from "@/types/admin";
 import { accountsApi } from "@/lib/services/accounts.api";
-
-type AdminTradesQuery = {
-  page?: number;
-  limit?: number;
-  accountId?: string;
-  status?: "OPEN" | "CLOSED" | "All";
-  search?: string;
-};
-
-type PaginatedTradesResponse = {
-  items: Trade[];
-  total: number;
-  page: number;
-  pageCount: number;
-  pageSize: number;
-};
 
 function mapTrade(t: any): Trade {
   return {

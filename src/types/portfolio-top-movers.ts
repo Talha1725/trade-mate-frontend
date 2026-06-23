@@ -14,3 +14,5 @@ export type PortfolioTopMoversCardProps = {
   backgroundImageSrc?: string;
   className?: string;
 };
+
+export type SortMode = "percent" | "amount";

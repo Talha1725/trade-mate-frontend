@@ -21,3 +21,11 @@ export type TableQuery<T> = {
   /** The current page of rows after search + filter. */
   rows: T[];
 };
+
+export type UseServerTablePaginationOptions = {
+  defaultPage?: number;
+  defaultPageSize?: number;
+  pageParam?: string;
+  pageSizeParam?: string;
+  pageSizeOptions?: number[];
+};

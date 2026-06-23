@@ -12,10 +12,9 @@ import { cn } from "@/lib/utils";
 import type {
   PortfolioTopMoverItem,
   PortfolioTopMoversCardProps,
+  SortMode,
 } from "@/types/portfolio-top-movers";
 import type { MarketWatchIcon } from "@/types/market-watch-card";
-
-type SortMode = "percent" | "amount";
 
 function formatSignedCurrency(value: number) {
   const prefix = value >= 0 ? "+$" : "-$";

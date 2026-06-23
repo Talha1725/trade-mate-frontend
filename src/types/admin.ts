@@ -107,3 +107,72 @@ export interface TradeInjectionExecuteResponse {
   result: TradeInjectionExecuteResult | Record<string, unknown>;
   targetAccountIds: string[];
 }
+
+export interface InjectTradeFormProps {
+  prompt: string;
+  setPrompt: (value: string) => void;
+  selectedTargets: string[];
+  onToggleTarget: (value: string) => void;
+  onSelectAllActive: () => void;
+  onClearTargets: () => void;
+  onPreview: () => void;
+  onInject: () => void;
+  isInjecting?: boolean;
+  options: TradeInjectionTargetOption[];
+}
+
+export interface PreviewPanelProps {
+  preview: TradePreviewData | null;
+  targetAccountLabel?: string;
+}
+
+// --- API types (lib/services) ---
+
+export type AccountsApiOptions = {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: AccountSummary["status"] | "ACTIVE" | "SUSPENDED" | "CLOSED" | "All";
+};
+
+export type PaginatedAccountsResponse = {
+  items: AccountSummary[];
+  total: number;
+  page: number;
+  pageCount: number;
+  pageSize: number;
+};
+
+export type AdminTradesQuery = {
+  page?: number;
+  limit?: number;
+  accountId?: string;
+  status?: "OPEN" | "CLOSED" | "All";
+  search?: string;
+};
+
+export type AuditApiQuery = {
+  page?: number;
+  limit?: number;
+  action?: string;
+  search?: string;
+  adminId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+};
+
+export type PaginatedAuditResponse = {
+  items: AuditLogEntry[];
+  total: number;
+  page: number;
+  pageCount: number;
+  pageSize: number;
+};
+
+export type PaginatedTradesResponse = {
+  items: import("@/types/trade").Trade[];
+  total: number;
+  page: number;
+  pageCount: number;
+  pageSize: number;
+};
