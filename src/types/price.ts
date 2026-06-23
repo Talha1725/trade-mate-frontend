@@ -120,3 +120,12 @@ export type PriceSocketServerMessage =
       type: "error";
       message: string;
     };
+
+export type PriceStreamOptions = {
+  symbols?: string[];
+  accountIds?: string[];
+  enabled?: boolean;
+  onQuotes?: (quotes: PriceSocketQuote[]) => void;
+  onPortfolio?: (payload: PriceSocketPortfolioMessage) => void;
+  onError?: (message: string) => void;
+};

@@ -51,3 +51,5 @@ export type TradeClosePayload = {
   positionId: string;
   closePrice?: number | null;
 };
+
+export type TradeStatusFilter = "All" | "Open" | "Closed";

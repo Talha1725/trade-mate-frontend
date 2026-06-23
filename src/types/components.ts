@@ -141,4 +141,28 @@ export type OpenPositionsTableProps = {
   onClosePosition?: (position: Position) => Promise<void> | void;
 };
 
-export type TradeHistoryTableProps = import("@/types/trade-history").TradeHistoryTableProps;
+
+export type TradeHistoryTableProps = {
+  trades?: Trade[];
+  isLoading?: boolean;
+};
+
+export interface SidebarItemProps {
+  icon?: React.ComponentType<{ className?: string }>;
+  iconSrc?: string;
+  label: string;
+  href: string;
+  active?: boolean;
+  badge?: string | number;
+}
+
+export interface CardRowProps {
+  icon?: LucideIcon;
+  iconSrc?: string;
+  label: string;
+  subLabel: string;
+  value: string;
+  iconColorClass?: string;
+  iconBgClass?: string;
+  valueIcon?: React.ReactNode;
+}

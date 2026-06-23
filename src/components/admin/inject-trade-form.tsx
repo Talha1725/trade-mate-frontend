@@ -10,22 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import type { TradeInjectionTargetOption } from "@/types/admin";
+import type { TradeInjectionTargetOption, InjectTradeFormProps } from "@/types/admin";
 import { Textarea } from "@/components/ui/textarea";
-
-interface InjectTradeFormProps {
-  prompt: string;
-  setPrompt: (value: string) => void;
-  selectedTargets: string[];
-  onToggleTarget: (value: string) => void;
-  onSelectAllActive: () => void;
-  onClearTargets: () => void;
-  onPreview: () => void;
-  onInject: () => void;
-  isInjecting?: boolean;
-  options: TradeInjectionTargetOption[];
-}
-
 function getSelectionLabel(options: TradeInjectionTargetOption[], selectedTargets: string[]) {
   const getNameOnly = (value: string) => {
     const label = options.find((option) => option.value === value)?.label ?? value;
