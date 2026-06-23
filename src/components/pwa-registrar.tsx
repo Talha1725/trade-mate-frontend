@@ -1,0 +1,17 @@
+"use client";
+
+import { useEffect } from "react";
+
+export function PwaRegistrar() {
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) {
+      return;
+    }
+
+    navigator.serviceWorker.register("/sw.js").catch((error) => {
+      console.error("Failed to register Trade Mate service worker.", error);
+    });
+  }, []);
+
+  return null;
+}

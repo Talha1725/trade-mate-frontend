@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { PwaRegistrar } from "@/components/pwa-registrar";
 import { Providers } from "./providers";
 import type { RootLayoutProps } from "@/types";
 
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
     >
       <body className="min-h-full flex flex-col bg-black text-white">
         <Providers>
+          <PwaRegistrar />
           <TooltipProvider>{children}</TooltipProvider>
         </Providers>
       </body>
