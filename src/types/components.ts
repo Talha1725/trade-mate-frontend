@@ -141,7 +141,4 @@ export type OpenPositionsTableProps = {
   onClosePosition?: (position: Position) => Promise<void> | void;
 };
 
-export type TradeHistoryTableProps = {
-  trades?: Trade[];
-  isLoading?: boolean;
-};
+export type TradeHistoryTableProps = import("@/types/trade-history").TradeHistoryTableProps;

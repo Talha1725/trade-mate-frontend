@@ -140,7 +140,7 @@ export function TradingFilterBar({
   return (
     <div
       className={cn(
-        "flex flex-wrap xl:flex-nowrap justify-between items-center gap-3 rounded-xl border border-white/20 bg-white/5 px-3 py-1.5",
+        "grid flex-wrap grid-cols-1 gap-x-10 gap-y-3 xl:grid-cols-2 xl:flex-nowrap min-[1500px]:flex justify-between items-center min-[1500px] gap-3 rounded-xl border border-white/20 bg-white/5 px-3 py-1.5",
         className,
       )}
     >
@@ -208,7 +208,7 @@ export function TradingFilterBar({
         })}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2 ">
         <IndicatorsDropdown />
         <CompareAssetsDropdown
           items={compareItems}

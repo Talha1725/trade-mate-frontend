@@ -45,4 +45,8 @@ export type * from "@/types/portfolio-open-positions";
 export type * from "@/types/orders-metric-card";
 export type * from "@/types/orders-recent-trades";
 export type * from "@/types/orders-depth-chart";
+export type * from "@/types/order-book";
+export type * from "@/types/active-orders";
+export type * from "@/types/trading-symbol-cell";
+export type * from "@/types/trading-table-card";
 export type { TradeClosePayload, TradeOpenPayload, TradeOrderDirection } from "@/types/trade";

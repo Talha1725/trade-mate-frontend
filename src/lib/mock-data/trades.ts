@@ -1,6 +1,7 @@
 import type { Trade } from "@/types/trade";
+import { resolveMarketWatchIcon } from "@/lib/utils/market-symbol-icon";
 
-export const mockTrades: Trade[] = [
+const BASE_MOCK_TRADES: Trade[] = [
   {
     id: "10251",
     symbol: "BTCUSD",
@@ -13,6 +14,7 @@ export const mockTrades: Trade[] = [
     openedAt: "2026-06-15T09:42:00Z",
     closedAt: "2026-06-15T14:22:00Z",
     status: "Closed",
+    executionType: "Market",
   },
   {
     id: "10252",
@@ -26,6 +28,7 @@ export const mockTrades: Trade[] = [
     openedAt: "2026-06-15T09:42:00Z",
     closedAt: "2026-06-15T13:15:00Z",
     status: "Closed",
+    executionType: "Limit",
   },
   {
     id: "10253",
@@ -39,6 +42,7 @@ export const mockTrades: Trade[] = [
     openedAt: "2026-06-15T09:42:00Z",
     closedAt: "2026-06-15T12:00:00Z",
     status: "Closed",
+    executionType: "Market",
   },
   {
     id: "10254",
@@ -52,6 +56,7 @@ export const mockTrades: Trade[] = [
     openedAt: "2026-06-15T09:42:00Z",
     closedAt: "2026-06-15T11:30:00Z",
     status: "Closed",
+    executionType: "Limit",
   },
   {
     id: "10255",
@@ -65,7 +70,13 @@ export const mockTrades: Trade[] = [
     openedAt: "2026-06-15T09:42:00Z",
     closedAt: "2026-06-15T10:55:00Z",
     status: "Closed",
+    executionType: "Market",
   },
 ];
+
+export const mockTrades: Trade[] = BASE_MOCK_TRADES.map((trade) => ({
+  ...trade,
+  icon: resolveMarketWatchIcon(trade.symbol),
+}));
 
 export const mockAccountTrades = mockTrades.slice(0, 2);
