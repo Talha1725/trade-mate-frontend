@@ -87,7 +87,7 @@ function CardRow({
           ) : null}
         </div>
         <div className="flex flex-col">
-          <span className="text-[12px] font-medium text-white-500 leading-3">{label}</span>
+          <span className="text-[12px] font-medium text-white leading-3">{label}</span>
           <span className="text-[8px] text-neutral-500 font-medium mt-1 leading-2">{subLabel}</span>
         </div>
       </div>
@@ -99,7 +99,7 @@ function CardRow({
   );
 }
 
-export function Sidebar() {
+export function Sidebar({ className }: { className?: string }) {
   const pathname = usePathname();
   const [showBalance, setShowBalance] = React.useState(true);
   const { data: accountSummary } = useAccountSummary();
@@ -114,7 +114,7 @@ export function Sidebar() {
 
   return (
     <aside
-      className="sticky top-0 h-screen w-[278px] justify-between shrink-0 p-4 rounded-[24px] border border-neutral-800/80 flex flex-col"
+      className={cn("sticky top-0 h-screen w-[278px] justify-between shrink-0 p-4 rounded-[24px] border border-neutral-800/80 flex flex-col", className)}
     >
     <div className="flex-1 overflow-y-auto no-scrollbar">
       {/* Brand Header */}
@@ -186,8 +186,8 @@ export function Sidebar() {
       {/* Account Widget Card */}
       {pathname === "/dashboard" ? (
         <div
-          className="p-4 rounded-[20px] card-green border border-white/20 flex flex-col"
-          style={{ height: 258, width: 246 }}
+          className="p-4 rounded-[20px] card-green border border-white/20 flex flex-col w-full"
+          style={{ height: 258 }}
         >
           <div className="absolute -bottom-12 -left-12 size-24 blur-[30px] rounded-full pointer-events-none" />
 
@@ -196,7 +196,7 @@ export function Sidebar() {
           </div>
 
           <div className="flex flex-col items-center gap-2.5 py-5 text-center">
-            <span className="text-[18px] font-medium text-white-500 leading-4.5">
+            <span className="text-[18px] font-medium text-white leading-4.5">
               Unlock Pro Insights
             </span>
             <span className="text-[12px] text-regular-400 leading-3 letter-spacing-[-1px]" style={{ color: "#FFFFFF99" }}>

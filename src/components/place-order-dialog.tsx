@@ -97,7 +97,7 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={React.isValidElement(children) ? children : <button>{children}</button>} />
       <DialogContent
-        className="w-full max-w-[450px] sm:max-w-[450px] max-h-[90vh] overflow-y-auto custom-scrollbar bg-[#0c0c0e] border-[#222222] p-5 pt-14 gap-0 shadow-2xl rounded-[16px] text-white"
+        className="w-full max-w-[450px] sm:max-w-[450px] max-h-[90vh] overflow-y-auto custom-scrollbar bg-[#0d0d0d] border border-white/20 p-5 pt-14 gap-0 shadow-2xl rounded-[16px] text-white"
         showCloseButton={false}
       >
         <DialogTitle className="sr-only">Place Order</DialogTitle>
@@ -130,18 +130,18 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
 
         {/* Info Cards */}
         <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="rounded-xl border border-[#222] bg-[#141414] p-3">
+          <div className="rounded-xl border border-white/20 gradient-btn-tradebox p-3">
             <div className="text-xs text-white/50 mb-1">Buying Power</div>
             <div className="text-sm font-semibold text-white">$18.2K</div>
           </div>
-          <div className="rounded-xl border border-[#222] bg-[#141414] p-3">
+          <div className="rounded-xl border border-white/20 gradient-btn-tradebox p-3">
             <div className="text-xs text-white/50 mb-1">Mode</div>
             <div className="text-sm font-semibold text-white">Cross Margin</div>
           </div>
         </div>
 
         {/* Buy/Sell Toggle */}
-        <div className="flex rounded-xl border border-[#222] bg-[#141414] p-1 mb-5">
+        <div className="flex rounded-xl border border-white/20 gradient-btn-trade p-1 mb-5">
           <button
             onClick={() => setSide("Buy")}
             className={cn(
@@ -169,7 +169,7 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
             <div>
               <label className="text-xs text-white/50 mb-1.5 block">Symbol</label>
               <Select value={symbol} onValueChange={(val) => val && setSymbol(val)}>
-                <SelectTrigger className="flex w-full items-center justify-between rounded-lg border border-[#222] bg-[#141414] px-3 h-9 text-sm font-medium text-white shadow-none">
+                <SelectTrigger className="flex w-full items-center justify-between rounded-lg border border-white/20 gradient-btn-trade px-3 h-9 text-sm font-medium text-white shadow-none">
                   <div className="flex items-center gap-2">
                     <Image
                       src={getSymbolIcon(symbol)}
@@ -200,7 +200,7 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
                 <SelectTrigger className="flex w-full items-center justify-between rounded-lg border border-[#222] bg-[#141414] px-3 h-9 text-sm font-medium text-white shadow-none">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#141414] border-[#222] text-white">
+                <SelectContent className="bg-[#141414] border border-white/20 text-white">
                   <SelectItem value="Market">Market</SelectItem>
                 </SelectContent>
               </Select>
@@ -212,7 +212,7 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
             {/* Quantity */}
             <div>
               <label className="text-xs text-white/50 mb-1.5 block">Quantity</label>
-              <div className="rounded-lg border border-[#222] bg-[#141414] px-3 py-2">
+              <div className="rounded-lg border border-white/20 gradient-btn-trade px-3 py-2">
                 <input
                   type="text"
                   value={quantity}
@@ -229,7 +229,7 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
                 <SelectTrigger className="flex w-full items-center justify-between rounded-lg border border-[#222] bg-[#141414] px-3 h-9 text-sm font-medium text-white shadow-none">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#141414] border-[#222] text-white">
+                <SelectContent className="bg-[#141414] border border-white/20 text-white">
                   <SelectItem value="1x">1x</SelectItem>
                   <SelectItem value="2x">2x</SelectItem>
                   <SelectItem value="5x">5x</SelectItem>
@@ -242,7 +242,7 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
             {/* Limit Price */}
             <div>
               <label className="text-xs text-white/50 mb-1.5 block">Limit Price</label>
-              <div className="rounded-lg border border-[#222] bg-[#141414] px-3 py-2">
+              <div className="rounded-lg border border-white/20 gradient-btn-trade px-3 py-2">
                 <input
                   type="text"
                   value="Market"
@@ -255,7 +255,7 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
             {/* Trailing Stop */}
             <div>
               <label className="text-xs text-white/50 mb-1.5 block">Trailing Stop</label>
-              <div className="rounded-lg border border-[#222] bg-[#141414] px-3 py-2">
+              <div className="rounded-lg border border-white/20 gradient-btn-trade px-3 py-2">
                 <input
                   type="text"
                   value="Off"
@@ -268,7 +268,7 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
             {/* Stop Loss */}
             <div>
               <label className="text-xs text-white/50 mb-1.5 block">Stop Loss</label>
-              <div className="rounded-lg border border-[#222] bg-[#141414] px-3 py-2">
+              <div className="rounded-lg border border-white/20 gradient-btn-trade px-3 py-2">
                 <input
                   type="text"
                   value={stopLoss}
@@ -281,7 +281,7 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
             {/* Take Profit */}
             <div>
               <label className="text-xs text-white/50 mb-1.5 block">Take Profit</label>
-              <div className="rounded-lg border border-[#222] bg-[#141414] px-3 py-2">
+              <div className="rounded-lg border border-white/20  bg-[#141414] px-3 py-2">
                 <input
                   type="text"
                   value={takeProfit}
@@ -294,7 +294,7 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Risk Summary Card */}
-        <div className="mt-5 rounded-xl border border-[#222] card-green p-4">
+        <div className="mt-5 rounded-xl border border-white/20 card-green p-4">
           <div className="space-y-2">
             <div className="flex justify-between text-xs">
               <span className="text-white/50">Estimated Cost</span>
