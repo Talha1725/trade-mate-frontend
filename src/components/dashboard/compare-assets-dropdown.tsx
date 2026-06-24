@@ -49,7 +49,7 @@ function CompareAssetRow({
         onSelect();
       }}
       className={cn(
-        "flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left transition-colors",
+        "flex w-full cursor-pointer items-center justify-between gap-3 rounded-xl px-3 py-2 text-left transition-colors",
         isActive
           ? "btn-green"
           : "border border-transparent hover:bg-white/5",
@@ -135,7 +135,7 @@ export function CompareAssetsDropdown({
       <DropdownMenuContent
         align="start"
         sideOffset={8}
-        className="w-[333px] max-w-[333px] max-h-[615px] overflow-y-auto rounded-xl border border-white/20 bg-black/50 p-0 py-6 text-white backdrop-blur-sm"
+        className="w-[333px] cursor-pointer max-w-[333px] max-h-[615px] overflow-y-auto rounded-xl border border-white/20 bg-black/50 p-0 py-6 text-white backdrop-blur-sm"
         finalFocus={false}
       >
         <div className="sticky top-0 z-10 px-4 pb-3 md:px-6">

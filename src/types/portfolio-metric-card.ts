@@ -1,6 +1,8 @@
-export type PortfolioMetricIconTone = "green" | "orange";
+export type PortfolioMetricIconTone = "green" | "orange" | "red" | "blue";
 
-export type PortfolioMetricValueTone = "default" | "positive";
+export type PortfolioMetricValueTone = "default" | "positive" | "negative";
+
+export type PortfolioMetricSubtitleTone = "default" | "positive" | "negative";
 
 export type PortfolioMetricSubStatTone = "default" | "positive" | "negative";
 
@@ -16,6 +18,7 @@ export type PortfolioMetricCardBase = {
   value: string;
   valueTone?: PortfolioMetricValueTone;
   subtitle?: string;
+  subtitleTone?: PortfolioMetricSubtitleTone;
 };
 
 export type PortfolioMetricIconCard = PortfolioMetricCardBase & {

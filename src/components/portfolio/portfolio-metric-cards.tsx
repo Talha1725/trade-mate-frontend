@@ -28,6 +28,8 @@ function MetricIconBox({
         "relative flex size-11 shrink-0 items-center justify-center rounded-[10px]!",
         tone === "green" && "btn-green",
         tone === "orange" && "btn-orange",
+        tone === "red" && "btn-red",
+        tone === "blue" && "btn-blue",
       )}
     >
       <Image src={iconSrc} alt="" width={20} height={20} unoptimized />
@@ -53,10 +55,12 @@ function SubStatBox({ stat }: { stat: PortfolioMetricSubStat }) {
 }
 
 function IconStatsCard({ card }: { card: PortfolioMetricIconCard }) {
-  const isPositiveSubtitle = card.subtitle?.startsWith("+");
+  const subtitleTone =
+    card.subtitleTone ??
+    (card.subtitle?.startsWith("+") ? "positive" : card.subtitle?.startsWith("-") ? "negative" : "default");
 
   return (
-    <article className="relative flex h-full min-h-[210px] flex-col overflow-hidden rounded-[20px] border border-white/20 bg-white/5 py-4 md:py-6">
+    <article className="relative flex h-full min-h-[210px] flex-col overflow-hidden rounded-[20px] border border-white/20 bg-linear-to-b from-white/7 to-white/3 py-4">
       {card.chartValues?.length ? (
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[150px] opacity-90">
           <MiniAreaLineChart
@@ -68,13 +72,14 @@ function IconStatsCard({ card }: { card: PortfolioMetricIconCard }) {
         </div>
       ) : null}
 
-      <div className="relative z-10 flex items-start justify-between gap-3 px-4 md:px-6">
+      <div className="relative z-10 flex items-start justify-between gap-3 px-4">
         <div className="min-w-0 space-y-1">
           <p className="text-sm text-white/60">{card.title}</p>
           <p
             className={cn(
               "text-xl md:text-2xl font-semibold tracking-tight text-white",
               card.valueTone === "positive" && "text-primary",
+              card.valueTone === "negative" && "text-destructive",
             )}
           >
             {card.value}
@@ -83,7 +88,8 @@ function IconStatsCard({ card }: { card: PortfolioMetricIconCard }) {
             <p
               className={cn(
                 "text-xs text-white/60 md:text-sm",
-                isPositiveSubtitle && "text-primary font-medium",
+                subtitleTone === "positive" && "text-primary font-medium",
+                subtitleTone === "negative" && "text-destructive font-medium",
               )}
             >
               {card.subtitle}
@@ -94,7 +100,7 @@ function IconStatsCard({ card }: { card: PortfolioMetricIconCard }) {
         <MetricIconBox iconSrc={card.iconSrc} tone={card.iconTone} />
       </div>
 
-      <div className="relative z-10 mt-auto grid grid-cols-2 gap-5 pt-3 px-4 md:px-6">
+      <div className="relative z-10 mt-auto grid grid-cols-2 gap-5 pt-3 px-4 ">
         <SubStatBox stat={card.subStats[0]} />
         <SubStatBox stat={card.subStats[1]} />
       </div>
@@ -104,7 +110,7 @@ function IconStatsCard({ card }: { card: PortfolioMetricIconCard }) {
 
 function GaugeProgressCard({ card }: { card: PortfolioMetricGaugeCard }) {
   return (
-    <article className="flex h-full min-h-[210px] flex-col rounded-[20px] border border-white/20 bg-white/5 p-4 md:p-6">
+    <article className="flex h-full min-h-[210px] flex-col rounded-[20px] border border-white/20 bg-linear-to-b from-white/7 to-white/3 p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 space-y-1">
           <p className="text-sm text-white/60">{card.title}</p>

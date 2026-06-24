@@ -89,7 +89,7 @@ export default function PortfolioPage() {
 
     return (
         <AppShell>
-            <div className="flex w-full flex-col gap-6">
+            <div className="flex w-full min-w-0 flex-col gap-6">
                 <PageHeader
                     title="Portfolio"
                     description="Portfolio overview, equity curve, and trading performance."
