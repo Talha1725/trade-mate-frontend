@@ -114,9 +114,12 @@ export function Sidebar({ className }: { className?: string }) {
 
   return (
     <aside
-      className={cn("sticky top-0 h-screen w-[278px] justify-between shrink-0 p-4 rounded-[24px] border border-neutral-800/80 flex flex-col", className)}
+      className={cn(
+        "flex h-full w-[278px] shrink-0 flex-col justify-between overflow-hidden rounded-[20px] border border-[#999999]/20 p-4 lg:sticky lg:top-0 lg:h-screen lg:self-start bg-linear-to-t from-white/7 to-white/5",
+        className,
+      )}
     >
-    <div className="flex-1 overflow-y-auto no-scrollbar">
+    <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar">
       {/* Brand Header */}
       <div className="flex items-center gap-3 select-none">
         <Image src="/images/logo.svg" alt="logo" height={40} width={213} />
@@ -159,7 +162,8 @@ export function Sidebar({ className }: { className?: string }) {
         <SidebarItem
           iconSrc="/sidebar icons/pie chart 2.svg"
           label="Analytics"
-          href="/dashboard?tab=analytics"
+          href="/analytics"
+          active={isTabActive("/analytics")}
         />
       </div>
 
@@ -179,6 +183,7 @@ export function Sidebar({ className }: { className?: string }) {
           icon={Settings}
           label="Settings"
           href="/settings"
+          active={isTabActive("/settings")}
         />
       </div>
     </div>

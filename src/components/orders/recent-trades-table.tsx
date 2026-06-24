@@ -1,7 +1,8 @@
 "use client";
 
-import { IoIosTrendingDown, IoIosTrendingUp } from "react-icons/io";
+import { IoArrowDownSharp, IoArrowUpSharp } from "react-icons/io5";
 
+import { ResponsiveTableScroll } from "@/components/shared/responsive-table-scroll";
 import {
   Table,
   TableBody,
@@ -11,12 +12,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { mockRecentTrades } from "@/lib/mock-data/orders-recent-trades";
+import { mockStrategyPerformanceRows } from "@/lib/mock-data/strategy-performance";
 import { cn } from "@/lib/utils";
 import type {
   RecentTradeRow,
   RecentTradesTableProps,
 } from "@/types/orders-recent-trades";
-import { IoArrowDownSharp, IoArrowUpSharp } from "react-icons/io5";
+import type { StrategyPerformanceRow } from "@/types/strategy-performance";
 
 function formatUsdPrice(value: number) {
   return `$${value.toLocaleString("en-US", {
@@ -49,64 +51,152 @@ function PriceCell({ trade }: { trade: RecentTradeRow }) {
         isUp ? "text-primary" : "text-destructive",
       )}
     >
-      <span className="text-sm font-medium min-w-[80px]">{formatUsdPrice(trade.price)}</span>
+      <span className="min-w-[80px] text-sm font-medium">
+        {formatUsdPrice(trade.price)}
+      </span>
       <Icon className="size-3.5" />
     </span>
   );
 }
 
+function StrategyPerformanceRowCells({ row }: { row: StrategyPerformanceRow }) {
+  const pnlTone = row.pnlTone ?? "muted";
+
+  return (
+    <TableRow className="border-0 hover:bg-white/5 data-[state=selected]:bg-white/5">
+      <TableCell className="w-[36%] px-2 py-3 text-xs font-medium whitespace-normal text-white sm:px-2.5 sm:text-sm">
+        {row.symbol}
+      </TableCell>
+      <TableCell
+        className={cn(
+          "w-[24%] px-2 py-3 text-center text-xs whitespace-normal sm:px-2.5 sm:text-sm",
+          pnlTone === "positive" ? "font-medium text-white" : "text-white",
+        )}
+      >
+        {row.pnl}
+      </TableCell>
+      <TableCell className="w-[22%] px-2 py-3 text-center text-xs whitespace-normal text-white sm:px-2.5 sm:text-sm">
+        {row.winRate}
+      </TableCell>
+      <TableCell className="w-[18%] px-2 py-3 text-right text-xs font-medium whitespace-normal text-white/60 sm:px-2.5 sm:text-sm">
+        {row.profitFactor}
+      </TableCell>
+    </TableRow>
+  );
+}
+
+function RecentTradesTableContent({ trades }: { trades: RecentTradeRow[] }) {
+  return (
+    <Table className="min-w-[480px]">
+      <TableHeader variant="gradient">
+        <TableRow className="hover:bg-transparent">
+          <TableHead className="h-11 px-4 text-sm font-medium text-white/60">
+            Price (USD)
+          </TableHead>
+          <TableHead className="h-11 px-4 text-center text-sm font-medium text-white/60">
+            Size (BTC)
+          </TableHead>
+          <TableHead className="h-11 px-4 text-right text-sm font-medium text-white/60">
+            Time
+          </TableHead>
+        </TableRow>
+      </TableHeader>
+
+      <TableBody>
+        {trades.map((trade) => (
+          <TableRow
+            key={trade.id}
+            className="border-0 hover:bg-white/5 data-[state=selected]:bg-white/5"
+          >
+            <TableCell className="px-4 py-3">
+              <PriceCell trade={trade} />
+            </TableCell>
+            <TableCell className="px-4 py-3 text-center text-sm text-white/60">
+              {formatTradeSize(trade.sizeBtc)}
+            </TableCell>
+            <TableCell className="px-4 py-3 text-right text-sm text-white/60">
+              {trade.time}
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
+function StrategyPerformanceTableContent({
+  strategies,
+}: {
+  strategies: StrategyPerformanceRow[];
+}) {
+  return (
+    <Table className="w-full table-fixed">
+      <TableHeader variant="gradient">
+        <TableRow className="hover:bg-transparent">
+          <TableHead className="h-11 w-[36%] px-2 text-xs font-medium whitespace-normal text-white/60 sm:px-2.5 sm:text-sm">
+            Symbol
+          </TableHead>
+          <TableHead className="h-11 w-[24%] px-2 text-center text-xs font-medium whitespace-normal text-white/60 sm:px-2.5 sm:text-sm">
+            P&L
+          </TableHead>
+          <TableHead className="h-11 w-[22%] px-2 text-center text-xs font-medium whitespace-normal text-white/60 sm:px-2.5 sm:text-sm">
+            Win Rate
+          </TableHead>
+          <TableHead className="h-11 w-[18%] px-2 text-right text-xs font-medium whitespace-normal text-white/60 sm:px-2.5 sm:text-sm">
+            PF
+          </TableHead>
+        </TableRow>
+      </TableHeader>
+
+      <TableBody>
+        {strategies.map((row) => (
+          <StrategyPerformanceRowCells key={row.id} row={row} />
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
 export function RecentTradesTable({
-  title = "Recent Trades",
+  variant = "recent-trades",
+  title,
   liveTapeLabel = "Live Tape",
+  showHeaderBadge,
   trades = mockRecentTrades,
+  strategies = mockStrategyPerformanceRows,
   className,
 }: RecentTradesTableProps) {
+  const isStrategyPerformance = variant === "strategy-performance";
+  const resolvedTitle =
+    title ?? (isStrategyPerformance ? "Strategy Performance" : "Recent Trades");
+  const shouldShowHeaderBadge = showHeaderBadge ?? !isStrategyPerformance;
+
   return (
     <section
       className={cn(
-        "overflow-hidden rounded-[20px] border border-white/20 bg-white/5 p-4 md:p-6",
+        "min-w-0 overflow-hidden rounded-[20px] border border-white/20 bg-white/5 p-4 md:p-6",
         className,
       )}
     >
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <h3 className="text-base font-semibold text-white md:text-lg">{title}</h3>
-        <LiveTapeBadge label={liveTapeLabel} />
+        <h3 className="text-base font-semibold text-white md:text-lg">
+          {resolvedTitle}
+        </h3>
+        {shouldShowHeaderBadge ? <LiveTapeBadge label={liveTapeLabel} /> : null}
       </div>
 
-      <Table>
-        <TableHeader variant="gradient">
-          <TableRow className="hover:bg-transparent">
-            <TableHead className="h-11 px-4 text-sm font-medium text-white/60">
-              Price (USD)
-            </TableHead>
-            <TableHead className="h-11 px-4 text-center text-sm font-medium text-white/60">
-              Size
-            </TableHead>
-            <TableHead className="h-11 px-4 text-right text-sm font-medium text-white/60">
-              Time
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-
-        <TableBody>
-          {trades.map((trade) => (
-            <TableRow
-              key={trade.id}
-              className="border-0 hover:bg-white/5 data-[state=selected]:bg-white/5"
-            >
-              <TableCell className="px-4 py-2.5">
-                <PriceCell trade={trade} />
-              </TableCell>
-              <TableCell className="px-4 py-2.5 text-center text-sm text-white/60">
-                {formatTradeSize(trade.sizeBtc)}
-              </TableCell>
-              <TableCell className="px-4 py-2.5 text-right text-sm text-white/60">
-                {trade.time}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <ResponsiveTableScroll
+        className={cn(
+          isStrategyPerformance &&
+            "**:data-[slot=table-container]:overflow-x-hidden",
+        )}
+      >
+        {isStrategyPerformance ? (
+          <StrategyPerformanceTableContent strategies={strategies} />
+        ) : (
+          <RecentTradesTableContent trades={trades} />
+        )}
+      </ResponsiveTableScroll>
     </section>
   );
 }

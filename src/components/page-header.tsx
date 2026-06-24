@@ -84,7 +84,7 @@ export function PageHeader({
         </button>
 
         <DropdownMenu>
-          <DropdownMenuTrigger className="flex items-center justify-center gap-2 px-3 py-0.5 rounded-lg border border-neutral-700 text-white outline-none">
+          <DropdownMenuTrigger className="flex items-center justify-center gap-0 md:gap-2 px-3 py-0.5 rounded-lg border border-neutral-700 text-white outline-none">
             <div className="size-8 rounded-full flex items-center justify-center text-sm font-medium">
               <Image src="/header/at.svg" alt="avatar" width={20} height={20} className="size-5" />
             </div>
