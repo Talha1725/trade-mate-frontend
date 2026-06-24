@@ -14,6 +14,9 @@ import type {
 } from "@/types/dashboard";
 import type { Position, Trade } from "@/types/trade";
 import { resolveMarketWatchIcon } from "@/lib/utils/market-symbol-icon";
+import type { PortfolioOpenPositionRow } from "@/types/portfolio-open-positions";
+import type { ActiveOrderRow } from "@/types/active-orders";
+import type { RecentTradeRow } from "@/types/orders-recent-trades";
 
 function toNumber(value: string | number | null | undefined) {
   if (value == null) {
@@ -83,6 +86,46 @@ export function mapPortfolioPositionToPosition(position: PortfolioPosition): Pos
   };
 }
 
+export function mapPortfolioPositionToPortfolioRow(position: PortfolioPosition): PortfolioOpenPositionRow {
+  const entryPrice = toNumber(position.entryPrice);
+  const markPrice = toNumber(position.currentPrice ?? position.entryPrice);
+  const pnl = toNumber(position.floatingPnl);
+  const size = toNumber(position.lots);
+  const pnlPercent = entryPrice > 0 && size > 0 ? (pnl / (entryPrice * size)) * 100 : 0;
+
+  return {
+    id: position.id,
+    symbol: position.symbol,
+    icon: resolveMarketWatchIcon(position.symbol) ?? "bitcoin",
+    side: position.direction === "BUY" ? "long" : "short",
+    size,
+    sizeUnit: position.symbol.replace(/USD$/i, "") || position.symbol,
+    avgEntry: entryPrice,
+    markPrice,
+    leverage: 1,
+    pnl,
+    pnlPercent,
+    liquidationPrice: 0,
+    risk: Math.abs(pnlPercent) > 10 ? "high" : Math.abs(pnlPercent) > 5 ? "medium" : "low",
+  };
+}
+
+export function mapPortfolioPositionToActiveOrder(position: PortfolioPosition): ActiveOrderRow {
+  return {
+    id: position.id,
+    displayId: position.id.slice(-8).toUpperCase(),
+    symbol: position.symbol,
+    icon: resolveMarketWatchIcon(position.symbol) ?? "bitcoin",
+    side: position.direction === "BUY" ? "buy" : "sell",
+    type: "market",
+    qty: toNumber(position.lots),
+    price: toNumber(position.entryPrice),
+    takeProfit: position.takeProfit ? toNumber(position.takeProfit) : null,
+    stopLoss: position.stopLoss ? toNumber(position.stopLoss) : null,
+    status: "new",
+  };
+}
+
 export function mapPortfolioTradeToTrade(trade: PortfolioTrade): Trade {
   const direction = trade.direction === "BUY" ? "Buy" : "Sell";
   const closePrice = trade.exitPrice ? toNumber(trade.exitPrice) : toNumber(trade.entryPrice);
@@ -103,6 +146,19 @@ export function mapPortfolioTradeToTrade(trade: PortfolioTrade): Trade {
     stopLoss: trade.stopLoss ? toNumber(trade.stopLoss) : null,
     takeProfit: trade.takeProfit ? toNumber(trade.takeProfit) : null,
     notes: trade.notes,
+  };
+}
+
+export function mapPortfolioTradeToRecentTrade(trade: PortfolioTrade): RecentTradeRow {
+  const entryPrice = toNumber(trade.entryPrice);
+  const exitPrice = toNumber(trade.exitPrice ?? trade.entryPrice);
+
+  return {
+    id: trade.id,
+    price: exitPrice,
+    direction: exitPrice >= entryPrice ? "up" : "down",
+    sizeBtc: toNumber(trade.lots),
+    time: formatDateTimeLabel(trade.closedAt ?? trade.openedAt),
   };
 }
 

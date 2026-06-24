@@ -2,7 +2,9 @@
 
 import * as React from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Search, Bell, ChevronDown, LogOutIcon } from "lucide-react";
+import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
 import {
@@ -15,6 +17,7 @@ import {
 
 import type { PageHeaderProps } from "@/types";
 import { PlaceOrderDialog } from "@/components/place-order-dialog";
+import { useAuthStore } from "@/lib/stores/auth-store";
 
 export function PageHeader({
   title,
@@ -23,8 +26,19 @@ export function PageHeader({
   actions,
   className,
 }: PageHeaderProps) {
+  const router = useRouter();
+  const signOut = useAuthStore((state) => state.signOut);
+  const userName = useAuthStore((state) => state.session?.user.name || state.session?.user.email || "Trader");
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("Signed out successfully");
+    router.replace("/login");
+  };
+
   return (
     <header
+      suppressHydrationWarning
       className={cn(
         "flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-6",
         className,
@@ -74,12 +88,12 @@ export function PageHeader({
             <div className="size-8 rounded-full flex items-center justify-center text-sm font-medium">
               <Image src="/header/at.svg" alt="avatar" width={20} height={20} className="size-5" />
             </div>
-            <span className="text-sm hidden sm:inline">Alex Travis</span>
+            <span className="text-sm">{userName}</span>
             <ChevronDown className="size-4 text-white-500" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
             <DropdownMenuGroup>
-              <DropdownMenuItem variant="destructive" className="cursor-pointer">
+              <DropdownMenuItem variant="destructive" className="cursor-pointer" onClick={handleSignOut}>
                 <LogOutIcon className="h-4 w-4" />
                 Sign out
               </DropdownMenuItem>

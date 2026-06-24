@@ -52,4 +52,11 @@ export type TradeClosePayload = {
   closePrice?: number | null;
 };
 
+export type AccountMetricsSummary = {
+  balance: number;
+  equity: number;
+  floatingPnl: number;
+  winRate: number;
+};
+
 export type TradeStatusFilter = "All" | "Open" | "Closed";

@@ -17,6 +17,14 @@ import { HiMiniChartBar } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import type { SidebarItemProps, CardRowProps } from "@/types/components";
+import { useAccountSummary } from "@/hooks/use-trades";
+
+function formatCurrency(value?: number) {
+  return `$${(value ?? 0).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
 
 export function SidebarItem({ icon: Icon, iconSrc, label, href, active, badge }: SidebarItemProps) {
   return (
@@ -94,6 +102,7 @@ function CardRow({
 export function Sidebar({ className }: { className?: string }) {
   const pathname = usePathname();
   const [showBalance, setShowBalance] = React.useState(true);
+  const { data: accountSummary } = useAccountSummary();
 
   // Map routes to determine active state
   const isTabActive = (href: string) => {
@@ -216,8 +225,8 @@ export function Sidebar({ className }: { className?: string }) {
               Free Account
             </span>
             <div className="flex items-center justify-between">
-              <span className="text-[24px] font-medium leading-6 text-white">
-                {showBalance ? "$50,842.12" : "•••••••"}
+              <span className="text-[24px] font-medium leading-6 text-white-500">
+                {showBalance ? formatCurrency(accountSummary?.balance) : "•••••••"}
               </span>
               <button
                 onClick={() => setShowBalance(!showBalance)}
@@ -233,7 +242,9 @@ export function Sidebar({ className }: { className?: string }) {
           <div className="flex flex-col gap-1">
             <div className="flex justify-between items-center text-[10px]">
               <span className="text-[12px] leading-3 text-neutral-500 font-medium">Daily P&L</span>
-              <span className="text-[#22E0A2] font-bold">+$2,315 (4.78%)</span>
+              <span className={cn("font-bold", (accountSummary?.floatingPnl ?? 0) >= 0 ? "text-[#22E0A2]" : "text-red-500")}>
+                {formatCurrency(accountSummary?.floatingPnl)}
+              </span>
             </div>
             <div className="w-full bg-neutral-800 h-1 rounded-full overflow-hidden">
               <div
@@ -249,13 +260,13 @@ export function Sidebar({ className }: { className?: string }) {
               iconSrc="/sidebar icons/open p&l.svg"
               label="Open P&L"
               subLabel="Today"
-              value="$29,995.88"
+              value={formatCurrency(accountSummary?.floatingPnl)}
             />
             <CardRow
               iconSrc="/sidebar icons/winrate.svg"
               label="Win Rate"
               subLabel="Last 30 Days"
-              value="68.4%"
+              value={`${Math.round(accountSummary?.winRate ?? 0)}%`}
             />
             <CardRow
               iconSrc="/sidebar icons/cup star.svg"

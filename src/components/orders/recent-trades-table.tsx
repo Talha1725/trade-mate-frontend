@@ -25,7 +25,7 @@ function formatUsdPrice(value: number) {
   })}`;
 }
 
-function formatBtcSize(value: number) {
+function formatTradeSize(value: number) {
   return value.toFixed(4);
 }
 
@@ -80,7 +80,7 @@ export function RecentTradesTable({
               Price (USD)
             </TableHead>
             <TableHead className="h-11 px-4 text-center text-sm font-medium text-white/60">
-              Size (BTC)
+              Size
             </TableHead>
             <TableHead className="h-11 px-4 text-right text-sm font-medium text-white/60">
               Time
@@ -98,7 +98,7 @@ export function RecentTradesTable({
                 <PriceCell trade={trade} />
               </TableCell>
               <TableCell className="px-4 py-2.5 text-center text-sm text-white/60">
-                {formatBtcSize(trade.sizeBtc)}
+                {formatTradeSize(trade.sizeBtc)}
               </TableCell>
               <TableCell className="px-4 py-2.5 text-right text-sm text-white/60">
                 {trade.time}
