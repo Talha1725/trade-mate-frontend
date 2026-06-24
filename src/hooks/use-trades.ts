@@ -3,7 +3,7 @@ import { terminalApi } from "@/lib/services/terminal.api";
 import { get } from "@/lib/utils/api";
 import { ROUTES } from "@/constant/routes";
 import { useAuthStore } from "@/lib/stores/auth-store";
-import type { TradeClosePayload, TradeOpenPayload } from "@/types";
+import type { AccountMetricsSummary, TradeClosePayload, TradeOpenPayload } from "@/types";
 
 export function usePositions() {
   return useQuery({
@@ -38,11 +38,6 @@ export function useCloseTrade() {
 export function useAccountSummary() {
   return useQuery({
     queryKey: ["account", "summary"],
-    queryFn: () => get<{
-      balance: number;
-      equity: number;
-      floatingPnl: number;
-      winRate: number;
-    }>(ROUTES.ACCOUNT.SUMMARY),
+    queryFn: () => get<AccountMetricsSummary>(ROUTES.ACCOUNT.SUMMARY),
   });
 }

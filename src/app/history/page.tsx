@@ -11,6 +11,7 @@ import { useAuthStore } from "@/lib/stores/auth-store";
 import type { AccountLedgerResponse } from "@/types/dashboard";
 import { usePriceStream } from "@/hooks/use-price-stream";
 import type { PriceSocketPortfolioMessage } from "@/types/price";
+import { mapLedgerTrades } from "@/lib/utils/trader-data";
 
 export default function HistoryPage() {
   const [ledger, setLedger] = React.useState<AccountLedgerResponse | null>(null);
@@ -106,13 +107,22 @@ export default function HistoryPage() {
         return;
       }
 
-      setLedger({
+      setLedger((currentLedger) => ({
         account,
         positions: payload.positions,
-        trades: payload.trades,
-      });
+        trades: [
+          ...(currentLedger?.trades ?? []),
+          ...payload.trades.filter(
+            (trade) =>
+              trade.status === "CLOSED" &&
+              !(currentLedger?.trades ?? []).some((currentTrade) => currentTrade.id === trade.id),
+          ),
+        ],
+      }));
     },
   });
+
+  const trades = React.useMemo(() => mapLedgerTrades(ledger ?? undefined), [ledger]);
 
   return (
     <AppShell>
@@ -122,7 +132,7 @@ export default function HistoryPage() {
           description="Review past trades and account performance."
         />
 
-        <TradeHistoryTable isLoading={isLoading && !ledger} />
+        <TradeHistoryTable trades={trades} isLoading={isLoading && !ledger} />
       </div>
     </AppShell>
   );
