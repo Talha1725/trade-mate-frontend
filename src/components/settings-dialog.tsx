@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { X, Calendar, CheckCircle2, Eye, EyeOff, ChevronDown } from "lucide-react";
+import { X, CheckCircle2, Eye, EyeOff, ChevronDown } from "lucide-react";
 
 import {
   Dialog,
@@ -21,7 +21,7 @@ export function SettingsDialog({ view, onViewChange }: SettingsDialogProps) {
     "edit-profile": "356px",
     "change-password": "auto",
     "email-verification": "auto",
-    "billing-history": "342px",
+    "billing-history": "auto",
   };
 
   return (
@@ -121,8 +121,8 @@ function ChangePasswordView({ onClose }: SettingsViewProps) {
       <DialogTitle className="text-base font-bold text-white mb-4.75">Change Password</DialogTitle>
 
       <div className="space-y-4 mb-6">
-        <div className="flex items-center gap-8">
-          <label className="text-sm font-medium text-white/50 w-[176px] shrink-0">Current Password</label>
+        <div className="flex items-center gap-27">
+          <label className="text-sm font-medium text-white/50 shrink-0">Current Password</label>
           <div className="flex-1 rounded-[10px] border border-[#222] bg-[#141414] px-3 py-1.5 flex items-center justify-between">
             <input
               type={showCurrent ? "text" : "password"}
@@ -134,8 +134,8 @@ function ChangePasswordView({ onClose }: SettingsViewProps) {
             </button>
           </div>
         </div>
-        <div className="flex items-center gap-8">
-          <label className="text-sm font-medium text-white/50 w-[176px] shrink-0">New Password</label>
+        <div className="flex items-center gap-32">
+          <label className="text-sm font-medium text-white/50 shrink-0">New Password</label>
           <div className="flex-1 rounded-[10px] border border-[#222] bg-[#141414] px-3 py-1.5 flex items-center justify-between">
             <input
               type={showNew ? "text" : "password"}
@@ -147,8 +147,8 @@ function ChangePasswordView({ onClose }: SettingsViewProps) {
             </button>
           </div>
         </div>
-        <div className="flex items-center gap-8">
-          <label className="text-sm font-medium text-white/50 w-[176px] shrink-0">Confirm New Password</label>
+        <div className="flex items-center gap-18">
+          <label className="text-sm font-medium text-white/50 shrink-0">Confirm New Password</label>
           <div className="flex-1 rounded-[10px] border border-[#222] bg-[#141414] px-3 py-1.5 flex items-center justify-between">
             <input
               type={showConfirm ? "text" : "password"}
@@ -165,11 +165,11 @@ function ChangePasswordView({ onClose }: SettingsViewProps) {
       <div className="flex gap-6">
         <button
           onClick={onClose}
-          className="flex-1 rounded-[10px] py-3 text-sm font-semibold text-white-500 border border-white/20 transition-colors"
+          className="flex-1 rounded-[10px] py-3 text-sm font-medium text-white gradient-btn-cancel border border-white/20 transition-colors"
         >
           Cancel
         </button>
-        <button className="flex-1 rounded-[10px] py-3 text-base font-semibold text-white-500 trade-btn">
+        <button className="flex-1 rounded-[10px] py-3 text-base font-medium text-white trade-btn">
           Update Password
         </button>
       </div>
@@ -180,25 +180,25 @@ function ChangePasswordView({ onClose }: SettingsViewProps) {
 function EmailVerificationView({ onClose }: SettingsViewProps) {
   return (
     <div className="flex flex-col">
-      <DialogTitle className="text-base font-bold text-white mb-6">Email Verification</DialogTitle>
+      <DialogTitle className="text-lg font-semibold text-white mb-6">Email Verification</DialogTitle>
 
-      <div className="space-y-6">
+      <div className="space-y-8">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-white/50">Email Address</span>
-          <span className="text-sm text-white font-medium">alex.travis@gmail.com</span>
+          <span className="text-sm font-medium text-white/50">Email Address</span>
+          <span className="text-sm font-medium text-white">alex.travis@gmail.com</span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-sm text-white/50">Status</span>
+          <span className="text-sm font-medium text-white/50">Status</span>
           <div className="flex items-center gap-1.5 text-[#0CE9A0]">
             <span className="text-sm font-medium">Verified</span>
             <CheckCircle2 className="size-4" />
           </div>
         </div>
         <div className="flex items-start justify-between gap-4">
-          <p className="text-sm text-white/50 leading-relaxed max-w-[250px]">
+          <p className="text-sm font-normal text-white/50 leading-relaxed max-w-[250px]">
             Your email is verified. You will receive important account notifications.
           </p>
-          <button className="text-sm font-medium text-red-500 bg-[#251212] px-4 py-2 rounded-lg hover:bg-red-500/20 transition-colors shrink-0">
+          <button className="text-sm font-medium text-red-500 bg-[#251212] px-3.75 py-2.25 rounded-lg hover:bg-red-500/20 transition-colors shrink-0">
             Disable
           </button>
         </div>
@@ -216,37 +216,37 @@ function BillingHistoryView({ onClose }: SettingsViewProps) {
 
   return (
     <div className="flex flex-col">
-      <DialogTitle className="text-lg leading-4.5 font-semibold text-white-600 mb-6">Billing History</DialogTitle>
+      <DialogTitle className="text-lg leading-4.5 font-semibold text-white mb-6">Billing History</DialogTitle>
 
       <div className="space-y-4 mb-6">
         {history.map((item, i) => (
           <div key={i} className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-[#222] text-white/50">
-                <Calendar className="size-5" />
+              <div>
+                <Image src="/calendar.svg" alt="Calendar" width={32} height={32} className="size-8" />
               </div>
               <div>
-                <div className="text-sm leading-3.5 font-medium text-white-500 mb-0.5">{item.date}</div>
-                <div className="text-xs font-regular leading-3 text-white/50-400">{item.type}</div>
+                <div className="text-sm leading-3.5 font-medium text-white mb-0.5">{item.date}</div>
+                <div className="text-xs font-normal leading-3 text-white/50">{item.type}</div>
               </div>
             </div>
-            <div className="text-lg font-medium text-white-500">{item.amount}</div>
+            <div className="text-lg font-medium text-white">{item.amount}</div>
           </div>
         ))}
       </div>
 
-      <div className="text-center text-sm leading-3.5 text-white/50-400 mb-8">
+      <div className="text-center text-sm leading-3.5 font-normal text-white/50 mb-8">
         No more data available
       </div>
 
       <div className="flex gap-6">
         <button
           onClick={onClose}
-          className="flex-1 rounded-[10px] py-3 text-sm font-medium text-white-500 bg-[#222] hover:bg-[#333] transition-colors"
+          className="flex-1 rounded-[10px] py-3 text-sm font-medium text-white gradient-btn-cancel hover:bg-[#333] transition-colors"
         >
           Cancel
         </button>
-        <button className="flex-1 rounded-[10px] py-3 text-base font-semibold text-white-500 trade-btn">
+        <button className="flex-1 rounded-[10px] py-2 text-base font-medium text-white trade-btn">
           Update Password
         </button>
       </div>

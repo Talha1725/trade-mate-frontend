@@ -324,3 +324,10 @@
     linear-gradient(180deg, rgba(110, 110, 110, 0.17) 100%, rgba(19, 19, 21, 0.02) 0%),
     #000000;
 }
+
+@utility gradient-btn-trade {
+  background: linear-gradient(180deg, rgba(110, 110, 110, 0.10) 40%, rgba(19, 19, 21, 0.02) ),
+}
+
+@utility gradient-btn-tradebox {
+  background: radial-gradient(100% 100% at 50% 0%, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.05) 100%);}
