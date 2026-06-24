@@ -29,7 +29,8 @@ export function TradingTableCard({
           <button
             type="button"
             onClick={onExport}
-            className="inline-flex cursor-pointer items-center gap-2 rounded-[10px] border border-white/5 bg-white/5 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10"
+            disabled={!onExport}
+            className="inline-flex cursor-pointer items-center gap-2 rounded-[10px] border border-white/5 bg-white/5 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <PiDownloadFill className="size-4" />
             {exportLabel}
@@ -37,7 +38,8 @@ export function TradingTableCard({
           <button
             type="button"
             onClick={onCloseAll}
-            className="inline-flex cursor-pointer items-center gap-2 rounded-[10px] border border-destructive/10 bg-destructive/10 px-3.5 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20"
+            disabled={!onCloseAll}
+            className="inline-flex cursor-pointer items-center gap-2 rounded-[10px] border border-destructive/10 bg-destructive/10 px-3.5 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <IoCloseCircle className="size-4 text-destructive" />
             {closeAllLabel}

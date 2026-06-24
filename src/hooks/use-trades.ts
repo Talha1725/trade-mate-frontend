@@ -36,8 +36,11 @@ export function useCloseTrade() {
 }
 
 export function useAccountSummary() {
+  const token = useAuthStore((state) => state.session?.token ?? null);
+
   return useQuery({
     queryKey: ["account", "summary"],
+    enabled: !!token,
     queryFn: () => get<AccountMetricsSummary>(ROUTES.ACCOUNT.SUMMARY),
   });
 }

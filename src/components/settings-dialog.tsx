@@ -3,6 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import { X, Calendar, CheckCircle2, Eye, EyeOff, ChevronDown } from "lucide-react";
+import { toast } from "sonner";
 
 import {
   Dialog,
@@ -66,7 +67,11 @@ function EditProfileView({ onClose }: SettingsViewProps) {
           <div>
             <div className="text-sm font-medium text-white mb-1">Upload Image</div>
             <div className="text-sm font-normal text-white/60 text-white mb-2">Min 400x400px, PNG or JPEG</div>
-            <button className="text-sm font-medium text-white px-3.5 py-1.75 rounded-[10px] gradient-btn-upload border border-white/3 hover:bg-[#333] transition-colors">
+            <button
+              type="button"
+              onClick={() => toast.info("Profile image upload is not enabled for this account yet.")}
+              className="text-sm font-medium text-white px-3.5 py-1.75 rounded-[10px] gradient-btn-upload border border-white/3 hover:bg-[#333] transition-colors"
+            >
               Upload
             </button>
           </div>
@@ -103,7 +108,11 @@ function EditProfileView({ onClose }: SettingsViewProps) {
         >
           Cancel
         </button>
-        <button className="flex-1 rounded-[10px] py-2.25 text-base font-medium text-white trade-btn">
+        <button
+          type="button"
+          onClick={() => toast.info("Profile updates are not enabled for this account yet.")}
+          className="flex-1 rounded-[10px] py-2.25 text-base font-medium text-white trade-btn"
+        >
           Save Changes
         </button>
       </div>
@@ -169,7 +178,11 @@ function ChangePasswordView({ onClose }: SettingsViewProps) {
         >
           Cancel
         </button>
-        <button className="flex-1 rounded-[10px] py-3 text-base font-semibold text-white-500 trade-btn">
+        <button
+          type="button"
+          onClick={() => toast.info("Password changes are not enabled for this account yet.")}
+          className="flex-1 rounded-[10px] py-3 text-base font-semibold text-white-500 trade-btn"
+        >
           Update Password
         </button>
       </div>
@@ -198,7 +211,11 @@ function EmailVerificationView({ onClose }: SettingsViewProps) {
           <p className="text-sm text-white/50 leading-relaxed max-w-[250px]">
             Your email is verified. You will receive important account notifications.
           </p>
-          <button className="text-sm font-medium text-red-500 bg-[#251212] px-4 py-2 rounded-lg hover:bg-red-500/20 transition-colors shrink-0">
+          <button
+            type="button"
+            onClick={() => toast.info("Email verification settings are not editable yet.")}
+            className="text-sm font-medium text-red-500 bg-[#251212] px-4 py-2 rounded-lg hover:bg-red-500/20 transition-colors shrink-0"
+          >
             Disable
           </button>
         </div>
@@ -246,8 +263,12 @@ function BillingHistoryView({ onClose }: SettingsViewProps) {
         >
           Cancel
         </button>
-        <button className="flex-1 rounded-[10px] py-3 text-base font-semibold text-white-500 trade-btn">
-          Update Password
+        <button
+          type="button"
+          onClick={() => toast.info("Billing changes are not enabled for free accounts.")}
+          className="flex-1 rounded-[10px] py-3 text-base font-semibold text-white-500 trade-btn"
+        >
+          Manage Billing
         </button>
       </div>
     </div>

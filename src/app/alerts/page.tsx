@@ -132,6 +132,11 @@ export default function TerminalPage() {
     setSnapshot(updatedSnapshot);
   }, [token]);
 
+  React.useEffect(() => {
+    window.addEventListener("trade-mate:positions-changed", refreshSnapshot);
+    return () => window.removeEventListener("trade-mate:positions-changed", refreshSnapshot);
+  }, [refreshSnapshot]);
+
   const handleSubmitOrder = React.useCallback(
     async (payload: {
       accountId: string;
@@ -149,6 +154,7 @@ export default function TerminalPage() {
 
       try {
         await terminalApi.placeOrder(payload, token);
+        window.dispatchEvent(new Event("trade-mate:positions-changed"));
         await refreshSnapshot();
       } finally {
         setIsSubmitting(false);
@@ -167,6 +173,7 @@ export default function TerminalPage() {
 
       try {
         await terminalApi.closeTrade({ positionId: position.ticket }, token);
+        window.dispatchEvent(new Event("trade-mate:positions-changed"));
         await refreshSnapshot();
       } finally {
         setIsSubmitting(false);
