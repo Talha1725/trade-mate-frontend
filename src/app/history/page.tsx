@@ -8,7 +8,6 @@ import { TradeHistoryTable } from "@/components/history/trade-history-table";
 import { dashboardApi } from "@/lib/services/dashboard.api";
 import { historyApi } from "@/lib/services/history.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
-import { mapPortfolioTradeToTrade } from "@/lib/utils/trader-data";
 import type { AccountLedgerResponse } from "@/types/dashboard";
 import { usePriceStream } from "@/hooks/use-price-stream";
 import type { PriceSocketPortfolioMessage } from "@/types/price";
@@ -84,7 +83,6 @@ export default function HistoryPage() {
     };
   }, [token, accountId]);
 
-  const trades = ledger?.trades?.map(mapPortfolioTradeToTrade);
   const accountSymbols = React.useMemo(
     () =>
       Array.from(
@@ -124,7 +122,7 @@ export default function HistoryPage() {
           description="Review past trades and account performance."
         />
 
-        <TradeHistoryTable isLoading={isLoading} />
+        <TradeHistoryTable isLoading={isLoading && !ledger} />
       </div>
     </AppShell>
   );

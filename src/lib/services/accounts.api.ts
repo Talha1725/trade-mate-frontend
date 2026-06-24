@@ -3,31 +3,8 @@ import { get, post } from "@/lib/utils/api";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { adminApi } from "./admin.api";
 import { auditApi } from "./audit.api";
-import type { AccountSummary } from "@/types/admin";
+import type { AccountSummary, AccountsApiOptions, PaginatedAccountsResponse, PaginatedTradesResponse } from "@/types/admin";
 import type { Trade } from "@/types/trade";
-
-type AccountsApiOptions = {
-  page?: number;
-  limit?: number;
-  search?: string;
-  status?: AccountSummary["status"] | "ACTIVE" | "SUSPENDED" | "CLOSED" | "All";
-};
-
-type PaginatedAccountsResponse = {
-  items: AccountSummary[];
-  total: number;
-  page: number;
-  pageCount: number;
-  pageSize: number;
-};
-
-type PaginatedTradesResponse = {
-  items: Trade[];
-  total: number;
-  page: number;
-  pageCount: number;
-  pageSize: number;
-};
 
 function mapAccountStatus(status: AccountsApiOptions["status"]) {
   if (!status || status === "All") {

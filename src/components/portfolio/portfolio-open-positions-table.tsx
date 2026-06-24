@@ -3,8 +3,8 @@
 import Image from "next/image";
 import { IoIosTrendingDown, IoIosTrendingUp } from "react-icons/io";
 import { IoCloseCircle } from "react-icons/io5";
-import { PiDownloadFill } from "react-icons/pi";
 
+import { TradingTableCard } from "@/components/shared/trading-table-card";
 import {
   Table,
   TableBody,
@@ -98,10 +98,10 @@ function RiskBadge({ risk }: { risk: PortfolioOpenPositionRisk }) {
   return (
     <span
       className={cn(
-        "inline-flex rounded-full px-2.5 py-1 text-xs font-medium",
-        risk === "low" && "bg-primary/5 text-primary",
-        risk === "medium" && "bg-orange/5 text-orange",
-        risk === "high" && "bg-destructive/5 text-destructive",
+        "inline-flex rounded-full px-2.5 py-1 text-xs font-medium border",
+        risk === "low" && "bg-primary/5 text-primary border-primary/3",
+        risk === "medium" && "bg-orange/5 text-orange border-orange/3",
+        risk === "high" && "bg-destructive/5 text-destructive border-destructive/3",
       )}
     >
       {risk === "low" ? "Low" : risk === "medium" ? "Medium" : "High"}
@@ -143,35 +143,12 @@ export function PortfolioOpenPositionsTable({
   className,
 }: PortfolioOpenPositionsTableProps) {
   return (
-    <section
-      className={cn(
-        "overflow-hidden rounded-[20px] border border-white/20 bg-white/5 p-4 md:p-6",
-        className,
-      )}
+    <TradingTableCard
+      title="Open Positions"
+      onExport={onExport}
+      onCloseAll={onCloseAll}
+      className={className}
     >
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <h3 className="text-base font-semibold text-white md:text-lg">Open Positions</h3>
-
-        <div className="flex items-center gap-4">
-          <button
-            type="button"
-            onClick={onExport}
-            className="inline-flex cursor-pointer items-center gap-2 rounded-[10px] border border-white/5 bg-white/5 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10"
-          >
-            <PiDownloadFill  className="size-4" />
-            Export
-          </button>
-          <button
-            type="button"
-            onClick={onCloseAll}
-            className="inline-flex cursor-pointer items-center gap-2 rounded-[10px] border border-destructive/10 bg-destructive/10 px-3.5 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20"
-          >
-            <IoCloseCircle className="size-4 text-destructive" />
-            Close All
-          </button>
-        </div>
-      </div>
-
       <Table className="min-w-[980px]">
         <TableHeader variant="gradient">
           <TableRow className="hover:bg-transparent">
@@ -239,6 +216,6 @@ export function PortfolioOpenPositionsTable({
           ))}
         </TableBody>
       </Table>
-    </section>
+    </TradingTableCard>
   );
 }

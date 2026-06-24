@@ -1,24 +1,6 @@
 import { ROUTES } from "@/constant/routes";
 import { get } from "@/lib/utils/api";
-import type { AuditLogEntry } from "@/types/admin";
-
-type AuditApiQuery = {
-  page?: number;
-  limit?: number;
-  action?: string;
-  search?: string;
-  adminId?: string;
-  dateFrom?: string;
-  dateTo?: string;
-};
-
-type PaginatedAuditResponse = {
-  items: AuditLogEntry[];
-  total: number;
-  page: number;
-  pageCount: number;
-  pageSize: number;
-};
+import type { AuditLogEntry, AuditApiQuery, PaginatedAuditResponse } from "@/types/admin";
 
 const ACTION_MAP: Record<string, string> = {
   "Inject Trade": "admin.trade_create",

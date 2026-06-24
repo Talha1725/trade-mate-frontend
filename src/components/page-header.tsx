@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import type { PageHeaderProps } from "@/types";
+import { PlaceOrderDialog } from "@/components/place-order-dialog";
 
 export function PageHeader({
   title,
@@ -25,13 +26,13 @@ export function PageHeader({
   return (
     <header
       className={cn(
-        "flex items-center justify-between gap-6 py-4 border-b border-neutral-800",
+        "flex items-center justify-between gap-6",
         className,
       )}
     >
       {/* Center: Search Bar */}
       <div className="flex-1 min-w-[160px] max-w-[520px]">
-          <div className="flex items-center gap-2 px-4 py-2.25 rounded-lg bg-neutral-900 border border-neutral-700">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-neutral-900 border border-neutral-700">
             <Search className="size-4 text-neutral-500" />
             <input
               type="text"
@@ -43,17 +44,19 @@ export function PageHeader({
 
       {/* Right: Actions */}
       <div className="flex items-center gap-3">
-        <button className="flex gap-2 item-center justify-center trade-btn px-4 py-2 rounded-lg btn-new-trade text-white text-base font-medium whitespace-nowrap shrink-0">
-          <Image src="/header/add circle.svg" alt="add" width={18} height={18} className="size-5" item-center="true"/>
-          New Trade
-        </button>
+        <PlaceOrderDialog>
+          <button className="flex gap-2 item-center justify-center trade-btn px-4 py-1.5 rounded-lg btn-new-trade text-white text-base font-medium whitespace-nowrap shrink-0">
+            <Image src="/header/add circle.svg" alt="add" width={18} height={18} className="size-5" item-center="true"/>
+            New Trade
+          </button>
+        </PlaceOrderDialog>
 
         <button className="flex items-center gap-2 px-4 py-2 rounded-full border border-neutral-700 text-medium-500 text-sm">
           <span className="size-2.5 animate-pulse rounded-full bg-primary shadow-[0_0_10px_var(--primary)]" />
           Live Market
         </button>
 
-        <div className="flex items-center gap-2 px-3 py-2.25 rounded-full border leading-3.5 border-neutral-700 text-medium-500 text-sm">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-full border leading-3.5 border-neutral-700 text-medium-500 text-sm">
           <Image src="/header/united states.svg" alt="US" width={20} height={20} className="size-5" />
           <span>NY</span>
           <span className="text-white-500">13:23:51</span>
@@ -67,7 +70,7 @@ export function PageHeader({
         </button>
 
         <DropdownMenu>
-          <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1 rounded-lg leading-2 border border-neutral-700 text-white-500 outline-none">
+          <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-0.5 rounded-lg leading-2 border border-neutral-700 text-white-500 outline-none">
             <div className="size-8 rounded-full flex items-center justify-center text-sm font-medium">
               <Image src="/header/at.svg" alt="avatar" width={20} height={20} className="size-5" />
             </div>

@@ -1,10 +1,7 @@
 import type { TradingTimeframe } from "@/types/trading-filter-bar";
+import type { TradingViewAdvancedChartConfig } from "@/types/trading-view";
 
-export type TradingViewAdvancedChartConfig = {
-  symbol: string;
-  interval: string;
-  compareSymbol?: string | null;
-};
+export type { TradingViewAdvancedChartConfig };
 
 const ADVANCED_CHART_EMBED_HOST = "https://www.tradingview-widget.com";
 
