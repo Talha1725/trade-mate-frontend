@@ -49,4 +49,9 @@ export type * from "@/types/order-book";
 export type * from "@/types/active-orders";
 export type * from "@/types/trading-symbol-cell";
 export type * from "@/types/trading-table-card";
-export type { TradeClosePayload, TradeOpenPayload, TradeOrderDirection } from "@/types/trade";
+export type {
+  AccountMetricsSummary,
+  TradeClosePayload,
+  TradeOpenPayload,
+  TradeOrderDirection,
+} from "@/types/trade";

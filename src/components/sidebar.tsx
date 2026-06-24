@@ -17,6 +17,14 @@ import { HiMiniChartBar } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import type { SidebarItemProps, CardRowProps } from "@/types/components";
+import { useAccountSummary } from "@/hooks/use-trades";
+
+function formatCurrency(value?: number) {
+  return `$${(value ?? 0).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
 
 export function SidebarItem({ icon: Icon, iconSrc, label, href, active, badge }: SidebarItemProps) {
   return (
@@ -79,7 +87,7 @@ function CardRow({
           ) : null}
         </div>
         <div className="flex flex-col">
-          <span className="text-[12px] font-medium text-white-500 leading-3">{label}</span>
+          <span className="text-[12px] font-medium text-white leading-3">{label}</span>
           <span className="text-[8px] text-neutral-500 font-medium mt-1 leading-2">{subLabel}</span>
         </div>
       </div>
@@ -91,9 +99,10 @@ function CardRow({
   );
 }
 
-export function Sidebar() {
+export function Sidebar({ className }: { className?: string }) {
   const pathname = usePathname();
   const [showBalance, setShowBalance] = React.useState(true);
+  const { data: accountSummary } = useAccountSummary();
 
   // Map routes to determine active state
   const isTabActive = (href: string) => {
@@ -105,7 +114,7 @@ export function Sidebar() {
 
   return (
     <aside
-      className="sticky top-0 h-screen w-[278px] justify-between shrink-0 p-4 rounded-[24px] border border-neutral-800/80 flex flex-col"
+      className={cn("sticky top-0 h-screen w-[278px] justify-between shrink-0 p-4 rounded-[24px] border border-neutral-800/80 flex flex-col", className)}
     >
     <div className="flex-1 overflow-y-auto no-scrollbar">
       {/* Brand Header */}
@@ -177,8 +186,8 @@ export function Sidebar() {
       {/* Account Widget Card */}
       {pathname === "/dashboard" ? (
         <div
-          className="p-4 rounded-[20px] card-green border border-white/20 flex flex-col"
-          style={{ height: 258, width: 246 }}
+          className="p-4 rounded-[20px] card-green border border-white/20 flex flex-col w-full"
+          style={{ height: 258 }}
         >
           <div className="absolute -bottom-12 -left-12 size-24 blur-[30px] rounded-full pointer-events-none" />
 
@@ -187,7 +196,7 @@ export function Sidebar() {
           </div>
 
           <div className="flex flex-col items-center gap-2.5 py-5 text-center">
-            <span className="text-[18px] font-medium text-white-500 leading-4.5">
+            <span className="text-[18px] font-medium text-white leading-4.5">
               Unlock Pro Insights
             </span>
             <span className="text-[12px] text-regular-400 leading-3 letter-spacing-[-1px]" style={{ color: "#FFFFFF99" }}>
@@ -217,7 +226,7 @@ export function Sidebar() {
             </span>
             <div className="flex items-center justify-between">
               <span className="text-[24px] font-medium leading-6 text-white-500">
-                {showBalance ? "$50,842.12" : "•••••••"}
+                {showBalance ? formatCurrency(accountSummary?.balance) : "•••••••"}
               </span>
               <button
                 onClick={() => setShowBalance(!showBalance)}
@@ -233,7 +242,9 @@ export function Sidebar() {
           <div className="flex flex-col gap-1">
             <div className="flex justify-between items-center text-[10px]">
               <span className="text-[12px] leading-3 text-neutral-500 font-medium">Daily P&L</span>
-              <span className="text-[#22E0A2] font-bold">+$2,315 (4.78%)</span>
+              <span className={cn("font-bold", (accountSummary?.floatingPnl ?? 0) >= 0 ? "text-[#22E0A2]" : "text-red-500")}>
+                {formatCurrency(accountSummary?.floatingPnl)}
+              </span>
             </div>
             <div className="w-full bg-neutral-800 h-1 rounded-full overflow-hidden">
               <div
@@ -249,13 +260,13 @@ export function Sidebar() {
               iconSrc="/sidebar icons/open p&l.svg"
               label="Open P&L"
               subLabel="Today"
-              value="$29,995.88"
+              value={formatCurrency(accountSummary?.floatingPnl)}
             />
             <CardRow
               iconSrc="/sidebar icons/winrate.svg"
               label="Win Rate"
               subLabel="Last 30 Days"
-              value="68.4%"
+              value={`${Math.round(accountSummary?.winRate ?? 0)}%`}
             />
             <CardRow
               iconSrc="/sidebar icons/cup star.svg"

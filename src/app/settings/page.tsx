@@ -4,11 +4,13 @@ import { useState } from "react";
 import { SettingsDialogView } from "@/types/settings";
 import { SettingsDialog } from "@/components/settings-dialog";
 import { PageHeader } from "@/components/page-header";
+import { AppShell } from "@/components/app-shell";
 
 export default function SettingsPage() {
   const [activeView, setActiveView] = useState<SettingsDialogView>(null);
 
   return (
+    <AppShell>
     <div className="flex flex-col h-full bg-[#0c0c0e]">
       <PageHeader title="Settings" />
       
@@ -78,5 +80,6 @@ export default function SettingsPage() {
 
       <SettingsDialog view={activeView} onViewChange={setActiveView} />
     </div>
+    </AppShell>
   );
 }
