@@ -28,7 +28,7 @@ export function SettingsDialog({ view, onViewChange }: SettingsDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onViewChange(null)}>
       <DialogContent
-        className="w-full max-w-[600px] sm:max-w-[600px] max-h-[90vh] overflow-y-auto custom-scrollbar gradient-dialog-bg border border-white/20 p-6 gap-0 shadow-2xl rounded-[16px] text-white"
+        className="w-full max-w-[600px] sm:max-w-[600px] max-h-[90vh] overflow-y-auto custom-scrollbar gradient-dialog-bg border border-white/20 p-6 gap-0 shadow-2xl rounded-[20px] text-white"
         style={{ minHeight: view ? heightMap[view] : "auto" }}
         showCloseButton={false}
       >
@@ -127,9 +127,9 @@ function ChangePasswordView({ onClose }: SettingsViewProps) {
 
   return (
     <div className="flex flex-col">
-      <DialogTitle className="text-base font-bold text-white mb-4.75">Change Password</DialogTitle>
+      <DialogTitle className="text-base font-bold text-white mb-6.5">Change Password</DialogTitle>
 
-      <div className="space-y-4 mb-6">
+      <div className="space-y-4 mb-6.5">
         <div className="flex items-center gap-27">
           <label className="text-sm font-medium text-white/50 shrink-0">Current Password</label>
           <div className="flex-1 rounded-[10px] border border-[#222] bg-[#141414] px-3 py-1.5 flex items-center justify-between">
@@ -174,14 +174,14 @@ function ChangePasswordView({ onClose }: SettingsViewProps) {
       <div className="flex gap-6">
         <button
           onClick={onClose}
-          className="flex-1 rounded-[10px] py-3 text-sm font-medium text-white gradient-btn-cancel border border-white/20 transition-colors"
+          className="flex-1 rounded-[10px] py-2.25 text-sm font-medium text-white gradient-btn-cancel border border-white/20 transition-colors"
         >
           Cancel
         </button>
         <button
           type="button"
           onClick={() => toast.info("Password changes are not enabled for this account yet.")}
-          className="flex-1 rounded-[10px] py-3 text-base font-semibold text-white-500 trade-btn"
+          className="flex-1 rounded-[10px] py-2.25 text-base font-medium text-white trade-btn"
         >
           Update Password
         </button>
@@ -266,7 +266,7 @@ function BillingHistoryView({ onClose }: SettingsViewProps) {
         <button
           type="button"
           onClick={() => toast.info("Billing changes are not enabled for free accounts.")}
-          className="flex-1 rounded-[10px] py-3 text-base font-semibold text-white-500 trade-btn"
+          className="flex-1 rounded-[10px] py-3 text-base font-semibold text-white trade-btn"
         >
           Manage Billing
         </button>

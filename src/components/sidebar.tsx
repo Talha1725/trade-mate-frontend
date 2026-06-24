@@ -225,7 +225,7 @@ export function Sidebar({ className }: { className?: string }) {
               Free Account
             </span>
             <div className="flex items-center justify-between">
-              <span className="text-[24px] font-medium leading-6 text-white-500">
+              <span className="text-[24px] font-medium leading-6 text-white">
                 {showBalance ? formatCurrency(accountSummary?.balance) : "•••••••"}
               </span>
               <button

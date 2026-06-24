@@ -73,7 +73,7 @@ export function PageHeader({
         <div className="flex items-center justify-center gap-2 px-3 py-2 rounded-full border border-neutral-700 text-medium-500 text-sm">
           <Image src="/header/united states.svg" alt="US" width={20} height={20} className="size-5" />
           <span>NY</span>
-          <span className="text-white-500">13:23:51</span>
+          <span className="text-white">13:23:51</span>
         </div>
 
         <button className="relative hidden lg:flex items-center justify-center p-2 rounded-lg border border-neutral-700 text-neutral-300 cursor-pointer hover:bg-neutral-800 transition-colors">
@@ -84,12 +84,12 @@ export function PageHeader({
         </button>
 
         <DropdownMenu>
-          <DropdownMenuTrigger className="flex items-center justify-center gap-2 px-3 py-0.5 rounded-lg border border-neutral-700 text-white-500 outline-none">
+          <DropdownMenuTrigger className="flex items-center justify-center gap-2 px-3 py-0.5 rounded-lg border border-neutral-700 text-white outline-none">
             <div className="size-8 rounded-full flex items-center justify-center text-sm font-medium">
               <Image src="/header/at.svg" alt="avatar" width={20} height={20} className="size-5" />
             </div>
             <span className="text-sm">{userName}</span>
-            <ChevronDown className="size-4 text-white-500" />
+            <ChevronDown className="size-4 text-white" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
             <DropdownMenuGroup>
