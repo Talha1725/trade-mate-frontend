@@ -60,7 +60,7 @@ function MetricIconBox({
 
 function SubStatBox({ stat }: { stat: PortfolioMetricSubStat }) {
   return (
-    <div className="rounded-[10px] border border-white/20 bg-white/5 backdrop-blur-[2px] px-3 py-2.5">
+    <div className="rounded-[10px] border border-white/20 bg-white/5 backdrop-blur-sm px-3 py-2.5">
       <p className="text-sm text-white/60 font-medium">{stat.label}</p>
       <p
         className={cn(

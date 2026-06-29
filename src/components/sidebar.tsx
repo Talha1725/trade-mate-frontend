@@ -170,16 +170,7 @@ export function Sidebar({ className }: { className?: string }) {
 
       {/* Tools Section */}
       <div className="flex flex-col gap-[10px] pb-10 px-0">
-        <span className="text-base leading-4 font-medium text-white/60 py-2 mt-4">
-          Tools
-        </span>
-        <SidebarItem
-          icon={Bell}
-          label="Alerts"
-          href="/alerts"
-          badge="3"
-          active={isTabActive("/alerts")}
-        />
+        
         <SidebarItem
           icon={Settings}
           label="Settings"
