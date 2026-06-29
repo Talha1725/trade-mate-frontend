@@ -48,7 +48,7 @@ function PositionCard({ item }: { item: OpenPositionStripItem }) {
   const isPositive = item.pnl >= 0;
 
   return (
-    <article className="relative overflow-hidden rounded-xl border border-white/10 bg-white/5 p-4 md:p-6">
+    <article className="relative overflow-hidden rounded-[20px] border border-white/10 bg-white/5 p-4 md:p-6">
       <div className="flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2.5">
           <Image
@@ -73,7 +73,7 @@ function PositionCard({ item }: { item: OpenPositionStripItem }) {
         </span>
       </div>
 
-      <p className="mt-1 text-sm md:text-base text-white/60">
+      <p className="mt-1.5 text-sm md:text-base text-white/60">
         {item.sizeLabel} · {item.entryLabel}
       </p>
 
@@ -100,12 +100,12 @@ export function OpenPositionsStripCard({
         <h3 className="text-base md:text-lg font-semibold text-white">
           {title} ({items.length})
         </h3>
-        <button type="button" className="border border-white/10 rounded-lg bg-white/5 px-3.5 py-1.5 hover:bg-white/10 transition-colors text-sm font-medium text-white cursor-pointer">
+        <button type="button" className="border border-white/10 rounded-lg bg-white/5 px-3.5 py-2 hover:bg-white/10 transition-colors text-sm font-medium text-white cursor-pointer">
           View All
         </button>
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-4">
         {items.map((item) => (
           <PositionCard key={item.id} item={item} />
         ))}

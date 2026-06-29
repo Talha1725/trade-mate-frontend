@@ -103,7 +103,7 @@ export function PortfolioValueChart({
 
       <ChartContainer
         config={CHART_CONFIG}
-        className="aspect-auto h-[300px] w-full [&_.recharts-cartesian-grid-horizontal_line]:stroke-white/10 [&_.recharts-cartesian-grid-vertical_line]:stroke-white/10"
+        className="aspect-auto h-[230px] w-full [&_.recharts-cartesian-grid-horizontal_line]:stroke-white/10 [&_.recharts-cartesian-grid-vertical_line]:stroke-white/10"
         initialDimension={{ width: 740, height: 230 }}
       >
         {chartData.length > 0 ? (

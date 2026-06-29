@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/table";
 import { Spinner } from "@/components/ui/spinner";
 import { mockTrades } from "@/lib/mock-data/trades";
+import { SIDEBAR_ICONS } from "@/lib/mock-data/sidebar-icons";
 import { formatDateTimeLabel } from "@/lib/utils/trader-data";
 import { cn } from "@/lib/utils";
 import type { TradeHistoryTableProps } from "@/types/trade-history";
@@ -164,7 +165,7 @@ export function TradeHistoryTable({
           <HeaderStatPill
             icon={
               <Image
-                src="/sidebar icons/cup star.svg"
+                src={SIDEBAR_ICONS.cupStar}
                 alt="win rate"
                 width={16}
                 height={16}

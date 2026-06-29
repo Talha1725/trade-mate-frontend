@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MARKET_WATCH_ICON_IMAGES } from "@/lib/mock-data/market-watch-card";
+import { SIDEBAR_ICONS } from "@/lib/mock-data/sidebar-icons";
 import { cn } from "@/lib/utils";
 import { terminalApi } from "@/lib/services/terminal.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
@@ -119,7 +120,7 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
           </div>
           <button className="p-2 rounded-lg border border-[#108961] card-green shrink-0 hover:opacity-90 transition-opacity">
             <Image 
-              src="/sidebar icons/winrate.svg" 
+              src={SIDEBAR_ICONS.winrate} 
               alt="win rate" 
               width={16} 
               height={16} 

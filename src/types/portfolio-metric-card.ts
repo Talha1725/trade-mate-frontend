@@ -1,5 +1,12 @@
 export type PortfolioMetricIconTone = "green" | "orange" | "red" | "blue";
 
+export type PortfolioMetricIconKind =
+  | "image"
+  | "chart-spline"
+  | "trend-down"
+  | "target"
+  | "trophy";
+
 export type PortfolioMetricValueTone = "default" | "positive" | "negative";
 
 export type PortfolioMetricSubtitleTone = "default" | "positive" | "negative";
@@ -23,7 +30,8 @@ export type PortfolioMetricCardBase = {
 
 export type PortfolioMetricIconCard = PortfolioMetricCardBase & {
   variant: "icon-stats";
-  iconSrc: string;
+  iconSrc?: string;
+  iconKind?: PortfolioMetricIconKind;
   iconTone: PortfolioMetricIconTone;
   subStats: [PortfolioMetricSubStat, PortfolioMetricSubStat];
   chartValues?: number[];

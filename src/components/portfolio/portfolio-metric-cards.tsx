@@ -1,6 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import { Target, Trophy } from "lucide-react";
+import { FaArrowTrendDown } from "react-icons/fa6";
+import { LuChartSpline } from "react-icons/lu";
 
 import { MiniAreaLineChart } from "@/components/dashboard/mini-area-line-chart";
 import { GradientHorizontalProgress } from "@/components/portfolio/gradient-horizontal-progress";
@@ -12,16 +15,30 @@ import type {
   PortfolioMetricCardsProps,
   PortfolioMetricIconCard,
   PortfolioMetricGaugeCard,
+  PortfolioMetricIconKind,
   PortfolioMetricSubStat,
 } from "@/types/portfolio-metric-card";
 
 function MetricIconBox({
   iconSrc,
+  iconKind = "image",
   tone,
 }: {
-  iconSrc: string;
+  iconSrc?: string;
+  iconKind?: PortfolioMetricIconKind;
   tone: PortfolioMetricIconCard["iconTone"];
 }) {
+  const IconComponent =
+    iconKind === "chart-spline"
+      ? LuChartSpline
+      : iconKind === "trend-down"
+        ? FaArrowTrendDown
+        : iconKind === "target"
+          ? Target
+          : iconKind === "trophy"
+            ? Trophy
+            : null;
+
   return (
     <span
       className={cn(
@@ -32,7 +49,11 @@ function MetricIconBox({
         tone === "blue" && "btn-blue",
       )}
     >
-      <Image src={iconSrc} alt="" width={20} height={20} unoptimized />
+      {IconComponent ? (
+        <IconComponent className="size-5 text-white" />
+      ) : iconSrc ? (
+        <Image src={iconSrc} alt="" width={20} height={20} unoptimized />
+      ) : null}
     </span>
   );
 }
@@ -97,7 +118,11 @@ function IconStatsCard({ card }: { card: PortfolioMetricIconCard }) {
           ) : null}
         </div>
 
-        <MetricIconBox iconSrc={card.iconSrc} tone={card.iconTone} />
+        <MetricIconBox
+          iconSrc={card.iconSrc}
+          iconKind={card.iconKind}
+          tone={card.iconTone}
+        />
       </div>
 
       <div className="relative z-10 mt-auto grid grid-cols-2 gap-5 pt-3 px-4 ">
