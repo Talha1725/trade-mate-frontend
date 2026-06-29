@@ -259,14 +259,14 @@ function BillingHistoryView({ onClose }: SettingsViewProps) {
       <div className="flex gap-6">
         <button
           onClick={onClose}
-          className="flex-1 rounded-[10px] py-3 text-sm font-medium text-white gradient-btn-cancel hover:bg-[#333] transition-colors"
+          className="flex-1 cursor-pointer rounded-[10px] py-3 text-sm font-medium text-white gradient-btn-cancel hover:bg-[#333] transition-colors"
         >
           Cancel
         </button>
         <button
           type="button"
           onClick={() => toast.info("Billing changes are not enabled for free accounts.")}
-          className="flex-1 rounded-[10px] py-3 text-base font-semibold text-white trade-btn"
+          className="flex-1 cursor-pointer rounded-[10px] py-3 text-base font-semibold text-white trade-btn"
         >
           Manage Billing
         </button>

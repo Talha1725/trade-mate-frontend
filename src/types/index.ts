@@ -50,6 +50,7 @@ export type * from "@/types/order-book";
 export type * from "@/types/active-orders";
 export type * from "@/types/responsive-table-scroll";
 export type * from "@/types/trading-symbol-cell";
+export type * from "@/types/header-notifications";
 export type * from "@/types/account-actions-card";
 export type * from "@/types/subscription-plan-card";
 export type * from "@/types/account-activity-card";

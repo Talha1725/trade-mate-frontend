@@ -9,7 +9,7 @@ export const mockAnalyticsMetricCards: PortfolioMetricCard[] = [
     valueTone: "positive",
     subtitle: "+12.34% this cycle",
     subtitleTone: "positive",
-    iconSrc: "/images/portfolio/graph.svg",
+    iconKind: "chart-spline",
     iconTone: "green",
     subStats: [
       { label: "Best Day", value: "$1,942", tone: "positive" },
@@ -48,7 +48,7 @@ export const mockAnalyticsMetricCards: PortfolioMetricCard[] = [
     valueTone: "negative",
     subtitle: "-8.21%",
     subtitleTone: "negative",
-    iconSrc: "/images/portfolio/risk.svg",
+    iconKind: "trend-down",
     iconTone: "red",
     subStats: [
       { label: "Threshold", value: "$5,000" },
@@ -62,7 +62,7 @@ export const mockAnalyticsMetricCards: PortfolioMetricCard[] = [
     value: "7.8/10",
     subtitle: "Improving",
     subtitleTone: "positive",
-    iconSrc: "/images/momentum.svg",
+    iconKind: "target",
     iconTone: "blue",
     subStats: [
       { label: "Green Days", value: "18" },
@@ -76,7 +76,7 @@ export const mockAnalyticsMetricCards: PortfolioMetricCard[] = [
     value: "Eligible",
     valueTone: "positive",
     subtitle: "Rules Passed",
-    iconSrc: "/sidebar icons/cup star.svg",
+    iconKind: "trophy",
     iconTone: "orange",
     subStats: [
       { label: "Next Payout", value: "Jun 28" },
