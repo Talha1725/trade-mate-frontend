@@ -5,9 +5,9 @@ import * as React from "react";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { TradeHistoryTable } from "@/components/history/trade-history-table";
-import { dashboardApi } from "@/lib/services/dashboard.api";
 import { historyApi } from "@/lib/services/history.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
+import { useSelectedAccountStore } from "@/lib/stores/account-store";
 import type { AccountLedgerResponse } from "@/types/dashboard";
 import { usePriceStream } from "@/hooks/use-price-stream";
 import type { PriceSocketPortfolioMessage } from "@/types/price";
@@ -15,9 +15,9 @@ import { mapLedgerTrades } from "@/lib/utils/trader-data";
 
 export default function HistoryPage() {
   const [ledger, setLedger] = React.useState<AccountLedgerResponse | null>(null);
-  const [accountId, setAccountId] = React.useState<string | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const token = useAuthStore((state) => state.session?.token ?? null);
+  const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
 
   React.useEffect(() => {
     if (!token) {
@@ -25,29 +25,12 @@ export default function HistoryPage() {
       return;
     }
 
-    let isMounted = true;
     setIsLoading(true);
-
-    const loadAccount = async () => {
-      try {
-        const snapshot = await dashboardApi.getPortfolioSnapshot(token);
-
-        if (isMounted) {
-          setAccountId(snapshot.account.id);
-        }
-      } catch {
-        // Keep the last loaded history visible if the account lookup fails.
-      }
-    };
-
-    void loadAccount();
-
-    return () => {
-      isMounted = false;
-    };
   }, [token]);
 
   React.useEffect(() => {
+    const accountId = selectedAccountId;
+
     if (!token || !accountId) {
       return;
     }
@@ -82,7 +65,7 @@ export default function HistoryPage() {
         clearTimeout(timeoutId);
       }
     };
-  }, [token, accountId]);
+  }, [selectedAccountId, token]);
 
   const accountSymbols = React.useMemo(
     () =>
@@ -97,9 +80,9 @@ export default function HistoryPage() {
   );
 
   usePriceStream({
-    enabled: !!token && !!accountId,
+    enabled: !!token && !!selectedAccountId,
     symbols: accountSymbols,
-    accountIds: accountId ? [accountId] : [],
+    accountIds: selectedAccountId ? [selectedAccountId] : [],
     onPortfolio: (payload: PriceSocketPortfolioMessage) => {
       const account = payload.accounts[0];
 
@@ -108,7 +91,9 @@ export default function HistoryPage() {
       }
 
       setLedger((currentLedger) => ({
-        account,
+        account: {
+          ...account,
+        },
         positions: payload.positions,
         trades: [
           ...(currentLedger?.trades ?? []),

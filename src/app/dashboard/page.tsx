@@ -20,6 +20,7 @@ import { buildWatchlistFromAssets } from "@/lib/utils/watchlist";
 import { dashboardApi } from "@/lib/services/dashboard.api";
 import { useMarketSelectionStore } from "@/lib/stores/market-selection-store";
 import { useAuthStore } from "@/lib/stores/auth-store";
+import { useSelectedAccountStore } from "@/lib/stores/account-store";
 import { mapTimeframeToTradingViewInterval } from "@/lib/utils/trading-view";
 import { buildDashboardData } from "@/lib/utils/trader-data";
 import type { AccountLedgerResponse, UserPortfolioResponse } from "@/types/dashboard";
@@ -38,6 +39,7 @@ export default function DashboardPage() {
     ...DEFAULT_WATCHLIST_ASSET_IDS,
   ]);
   const token = useAuthStore((state) => state.session?.token ?? null);
+  const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
 
   React.useEffect(() => {
     if (!token) {
@@ -49,7 +51,7 @@ export default function DashboardPage() {
 
     const refreshDashboard = async () => {
       try {
-        const accountSnapshot = await dashboardApi.getPortfolioSnapshot(token);
+        const accountSnapshot = await dashboardApi.getPortfolioSnapshot(token, selectedAccountId ?? undefined);
 
         if (!isMounted) {
           return;
@@ -83,7 +85,7 @@ export default function DashboardPage() {
         clearTimeout(timeoutId);
       }
     };
-  }, [token]);
+  }, [selectedAccountId, token]);
 
   const dashboardData = snapshot ? buildDashboardData(snapshot, ledger ?? undefined) : null;
   const liveSymbol = dashboardData?.positions[0]?.symbol;
@@ -102,7 +104,7 @@ export default function DashboardPage() {
     () => (openSymbols.length > 0 ? openSymbols : liveSymbol ? [liveSymbol] : []),
     [liveSymbol, openSymbols],
   );
-  const accountId = snapshot?.account.id ?? null;
+  const accountId = snapshot?.account.id ?? selectedAccountId ?? null;
 
   usePriceStream({
     enabled: !!token && !!accountId,
@@ -116,12 +118,16 @@ export default function DashboardPage() {
       }
 
       setSnapshot({
-        account,
+        account: {
+          ...account,
+        },
         positions: payload.positions,
       });
 
       setLedger({
-        account,
+        account: {
+          ...account,
+        },
         positions: payload.positions,
         trades: payload.trades,
       });

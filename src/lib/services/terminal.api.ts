@@ -25,8 +25,9 @@ export const terminalApi = {
     return get(ROUTES.MARKET.SYMBOLS);
   },
 
-  getOpenPositions(authToken?: string): Promise<UserPortfolioResponse> {
+  getOpenPositions(authToken?: string, accountId?: string): Promise<UserPortfolioResponse> {
     return get(ROUTES.POSITION.LIST, {
+      params: accountId ? { accountId } : undefined,
       headers: authToken ? { Authorization: `Bearer ${authToken}` } : undefined,
     });
   },

@@ -36,6 +36,7 @@ export const ROUTES = {
   ACCOUNT: {
     SUMMARY:        `/api/account/summary`,
     BY_ID:  (id: string) => `/api/account/${id}`,
+    LIST:           `/api/accounts`,
   },
 
   /** Dashboard Module */
