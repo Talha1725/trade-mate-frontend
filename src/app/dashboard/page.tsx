@@ -18,6 +18,7 @@ import { DEFAULT_WATCHLIST_ASSET_IDS } from "@/lib/mock-data/market-watch-card";
 import { mockOpenPositionsStrip } from "@/lib/mock-data/open-positions-strip";
 import { buildWatchlistFromAssets } from "@/lib/utils/watchlist";
 import { dashboardApi } from "@/lib/services/dashboard.api";
+import { useMarketSelectionStore } from "@/lib/stores/market-selection-store";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { mapTimeframeToTradingViewInterval } from "@/lib/utils/trading-view";
 import { buildDashboardData } from "@/lib/utils/trader-data";
@@ -29,9 +30,8 @@ import { PriceSocketPortfolioMessage } from "@/types";
 export default function DashboardPage() {
   const [snapshot, setSnapshot] = React.useState<UserPortfolioResponse | null>(null);
   const [ledger, setLedger] = React.useState<AccountLedgerResponse | null>(null);
-  const [selectedMarketId, setSelectedMarketId] = React.useState(
-    mockTradingFilterAssets[0]?.id ?? "btcusdt",
-  );
+  const selectedMarketId = useMarketSelectionStore((state) => state.selectedMarketId);
+  const setSelectedMarketId = useMarketSelectionStore((state) => state.setSelectedMarketId);
   const [timeframe, setTimeframe] = React.useState<TradingTimeframe>("4H");
   const [compareAssetId, setCompareAssetId] = React.useState<string | null>(null);
   const [watchlistIds, setWatchlistIds] = React.useState<string[]>([

@@ -27,6 +27,8 @@ export type * from "@/types/market";
 export type * from "@/types/price";
 export type * from "@/types/trading-view";
 export type * from "@/types/asset-icon";
+export type * from "@/types/currency-search";
+export type * from "@/types/market-selection-store";
 export type * from "@/types/trading-filter-bar";
 export type * from "@/types/market-watch-card";
 export type * from "@/types/market-snapshot";

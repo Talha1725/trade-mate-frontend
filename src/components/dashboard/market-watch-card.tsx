@@ -147,7 +147,7 @@ export function MarketWatchCard({
   return (
     <div
       className={cn(
-        "flex flex-col rounded-xl border border-white/20 bg-white/5 p-4 md:p-6 ",
+        "flex flex-col rounded-[10px] border border-white/20 bg-white/5 p-4 md:p-6 ",
         className,
       )}
     >
