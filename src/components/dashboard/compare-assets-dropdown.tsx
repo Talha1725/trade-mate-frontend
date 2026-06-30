@@ -1,33 +1,24 @@
 "use client";
 
-import Image from "next/image";
-import { ArrowLeftRightIcon, Trash2Icon } from "lucide-react";
+import { ArrowLeftRightIcon } from "lucide-react";
 
+import { AssetIcon } from "@/components/shared/asset-icon";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/dashboard/ui/dropDown";
-import { MARKET_WATCH_ICON_IMAGES } from "@/lib/mock-data/market-watch-card";
 import { cn } from "@/lib/utils";
 import type {
   CompareAssetItem,
   CompareAssetsDropdownProps,
 } from "@/types/trading-compare-assets";
-import type { MarketWatchIcon } from "@/types/market-watch-card";
 import { FaTrash } from "react-icons/fa6";
 
-function CompareAssetIcon({ icon, name }: { icon: MarketWatchIcon; name: string }) {
+function CompareAssetIcon({ symbol, name }: { symbol: string; name: string }) {
   return (
     <span className="relative flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full">
-      <Image
-        src={MARKET_WATCH_ICON_IMAGES[icon]}
-        alt={name}
-        width={32}
-        height={32}
-        unoptimized
-        className="object-contain"
-      />
+      <AssetIcon symbol={symbol} label={name} size={32} />
     </span>
   );
 }
@@ -56,7 +47,7 @@ function CompareAssetRow({
       )}
     >
       <span className="flex min-w-0 items-center gap-3">
-        <CompareAssetIcon icon={item.icon} name={item.name} />
+        <CompareAssetIcon symbol={item.symbol} name={item.name} />
         <span className="min-w-0">
           <p className="truncate text-sm font-medium text-white md:text-base">{item.symbol}</p>
           <p className="truncate text-xs text-white/60 md:text-sm">

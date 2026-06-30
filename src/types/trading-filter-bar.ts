@@ -32,6 +32,8 @@ export type TradingFilterBarProps = {
   assets: TradingFilterBarAsset[];
   selectedAssetId: string;
   onAssetChange?: (assetId: string) => void;
+  watchlistAssetIds?: string[];
+  onWatchlistToggle?: (assetId: string) => void;
   quote: TradingFilterBarQuote;
   ohlcv: TradingFilterBarOhlcv;
   timeframe: TradingTimeframe;

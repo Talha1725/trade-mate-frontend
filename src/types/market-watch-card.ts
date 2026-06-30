@@ -14,7 +14,6 @@ export type MarketWatchItem = {
   name: string;
   price: number;
   changePercent: number;
-  icon: MarketWatchIcon;
 };
 
 export type MarketWatchTabConfig = {
@@ -41,5 +40,6 @@ export type MarketWatchCardProps = {
   news?: MarketNewsItem[];
   selectedItemId: string;
   onItemSelect?: (itemId: string) => void;
+  onWatchlistToggle?: (itemId: string) => void;
   className?: string;
 };
