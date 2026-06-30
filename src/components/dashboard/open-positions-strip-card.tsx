@@ -96,7 +96,7 @@ export function OpenPositionsStripCard({
   className,
 }: OpenPositionsStripCardProps) {
   return (
-    <section className={cn("rounded-xl border border-white/20 bg-white/5 p-4 md:p-5", className)}>
+    <section className={cn("rounded-[10px] border border-white/20 bg-white/5 p-4 md:p-5", className)}>
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-base md:text-lg font-semibold text-white">
           {title} ({items.length})

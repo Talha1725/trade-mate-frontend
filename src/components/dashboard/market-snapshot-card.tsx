@@ -59,7 +59,7 @@ export function MarketSnapshotCard({ data, className }: MarketSnapshotCardProps)
   return (
     <div
       className={cn(
-        "card-green overflow-hidden rounded-xl border border-white/20 p-4 md:p-6",
+        "card-green overflow-hidden rounded-[10px] border border-white/20 p-4 md:p-6",
         className,
       )}
     >

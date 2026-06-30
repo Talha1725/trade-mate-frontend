@@ -67,7 +67,7 @@ function TradeHistoryRowCells({ trade }: { trade: Trade }) {
         {formatTradeDateTime(trade)}
       </TableCell>
       <TableCell className="px-4 py-2">
-        <TradingSymbolCell symbol={trade.symbol} icon={trade.icon} />
+        <TradingSymbolCell symbol={trade.symbol} />
       </TableCell>
       <TableCell className="px-4 py-2">
         <TradingSideBadge side={trade.type} />
