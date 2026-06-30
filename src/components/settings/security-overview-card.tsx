@@ -17,8 +17,8 @@ function SecurityOverviewRowItem({
   onAction?: () => void;
 }) {
   return (
-    <div className="flex items-center gap-4 py-1.5 first:pt-0 last:pb-0">
-      <p className="w-[140px] shrink-0 text-sm text-white/50 md:w-[244px]">
+    <div className="flex items-center gap-4 py-1.75 first:pt-0 last:pb-0">
+      <p className="w-[140px] shrink-0 text-sm font-medium text-white/50 md:w-[244px]">
         {row.label}
       </p>
 
@@ -42,7 +42,7 @@ function SecurityOverviewRowItem({
         <button
           type="button"
           onClick={onAction}
-          className="inline-flex shrink-0 cursor-pointer items-center rounded-[10px] border border-white/5 bg-linear-to-b from-white/7 to-white/3 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10"
+          className="inline-flex shrink-0 cursor-pointer items-center rounded-[10px] border border-white/5 bg-linear-to-b from-white/7 to-white/3 px-3.5 py-1.25 text-sm font-medium text-white transition-colors hover:bg-white/10"
         >
           {row.actionLabel}
         </button>

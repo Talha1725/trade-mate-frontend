@@ -49,8 +49,9 @@ function PositionCard({ item }: { item: OpenPositionStripItem }) {
   const isPositive = item.pnl >= 0;
 
   return (
-    <article className="relative overflow-hidden rounded-[20px] border border-white/10 bg-white/5 p-4 md:p-6">
-      <div className="flex items-center justify-between gap-2">
+    <article className="flex flex-col justify-between gap-0 relative overflow-hidden rounded-[20px] border border-white/10 bg-white/5 p-4 md:p-6 h-full w-full">
+    <div className="flex-1 flex flex-col">
+      <div className="flex gap-2">
         <div className="flex min-w-0 items-center gap-2.5">
           <Image
             src={MARKET_WATCH_ICON_IMAGES[item.icon]}
@@ -75,10 +76,14 @@ function PositionCard({ item }: { item: OpenPositionStripItem }) {
       </div>
 
       <p className="mt-1.5 text-sm md:text-base text-white/60">
-        {item.sizeLabel} · {item.entryLabel}
+        <span>{item.sizeLabel} · {item.entryLabel.split(" ")[0]}</span>
+        <br className="hidden xl:block 2xl:hidden" />
+        <span className="xl:hidden 2xl:inline"> </span>
+        <span>{item.entryLabel.split(" ").slice(1).join(" ")}</span>
       </p>
+    </div>
 
-      <div className="pointer-events-none mt-2 h-16 w-full">
+      <div className="pointer-events-none mt-2 w-full">
         <MiniAreaLineChart
           values={item.trend.map((point) => point.value)}
           palette={item.palette ?? (isPositive ? "profit" : "loss")}

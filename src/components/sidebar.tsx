@@ -115,11 +115,11 @@ export function Sidebar({ className }: { className?: string }) {
   return (
     <aside
       className={cn(
-        "flex h-full w-[278px] shrink-0 flex-col justify-between overflow-hidden rounded-[20px] border border-[#999999]/20 p-4 lg:sticky lg:top-0 lg:h-screen lg:self-start bg-linear-to-t from-white/7 to-white/5",
+        "flex h-full w-[278px] shrink-0 flex-col justify-between  rounded-[20px] border border-white/20 p-4 lg:sticky lg:top-0 lg:h-screen lg:self-start will-change-transform",
         className,
       )}
     >
-    <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar">
+    <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar py-1">
       {/* Brand Header */}
       <div className="flex items-center gap-3 select-none">
         <Image src="/images/logo.svg" alt="logo" height={40} width={213} />
@@ -132,7 +132,7 @@ export function Sidebar({ className }: { className?: string }) {
         </h3>
       </div>
       {/* Workspace Section */}
-      <div className="flex flex-col gap-2.5 px-0">
+      <div className="flex flex-col overflow-visible gap-2.5 px-0">
         
         <SidebarItem
           icon={HiMiniChartBar}

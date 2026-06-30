@@ -80,7 +80,7 @@ export function SubscriptionPlanCard({
             <button
               type="button"
               onClick={onManagePlan}
-              className="inline-flex shrink-0 cursor-pointer items-center self-start rounded-[10px] border border-white/5 bg-linear-to-b from-white/7 to-white/3 px-4 py-2 text-sm font-medium text-white/50 transition-colors hover:bg-white/10 hover:text-white/70 lg:self-center"
+              className="inline-flex shrink-0 cursor-pointer items-center self-start rounded-[10px] border border-white/5 bg-linear-to-b from-white/7 to-white/3 px-4 py-1.25 text-sm font-medium text-white/50 transition-colors hover:bg-white/10 hover:text-white/70 lg:self-center"
             >
               {managePlanLabel}
             </button>
