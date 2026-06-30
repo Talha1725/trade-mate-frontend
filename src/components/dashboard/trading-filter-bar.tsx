@@ -1,6 +1,6 @@
 "use client";
 
-import { CirclePlayIcon } from "lucide-react";
+import { CirclePlayIcon, Star } from "lucide-react";
 
 import { CompareAssetsDropdown } from "@/components/dashboard/compare-assets-dropdown";
 import { IndicatorsDropdown } from "@/components/dashboard/indicators-dropdown";
@@ -13,6 +13,7 @@ import {
 } from "@/components/dashboard/ui/select";
 import { AssetIcon } from "@/components/shared/asset-icon";
 import { TRADING_TIMEFRAMES } from "@/lib/mock-data/trading-filter-bar";
+import { isAssetInWatchlist } from "@/lib/utils/watchlist";
 import { cn } from "@/lib/utils";
 import type {
   TradingFilterBarAction,
@@ -69,6 +70,46 @@ function AssetOptionLabel({ asset }: { asset: TradingFilterBarAsset }) {
   );
 }
 
+function AssetDropdownOption({
+  asset,
+  isInWatchlist,
+  onWatchlistToggle,
+}: {
+  asset: TradingFilterBarAsset;
+  isInWatchlist: boolean;
+  onWatchlistToggle?: (assetId: string) => void;
+}) {
+  return (
+    <span className="flex w-full min-w-0 items-center gap-2">
+      <span className="flex min-w-0 flex-1 items-center gap-2">
+        <AssetIcon symbol={asset.symbol} label={asset.label} size={20} />
+        <span className="truncate">{asset.label}</span>
+      </span>
+      <button
+        type="button"
+        aria-label={isInWatchlist ? `Remove ${asset.label} from watchlist` : `Add ${asset.label} to watchlist`}
+        className="pointer-events-auto cursor-pointer shrink-0 rounded-md p-1 text-white/60 transition-colors hover:bg-white/10 hover:text-primary"
+        onPointerDown={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        }}
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          onWatchlistToggle?.(asset.id);
+        }}
+      >
+        <Star
+          className={cn(
+            "size-4",
+            isInWatchlist ? "fill-primary text-primary" : "text-white/60",
+          )}
+        />
+      </button>
+    </span>
+  );
+}
+
 function OhlcvStat({
   label,
   value,
@@ -99,6 +140,8 @@ export function TradingFilterBar({
   assets,
   selectedAssetId,
   onAssetChange,
+  watchlistAssetIds = [],
+  onWatchlistToggle,
   quote,
   ohlcv,
   timeframe,
@@ -140,9 +183,13 @@ export function TradingFilterBar({
             <SelectItem
               key={asset.id}
               value={asset.id}
-              className="text-white focus:bg-white/10 focus:text-white py-1.5!"
+              className="text-white focus:bg-white/10 focus:text-white py-1.5! [&_button]:pointer-events-auto"
             >
-              <AssetOptionLabel asset={asset} />
+              <AssetDropdownOption
+                asset={asset}
+                isInWatchlist={isAssetInWatchlist(asset.id, watchlistAssetIds)}
+                onWatchlistToggle={onWatchlistToggle}
+              />
             </SelectItem>
           ))}
         </SelectContent>

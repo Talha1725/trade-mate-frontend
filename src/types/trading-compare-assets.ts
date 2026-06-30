@@ -1,10 +1,7 @@
-import type { MarketWatchIcon } from "@/types/market-watch-card";
-
 export type CompareAssetItem = {
   id: string;
   symbol: string;
   name: string;
-  icon: MarketWatchIcon;
 };
 
 export type CompareAssetsDropdownProps = {
