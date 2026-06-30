@@ -23,10 +23,6 @@ import { PlaceOrderDialog } from "@/components/place-order-dialog";
 import { useAuthStore } from "@/lib/stores/auth-store";
 
 export function PageHeader({
-  title,
-  description,
-  icon: Icon,
-  actions,
   className,
 }: PageHeaderProps) {
   const router = useRouter();
@@ -74,12 +70,6 @@ export function PageHeader({
         </button>
         {/* Account Switcher Dropdown */}
         <AccountSwitcherDropdown />
-
-        <div className="flex items-center justify-center gap-2 px-3 py-2 rounded-full border border-border/20 text-medium-500 text-sm">
-          <Image src="/header/united states.svg" alt="US" width={20} height={20} className="size-5" />
-          <span>NY</span>
-          <span className="text-white">13:23:51</span>
-        </div>
 
         <HeaderNotificationsDropdown
           onNotificationClick={() =>

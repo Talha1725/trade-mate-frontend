@@ -5,13 +5,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   History,
-  Bell,
   Settings,
   Eye,
   EyeOff,
-  Trophy,
   ChevronRight,
-  type LucideIcon,
 } from "lucide-react";
 import { HiMiniChartBar } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
@@ -19,7 +16,6 @@ import Image from "next/image";
 import type { SidebarItemProps, CardRowProps } from "@/types/components";
 import { useAccountSummary } from "@/hooks/use-trades";
 import { SIDEBAR_ICONS } from "@/lib/mock-data/sidebar-icons";
-import { AccountSelector } from "@/components/sidebar/account-selector";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
 
 function formatCurrency(value?: number) {
@@ -127,10 +123,6 @@ export function Sidebar({ className }: { className?: string }) {
       {/* Brand Header */}
       <div className="flex items-center gap-3 select-none">
         <Image src="/images/logo.svg" alt="logo" height={40} width={213} />
-      </div>
-
-      <div className="mt-6">
-        <AccountSelector />
       </div>
 
       {/* Workspace Label */} 
