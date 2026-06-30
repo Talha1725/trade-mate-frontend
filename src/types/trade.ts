@@ -1,9 +1,6 @@
-import type { MarketWatchIcon } from "@/types/market-watch-card";
-
 export interface Trade {
   id: string;
   symbol: string;
-  icon?: MarketWatchIcon | null;
   type: "Buy" | "Sell";
   vol: number;
   openP: number;

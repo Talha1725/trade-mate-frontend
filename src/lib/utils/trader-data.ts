@@ -133,7 +133,6 @@ export function mapPortfolioTradeToTrade(trade: PortfolioTrade): Trade {
   return {
     id: trade.id,
     symbol: trade.symbol,
-    icon: resolveMarketWatchIcon(trade.symbol),
     type: direction,
     vol: toNumber(trade.lots),
     openP: toNumber(trade.entryPrice),

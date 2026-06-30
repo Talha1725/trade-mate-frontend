@@ -74,7 +74,7 @@ function ActiveOrderRowCells({
     <TableRow className={TRADING_TABLE_ROW_CLASS}>
       <TableCell className="px-4 py-[5px] text-sm text-white/60">{order.displayId}</TableCell>
       <TableCell className="px-4 py-[5px]">
-        <TradingSymbolCell symbol={order.symbol} icon={order.icon} />
+        <TradingSymbolCell symbol={order.symbol} />
       </TableCell>
       <TableCell className="px-4 py-[5px]">
         <TradingSideBadge side={order.side} />

@@ -3,10 +3,11 @@
 import * as React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Search, ChevronDown, LogOutIcon } from "lucide-react";
+import { ChevronDown, LogOutIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { AccountSwitcherDropdown } from "@/components/account-switcher-dropdown";
+import { CurrencySearch } from "@/components/currency-search";
 import { HeaderNotificationsDropdown } from "@/components/header-notifications-dropdown";
 
 import { cn } from "@/lib/utils";
@@ -49,14 +50,7 @@ export function PageHeader({
     >
       {/* Search Bar — full width on mobile, constrained on desktop */}
       <div className="w-full lg:flex-1 lg:min-w-[160px] lg:max-w-[520px]">
-        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-neutral-900 border border-border/20">
-          <Search className="size-4 text-white/60 shrink-0" />
-          <input
-            type="text"
-            placeholder="Search"
-            className="bg-transparent text-sm text-white placeholder-white/60 outline-none w-full"
-          />
-        </div>
+        <CurrencySearch />
       </div>
 
       {/* Actions — 2-col grid on mobile/tablet, flex row on desktop */}
