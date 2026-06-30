@@ -53,6 +53,10 @@ export type TradeClosePayload = {
 };
 
 export type AccountMetricsSummary = {
+  accountId: string;
+  accountNumber: string | null;
+  fundingType: string | null;
+  name: string;
   balance: number;
   equity: number;
   floatingPnl: number;

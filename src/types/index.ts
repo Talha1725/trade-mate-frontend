@@ -22,6 +22,7 @@ export type { NavItem } from "@/types/nav";
 export type { RootLayoutProps } from "@/types/layout";
 
 export type * from "@/types/components";
+export type * from "@/types/account";
 export type * from "@/types/dashboard";
 export type * from "@/types/market";
 export type * from "@/types/price";
