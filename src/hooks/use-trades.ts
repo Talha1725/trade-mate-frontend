@@ -1,14 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { terminalApi } from "@/lib/services/terminal.api";
-import { get } from "@/lib/utils/api";
-import { ROUTES } from "@/constant/routes";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import type { AccountMetricsSummary, TradeClosePayload, TradeOpenPayload } from "@/types";
+import { accountSummaryApi } from "@/lib/services/account-summary.api";
 
-export function usePositions() {
+export function usePositions(accountId?: string | null) {
   return useQuery({
-    queryKey: ["positions"],
-    queryFn: () => terminalApi.getOpenPositions(useAuthStore.getState().session?.token),
+    queryKey: ["positions", accountId],
+    queryFn: () => terminalApi.getOpenPositions(useAuthStore.getState().session?.token, accountId ?? undefined),
   });
 }
 
@@ -35,12 +34,12 @@ export function useCloseTrade() {
   });
 }
 
-export function useAccountSummary() {
+export function useAccountSummary(accountId?: string | null) {
   const token = useAuthStore((state) => state.session?.token ?? null);
 
   return useQuery({
-    queryKey: ["account", "summary"],
+    queryKey: ["account", "summary", accountId],
     enabled: !!token,
-    queryFn: () => get<AccountMetricsSummary>(ROUTES.ACCOUNT.SUMMARY),
+    queryFn: () => accountSummaryApi.getAccountSummary(token ?? undefined, accountId ?? undefined),
   });
 }

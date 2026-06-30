@@ -31,6 +31,8 @@ export type PriceSocketPortfolioMessage = {
   accounts: {
     id: string;
     userId: string;
+    accountNumber: string | null;
+    fundingType: string | null;
     name: string;
     type: string;
     status: string;

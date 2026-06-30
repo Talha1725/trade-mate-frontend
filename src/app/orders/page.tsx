@@ -13,6 +13,7 @@ import { PageHeader } from "@/components/page-header";
 import { dashboardApi } from "@/lib/services/dashboard.api";
 import { terminalApi } from "@/lib/services/terminal.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
+import { useSelectedAccountStore } from "@/lib/stores/account-store";
 import { mapPortfolioPositionToActiveOrder, mapPortfolioTradeToRecentTrade } from "@/lib/utils/trader-data";
 import type { AccountLedgerResponse, UserPortfolioResponse } from "@/types/dashboard";
 
@@ -20,16 +21,17 @@ export default function OrdersPage() {
   const [snapshot, setSnapshot] = React.useState<UserPortfolioResponse | null>(null);
   const [ledger, setLedger] = React.useState<AccountLedgerResponse | null>(null);
   const token = useAuthStore((state) => state.session?.token ?? null);
+  const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
 
   const refreshOrders = React.useCallback(async () => {
     if (!token) return;
 
-    const nextSnapshot = await terminalApi.getOpenPositions(token);
+    const nextSnapshot = await terminalApi.getOpenPositions(token, selectedAccountId ?? undefined);
     setSnapshot(nextSnapshot);
 
     const nextLedger = await dashboardApi.getAccountLedger(nextSnapshot.account.id, token);
     setLedger(nextLedger);
-  }, [token]);
+  }, [selectedAccountId, token]);
 
   React.useEffect(() => {
     void refreshOrders();

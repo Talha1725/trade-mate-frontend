@@ -38,6 +38,8 @@ export type PortfolioStatus = "OPEN" | "CLOSED";
 export type PortfolioAccount = {
   id: string;
   userId: string;
+  accountNumber: string | null;
+  fundingType: string | null;
   name: string;
   type: string;
   status: string;

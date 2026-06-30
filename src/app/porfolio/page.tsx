@@ -13,18 +13,20 @@ import { PortfolioTopMoversCard } from "@/components/portfolio/portfolio-top-mov
 import { PortfolioValueChart } from "@/components/portfolio/portfolio-value-chart";
 import { terminalApi } from "@/lib/services/terminal.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
+import { useSelectedAccountStore } from "@/lib/stores/account-store";
 import { mapPortfolioPositionToPortfolioRow } from "@/lib/utils/trader-data";
 import type { UserPortfolioResponse } from "@/types/dashboard";
 
 export default function PortfolioPage() {
     const [snapshot, setSnapshot] = React.useState<UserPortfolioResponse | null>(null);
     const token = useAuthStore((state) => state.session?.token ?? null);
+    const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
 
     const refreshSnapshot = React.useCallback(async () => {
         if (!token) return;
-        const nextSnapshot = await terminalApi.getOpenPositions(token);
+        const nextSnapshot = await terminalApi.getOpenPositions(token, selectedAccountId ?? undefined);
         setSnapshot(nextSnapshot);
-    }, [token]);
+    }, [selectedAccountId, token]);
 
     React.useEffect(() => {
         void refreshSnapshot();
