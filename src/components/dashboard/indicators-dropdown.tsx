@@ -99,7 +99,12 @@ export function IndicatorsDropdown({
           className,
         )}
       >
-        <Image src="/images/icons/setting.svg" alt="Indicators" width={16} height={16} />
+        <Image src="/images/icons/setting.svg" alt="Indicators" width={16} height={16} style={
+          {
+            width: "auto",
+            height: "auto",
+          }
+        }/>
         Indicators
       </DropdownMenuTrigger>
 

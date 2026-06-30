@@ -1,22 +1,87 @@
 import type { TradingTimeframe } from "@/types/trading-filter-bar";
 import type { TradingViewAdvancedChartConfig } from "@/types/trading-view";
+import { resolveForexPairIcon } from "@/lib/utils/forex-flag";
+import { normalizeTradingSymbol } from "@/lib/utils/market-symbol-icon";
+import { resolveCryptoIconCode } from "@/lib/utils/resolve-crypto-icon";
 
 export type { TradingViewAdvancedChartConfig };
 
 const ADVANCED_CHART_EMBED_HOST = "https://www.tradingview-widget.com";
 
+const TRADING_VIEW_SYMBOL_MAP: Record<string, string> = {
+  BTCUSDT: "BINANCE:BTCUSDT",
+  ETHUSDT: "BINANCE:ETHUSDT",
+  SOLUSDT: "BINANCE:SOLUSDT",
+  BNBUSDT: "BINANCE:BNBUSDT",
+  XRPUSDT: "BINANCE:XRPUSDT",
+  ADAUSDT: "BINANCE:ADAUSDT",
+  DOGEUSDT: "BINANCE:DOGEUSDT",
+  AVAXUSDT: "BINANCE:AVAXUSDT",
+  LINKUSDT: "BINANCE:LINKUSDT",
+  TONUSDT: "BINANCE:TONUSDT",
+  TRXUSDT: "BINANCE:TRXUSDT",
+  DOTUSDT: "BINANCE:DOTUSDT",
+  LTCUSDT: "BINANCE:LTCUSDT",
+  SUIUSDT: "BINANCE:SUIUSDT",
+  EURUSD: "OANDA:EURUSD",
+  GBPUSD: "OANDA:GBPUSD",
+  USDJPY: "OANDA:USDJPY",
+  USDCHF: "OANDA:USDCHF",
+  AUDUSD: "OANDA:AUDUSD",
+  USDCAD: "OANDA:USDCAD",
+  NZDUSD: "OANDA:NZDUSD",
+  XAUUSD: "OANDA:XAUUSD",
+  EURJPY: "OANDA:EURJPY",
+  GBPJPY: "OANDA:GBPJPY",
+  BTCUSD: "BINANCE:BTCUSDT",
+  ETHUSD: "BINANCE:ETHUSDT",
+  SOLUSD: "BINANCE:SOLUSDT",
+  XRPUSD: "BINANCE:XRPUSDT",
+  ADAUSD: "BINANCE:ADAUSDT",
+};
+
+function resolveCryptoTradingViewSymbol(normalized: string) {
+  if (normalized.endsWith("USDT")) {
+    return `BINANCE:${normalized}`;
+  }
+
+  if (normalized.endsWith("USD") && normalized.length > 3) {
+    return `BINANCE:${normalized.slice(0, -3)}USDT`;
+  }
+
+  return `BINANCE:${normalized}`;
+}
+
 export function resolveTradingViewSymbol(symbol: string) {
-  const normalizedSymbol = symbol.trim().toUpperCase();
+  const normalized = normalizeTradingSymbol(symbol);
 
-  if (!normalizedSymbol) {
-    return "OANDA:EURUSD";
+  if (!normalized) {
+    return "BINANCE:BTCUSDT";
   }
 
-  if (normalizedSymbol.includes(":")) {
-    return normalizedSymbol;
+  if (normalized.includes(":")) {
+    return normalized.toUpperCase();
   }
 
-  return `OANDA:${normalizedSymbol}`;
+  const mappedSymbol = TRADING_VIEW_SYMBOL_MAP[normalized];
+
+  if (mappedSymbol) {
+    return mappedSymbol;
+  }
+
+  if (resolveCryptoIconCode(normalized)) {
+    return resolveCryptoTradingViewSymbol(normalized);
+  }
+
+  if (resolveForexPairIcon(normalized)) {
+    return `OANDA:${normalized}`;
+  }
+
+  if (normalized.endsWith("USDT")) {
+    return `BINANCE:${normalized}`;
+  }
+
+  return `OANDA:${normalized}`;
 }
 
 export function mapTimeframeToTradingViewInterval(timeframe: TradingTimeframe) {
@@ -80,4 +145,3 @@ export function buildAdvancedChartEmbedUrl({
   url.hash = encodeURIComponent(JSON.stringify(hashConfig));
   return url.toString();
 }
-

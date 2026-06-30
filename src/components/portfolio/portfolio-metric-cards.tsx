@@ -52,7 +52,10 @@ function MetricIconBox({
       {IconComponent ? (
         <IconComponent className="size-5 text-white" />
       ) : iconSrc ? (
-        <Image src={iconSrc} alt="" width={20} height={20} unoptimized />
+        <Image src={iconSrc} alt="" width={20} height={20} unoptimized style={{
+          width: "auto",
+          height: "auto",
+        }} />
       ) : null}
     </span>
   );

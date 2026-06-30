@@ -28,7 +28,7 @@ export default function AnalyticsPage() {
                 />
                 {/* 2grid card  */}
                 <div className="grid grid-cols-1 items-stretch gap-5 md:gap-6 xl:grid-cols-10 2xl:grid-cols-10 min-[1800px]:grid-cols-10">
-                    <div className="flex min-h-0 xl:col-span-6 2xl:col-span-5 min-[1800px]:col-span-4!">
+                    <div className="flex min-h-0 xl:col-span-5 2xl:col-span-5 min-[1800px]:col-span-4!">
                         <ChallengeProgressCard className="w-full" />
                     </div>
                     <div className="flex min-h-0 xl:col-span-5 2xl:col-span-5 min-[1800px]:col-span-6!">
@@ -46,12 +46,17 @@ export default function AnalyticsPage() {
                 {/* 3 grid card  */}
                 <div className="grid grid-cols-1 gap-5 md:gap-6 xl:grid-cols-3">
                     <TradingCalendarCard />
-                    <RecentTradesTable
-                        variant="strategy-performance"
-                        strategies={mockStrategyPerformanceRows}
-                        className="h-full"
-                    />
-                    <PerformanceInsightsCard className="h-full" />
+                    <div className=" xl:col-span-2 2xl:col-span-2 min-[1800px]:col-span-1!">
+                        <RecentTradesTable
+                            variant="strategy-performance"
+                            strategies={mockStrategyPerformanceRows}
+                            className="h-full"
+                        />
+                    </div>
+
+                    <div className=" xl:col-span-3 2xl:col-span-3 min-[1800px]:col-span-1!">
+                        <PerformanceInsightsCard className="h-full" />
+                    </div>
                 </div>
             </div>
         </AppShell>
