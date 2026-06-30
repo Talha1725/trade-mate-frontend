@@ -153,7 +153,7 @@ export function TradingFilterBar({
         }}
       >
         <SelectTrigger
-          className="h-auto cursor-pointer border-white/20 bg-white/5 px-3 py-[18px] text-left text-sm! text-white shadow-none hover:border-primary hover:bg-white/15 focus-visible:border-primary focus-visible:ring-primary/20 data-placeholder:text-white/60 w-full md:w-auto md:min-w-[240px]!"
+          className="h-auto cursor-pointer border-white/20 bg-linear-to-b from-[#6E6E6E1A] to-[#13131505] px-3 py-2 text-left text-sm! text-white shadow-none hover:border-primary hover:bg-white/15 focus-visible:border-primary focus-visible:ring-primary/20 data-placeholder:text-white/60 w-full md:w-auto md:min-w-[240px]!"
         >
           <SelectValue className="font-medium">
             {selectedAsset ? <AssetOptionLabel asset={selectedAsset} /> : null}

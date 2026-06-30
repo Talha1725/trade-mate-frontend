@@ -126,12 +126,11 @@ export default function HistoryPage() {
 
   return (
     <AppShell>
-      <div className="flex w-full flex-col gap-6">
+      <div className="flex w-full min-w-0 flex-col gap-6">
         <PageHeader
           title="Trade History"
           description="Review past trades and account performance."
         />
-
         <TradeHistoryTable trades={trades} isLoading={isLoading && !ledger} />
       </div>
     </AppShell>

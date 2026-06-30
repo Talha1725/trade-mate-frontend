@@ -4,6 +4,7 @@ import { IoCloseCircle } from "react-icons/io5";
 import { PiDownloadFill } from "react-icons/pi";
 
 import { cn } from "@/lib/utils";
+import { ResponsiveTableScroll } from "@/components/shared/responsive-table-scroll";
 import type { TradingTableCardProps } from "@/types/trading-table-card";
 
 export function TradingTableCard({
@@ -18,7 +19,7 @@ export function TradingTableCard({
   return (
     <section
       className={cn(
-        "overflow-hidden rounded-[20px] border border-white/20 bg-white/5 p-4 md:p-6",
+        "min-w-0 overflow-hidden rounded-[20px] border border-white/20 bg-white/5 p-4 md:p-6",
         className,
       )}
     >
@@ -47,7 +48,7 @@ export function TradingTableCard({
         </div>
       </div>
 
-      {children}
+      <ResponsiveTableScroll>{children}</ResponsiveTableScroll>
     </section>
   );
 }

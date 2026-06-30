@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import type { SidebarItemProps, CardRowProps } from "@/types/components";
 import { useAccountSummary } from "@/hooks/use-trades";
+import { SIDEBAR_ICONS } from "@/lib/mock-data/sidebar-icons";
 
 function formatCurrency(value?: number) {
   return `$${(value ?? 0).toLocaleString("en-US", {
@@ -31,7 +32,7 @@ export function SidebarItem({ icon: Icon, iconSrc, label, href, active, badge }:
     <Link
       href={href}
       className={cn(
-        "flex items-center gap-2 px-5 py-3 transition-all duration-200 text-sm border rounded-[8px] font-medium group select-none cursor-pointer",
+        "flex items-center gap-2 px-5 py-[11.5px] transition-all duration-200 text-sm border rounded-[8px] font-medium group select-none cursor-pointer",
         active
           ? "card-green text-white border-primary"
           : "border-transparent text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800/20"
@@ -87,13 +88,13 @@ function CardRow({
           ) : null}
         </div>
         <div className="flex flex-col">
-          <span className="text-[12px] font-medium text-white leading-3">{label}</span>
-          <span className="text-[8px] text-neutral-500 font-medium mt-1 leading-2">{subLabel}</span>
+          <span className="text-xs font-medium text-white leading-3">{label}</span>
+          <span className="text-[8px] text-white/60 font-medium mt-1 leading-2">{subLabel}</span>
         </div>
       </div>
       <div className="flex items-center gap-1">
         {valueIcon}
-        <span className="text-[11px] font-bold text-neutral-200">{value}</span>
+        <span className="text-xs font-semibold text-[#EDF6FF]">{value}</span>
       </div>
     </div>
   );
@@ -114,9 +115,12 @@ export function Sidebar({ className }: { className?: string }) {
 
   return (
     <aside
-      className={cn("sticky top-0 h-screen w-[278px] justify-between shrink-0 p-4 rounded-[24px] border border-neutral-800/80 flex flex-col", className)}
+      className={cn(
+        "flex h-full w-[278px] shrink-0 flex-col justify-between overflow-hidden rounded-[20px] border border-[#999999]/20 p-4 lg:sticky lg:top-0 lg:h-screen lg:self-start bg-linear-to-t from-white/7 to-white/5",
+        className,
+      )}
     >
-    <div className="flex-1 overflow-y-auto no-scrollbar">
+    <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar">
       {/* Brand Header */}
       <div className="flex items-center gap-3 select-none">
         <Image src="/images/logo.svg" alt="logo" height={40} width={213} />
@@ -124,12 +128,12 @@ export function Sidebar({ className }: { className?: string }) {
 
       {/* Workspace Label */} 
       <div> 
-       <h3 className="text-base leading-4 pb-4 font-medium text-neutral-500 mt-7">
+       <h3 className="text-base leading-4 pb-4 font-medium text-white/60 mt-8">
           Workspace
         </h3>
       </div>
       {/* Workspace Section */}
-      <div className="flex flex-col gap-[10px] px-0">
+      <div className="flex flex-col gap-2.5 px-0">
         
         <SidebarItem
           icon={HiMiniChartBar}
@@ -138,13 +142,13 @@ export function Sidebar({ className }: { className?: string }) {
           active={isTabActive("/dashboard")}
         />
         <SidebarItem
-          iconSrc="/sidebar icons/round graph.svg"
+          iconSrc={SIDEBAR_ICONS.roundGraph}
           label="Portfolio"
           href="/porfolio"
           active={isTabActive("/porfolio")}
         />
         <SidebarItem
-          iconSrc="/sidebar icons/reorder.svg"
+          iconSrc={SIDEBAR_ICONS.reorder}
           label="Orders"
           href="/orders"
           badge="2"
@@ -157,28 +161,21 @@ export function Sidebar({ className }: { className?: string }) {
           active={isTabActive("/history")}
         />
         <SidebarItem
-          iconSrc="/sidebar icons/pie chart 2.svg"
+          iconSrc={SIDEBAR_ICONS.pieChart2}
           label="Analytics"
-          href="/dashboard?tab=analytics"
+          href="/analytics"
+          active={isTabActive("/analytics")}
         />
       </div>
 
       {/* Tools Section */}
       <div className="flex flex-col gap-[10px] pb-10 px-0">
-        <span className="text-base leading-4 font-medium text-neutral-500 py-2 mt-4">
-          Tools
-        </span>
-        <SidebarItem
-          icon={Bell}
-          label="Alerts"
-          href="/alerts"
-          badge="3"
-          active={isTabActive("/alerts")}
-        />
+        
         <SidebarItem
           icon={Settings}
           label="Settings"
           href="/settings"
+          active={isTabActive("/settings")}
         />
       </div>
     </div>
@@ -192,26 +189,26 @@ export function Sidebar({ className }: { className?: string }) {
           <div className="absolute -bottom-12 -left-12 size-24 blur-[30px] rounded-full pointer-events-none" />
 
           <div className="flex justify-center">
-            <Image src="/sidebar icons/diamond.svg" alt="diamond" width={214} height={88} />
+            <Image src={SIDEBAR_ICONS.diamond} alt="diamond" width={214} height={88} />
           </div>
 
           <div className="flex flex-col items-center gap-2.5 py-5 text-center">
             <span className="text-[18px] font-medium text-white leading-4.5">
               Unlock Pro Insights
             </span>
-            <span className="text-[12px] text-regular-400 leading-3 letter-spacing-[-1px]" style={{ color: "#FFFFFF99" }}>
+            <span className="text-xs text-white/60">
               Get AI-powered analytics and advanced features.
             </span>
           </div>
 
           <Link
-            href="/dashboard?tab=analytics"
-            className="w-full py-2 px- rounded-sm bg-white/5 border border-white/20 flex items-center justify-between justify-center gap-1.5"
+            href="/analytics"
+            className="w-full py-[9px] px-2 rounded-sm hover:bg-white/8 duration-300 bg-white/4 border border-white/5 flex items-center  justify-center gap-1.5"
           >
-            <span className="text-[14px] leading-3.5 font-medium text-[#22E0A2]">
+            <span className="text-sm  font-medium text-primary">
               Upgrade to Pro
             </span>
-            <Image src="/sidebar icons/upload.svg" alt="upload" width={14} height={14} className="size-3.5" />
+            <Image src={SIDEBAR_ICONS.upload} alt="upload" width={14} height={14} className="size-3.5" />
           </Link>
         </div>
       ) : (
@@ -225,15 +222,15 @@ export function Sidebar({ className }: { className?: string }) {
               Free Account
             </span>
             <div className="flex items-center justify-between">
-              <span className="text-[24px] font-medium leading-6 text-white-500">
+              <span className="text-[24px] font-medium leading-6 text-white">
                 {showBalance ? formatCurrency(accountSummary?.balance) : "•••••••"}
               </span>
               <button
                 onClick={() => setShowBalance(!showBalance)}
-                className="text-neutral-500 hover:text-white transition-colors p-1 cursor-pointer rounded"
+                className="text-white/60 hover:text-white transition-colors p-1 cursor-pointer rounded"
                 title={showBalance ? "Hide Balance" : "Show Balance"}
               >
-                {showBalance ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
+                {showBalance ? <Eye className="size-4.5" /> : <EyeOff className="size-4.5" />}
               </button>
             </div>
           </div>
@@ -241,14 +238,14 @@ export function Sidebar({ className }: { className?: string }) {
           {/* Daily P&L */}
           <div className="flex flex-col gap-1">
             <div className="flex justify-between items-center text-[10px]">
-              <span className="text-[12px] leading-3 text-neutral-500 font-medium">Daily P&L</span>
-              <span className={cn("font-bold", (accountSummary?.floatingPnl ?? 0) >= 0 ? "text-[#22E0A2]" : "text-red-500")}>
+              <span className="text-xs leading-3 text-white/60 font-medium">Daily P&L</span>
+              <span className={cn("font-semibold text-xs", (accountSummary?.floatingPnl ?? 0) >= 0 ? "text-primary" : "text-destructive")}>
                 {formatCurrency(accountSummary?.floatingPnl)}
               </span>
             </div>
-            <div className="w-full bg-neutral-800 h-1 rounded-full overflow-hidden">
+            <div className="w-full bg-neutral-800 h-1.5 rounded-full overflow-hidden mt-1.5">
               <div
-                className="h-full bg-gradient-to-r from-[#22E0A2] to-[#0CE9A0] rounded-full shadow-[0_0_8px_rgba(34,224,162,0.4)]"
+                className="h-full bg-linear-to-r from-primary to-[#10B981] rounded-full shadow-[0_0_8px_rgba(34,224,162,0.4)]"
                 style={{ width: "70%" }}
               />
             </div>
@@ -257,37 +254,37 @@ export function Sidebar({ className }: { className?: string }) {
           {/* Reusable Card Rows */}
           <div className="flex flex-col gap-2">
             <CardRow
-              iconSrc="/sidebar icons/open p&l.svg"
+              iconSrc={SIDEBAR_ICONS.openPnl}
               label="Open P&L"
               subLabel="Today"
               value={formatCurrency(accountSummary?.floatingPnl)}
             />
             <CardRow
-              iconSrc="/sidebar icons/winrate.svg"
+              iconSrc={SIDEBAR_ICONS.winrate}
               label="Win Rate"
               subLabel="Last 30 Days"
               value={`${Math.round(accountSummary?.winRate ?? 0)}%`}
             />
             <CardRow
-              iconSrc="/sidebar icons/cup star.svg"
+              iconSrc={SIDEBAR_ICONS.cupStar}
               label="Best Asset"
               subLabel="Last 30 Days"
               value="BTCUSD"
               valueIcon={
-                <Image src="/sidebar icons/bitcoin logo.svg" alt="Bitcoin" width={14} height={14} className="size-3.5" />
+                <Image src={SIDEBAR_ICONS.bitcoinLogo} alt="Bitcoin" width={14} height={14} className="size-3.5" />
               }
             />
           </div>
 
           {/* Action Button */}
           <Link
-            href="/dashboard?tab=analytics"
-            className="w-full mt-1 py-2 px-3 rounded-sm bg-white/5 border border-white/20  flex items-center justify-center gap-1.5 cursor-pointer group"
+            href="/analytics"
+            className="w-full mt-1 py-2.5 px-3 rounded-sm hover:bg-white/10 transition-all duration-200 bg-white/4 border border-white/5  flex items-center justify-center gap-1.5 cursor-pointer group"
           >
-            <span className="text-[12px] leading-3 font-medium text-[#22E0A2] ">
+            <span className="text-xs leading-3 font-medium text-primary ">
               View Full Analytics
             </span>
-            <ChevronRight className="size-3.5 text-[#22E0A2]" />
+            <ChevronRight className="size-3.5 text-primary" />
           </Link>
         </div>
       )}

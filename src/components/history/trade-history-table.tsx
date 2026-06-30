@@ -6,6 +6,7 @@ import { ClockIcon } from "lucide-react";
 import { PiDownloadFill } from "react-icons/pi";
 
 import { TradingSymbolCell } from "@/components/shared/trading-symbol-cell";
+import { ResponsiveTableScroll } from "@/components/shared/responsive-table-scroll";
 import {
   formatTradingPrice,
   formatTradingQty,
@@ -24,6 +25,7 @@ import {
 } from "@/components/ui/table";
 import { Spinner } from "@/components/ui/spinner";
 import { mockTrades } from "@/lib/mock-data/trades";
+import { SIDEBAR_ICONS } from "@/lib/mock-data/sidebar-icons";
 import { formatDateTimeLabel } from "@/lib/utils/trader-data";
 import { cn } from "@/lib/utils";
 import type { TradeHistoryTableProps } from "@/types/trade-history";
@@ -49,7 +51,7 @@ function HeaderStatPill({
   label: string;
 }) {
   return (
-    <div className="inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-gradient-to-b from-white/10 to-white/5 px-4 py-2 text-sm font-medium text-white/60">
+    <div className="inline-flex items-center gap-2.5 rounded-full border border-white/5 bg-linear-to-b from-white/7 to-white/3  px-4 py-2 text-sm font-medium text-white/60">
       {icon}
       <span className="text-white">{label}</span>
     </div>
@@ -148,7 +150,7 @@ export function TradeHistoryTable({
   return (
     <section
       className={cn(
-        "overflow-hidden rounded-[20px] border border-white/20 bg-white/5 p-4 md:p-5",
+        "min-w-0 overflow-hidden rounded-[20px] border border-white/20 bg-white/5 p-4 md:p-6",
         className,
       )}
     >
@@ -163,7 +165,7 @@ export function TradeHistoryTable({
           <HeaderStatPill
             icon={
               <Image
-                src="/sidebar icons/cup star.svg"
+                src={SIDEBAR_ICONS.cupStar}
                 alt="win rate"
                 width={16}
                 height={16}
@@ -175,7 +177,7 @@ export function TradeHistoryTable({
           <button
             type="button"
             onClick={handleExport}
-            className="inline-flex cursor-pointer items-center gap-2.5 rounded-full border border-white/10 bg-gradient-to-b from-white/10 to-white/5 px-4 py-2 text-sm font-medium text-white/60 transition-colors hover:bg-white/10"
+            className="inline-flex cursor-pointer items-center gap-2.5 rounded-[10px] border border-white/5 bg-linear-to-b from-white/7 to-white/3 px-4 py-2 text-sm font-medium text-white/60 transition-colors hover:bg-white/10"
           >
             <PiDownloadFill className="size-4 text-white" />
             <span className="text-white">Export</span>
@@ -195,29 +197,31 @@ export function TradeHistoryTable({
           <p className="text-sm text-white/40">No trades found.</p>
         </div>
       ) : (
-        <Table className="min-w-[1040px]">
-          <TableHeader variant="gradient">
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="h-11 px-4 text-sm font-medium text-white/60">
-                Date/Time
-              </TableHead>
-              <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Symbol</TableHead>
-              <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Side</TableHead>
-              <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Type</TableHead>
-              <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Qty</TableHead>
-              <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Entry</TableHead>
-              <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Exit</TableHead>
-              <TableHead className="h-11 px-4 text-sm font-medium text-white/60">P&amp;L</TableHead>
-              <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Status</TableHead>
-            </TableRow>
-          </TableHeader>
+        <ResponsiveTableScroll>
+          <Table className="min-w-[980px]">
+            <TableHeader variant="gradient">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="h-11 px-4 text-sm font-medium text-white/60">
+                  Date/Time
+                </TableHead>
+                <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Symbol</TableHead>
+                <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Side</TableHead>
+                <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Type</TableHead>
+                <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Qty</TableHead>
+                <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Entry</TableHead>
+                <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Exit</TableHead>
+                <TableHead className="h-11 px-4 text-sm font-medium text-white/60">P&amp;L</TableHead>
+                <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Status</TableHead>
+              </TableRow>
+            </TableHeader>
 
-          <TableBody>
-            {trades.map((trade) => (
-              <TradeHistoryRowCells key={trade.id} trade={trade} />
-            ))}
-          </TableBody>
-        </Table>
+            <TableBody>
+              {trades.map((trade) => (
+                <TradeHistoryRowCells key={trade.id} trade={trade} />
+              ))}
+            </TableBody>
+          </Table>
+        </ResponsiveTableScroll>
       )}
     </section>
   );

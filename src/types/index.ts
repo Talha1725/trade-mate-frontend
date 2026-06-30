@@ -44,10 +44,21 @@ export type * from "@/types/portfolio-top-movers";
 export type * from "@/types/portfolio-open-positions";
 export type * from "@/types/orders-metric-card";
 export type * from "@/types/orders-recent-trades";
+export type * from "@/types/strategy-performance";
 export type * from "@/types/orders-depth-chart";
 export type * from "@/types/order-book";
 export type * from "@/types/active-orders";
+export type * from "@/types/responsive-table-scroll";
 export type * from "@/types/trading-symbol-cell";
+export type * from "@/types/header-notifications";
+export type * from "@/types/account-actions-card";
+export type * from "@/types/subscription-plan-card";
+export type * from "@/types/account-activity-card";
+export type * from "@/types/account-information-card";
+export type * from "@/types/security-overview-card";
+export type * from "@/types/challenge-progress-card";
+export type * from "@/types/performance-insights-card";
+export type * from "@/types/trading-calendar-card";
 export type * from "@/types/trading-table-card";
 export type {
   AccountMetricsSummary,

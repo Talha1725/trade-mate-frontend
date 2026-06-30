@@ -1,5 +1,5 @@
 "use client";
-
+import { RiEyeCloseLine } from "react-icons/ri";
 import * as React from "react";
 import Image from "next/image";
 import { X, Calendar, CheckCircle2, Eye, EyeOff, ChevronDown } from "lucide-react";
@@ -28,14 +28,14 @@ export function SettingsDialog({ view, onViewChange }: SettingsDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onViewChange(null)}>
       <DialogContent
-        className="w-full max-w-[600px] sm:max-w-[600px] max-h-[90vh] overflow-y-auto custom-scrollbar gradient-dialog-bg border border-white/20 p-6 gap-0 shadow-2xl rounded-[16px] text-white"
+        className="w-full max-w-[600px] sm:max-w-[600px] max-h-[90vh] overflow-y-auto custom-scrollbar gradient-dialog-bg border border-white/20 p-6 gap-0 shadow-2xl rounded-[20px] text-white min-h-auto!"
         style={{ minHeight: view ? heightMap[view] : "auto" }}
         showCloseButton={false}
       >
         {/* Absolute Close Button */}
         <DialogClose
           render={
-            <button className="absolute top-6 right-6 size-6 rounded-full bg-white hover:opacity-90 transition-opacity text-black flex items-center justify-center cursor-pointer">
+            <button className="absolute top-6 right-6 size-5 rounded-full bg-white hover:opacity-90 transition-opacity text-black flex items-center justify-center cursor-pointer">
               <X className="size-3.5" />
               <span className="sr-only">Close</span>
             </button>
@@ -66,11 +66,11 @@ function EditProfileView({ onClose }: SettingsViewProps) {
           </Avatar>
           <div>
             <div className="text-sm font-medium text-white mb-1">Upload Image</div>
-            <div className="text-sm font-normal text-white/60 text-white mb-2">Min 400x400px, PNG or JPEG</div>
+            <div className="text-sm font-normal text-white/60 mb-2">Min 400x400px, PNG or JPEG</div>
             <button
               type="button"
               onClick={() => toast.info("Profile image upload is not enabled for this account yet.")}
-              className="text-sm font-medium text-white px-3.5 py-1.75 rounded-[10px] gradient-btn-upload border border-white/3 hover:bg-[#333] transition-colors"
+              className="text-sm font-medium cursor-pointer text-white px-3.5 py-1.75 rounded-[10px] gradient-btn-upload border border-white/3 hover:bg-[#333] transition-colors"
             >
               Upload
             </button>
@@ -78,7 +78,7 @@ function EditProfileView({ onClose }: SettingsViewProps) {
         </div>
       </div>
 
-      <div className="space-y-4 mb-7">
+      <div className="space-y-5 mb-7">
         <div className="flex items-center gap-33">
           <label className="text-sm font-medium text-white/50 shrink-0">Full Name</label>
           <div className="flex-1 rounded-[10px] gradient-btn-bar border border-white/20 px-3 py-1.75">
@@ -104,14 +104,14 @@ function EditProfileView({ onClose }: SettingsViewProps) {
       <div className="flex gap-6">
         <button
           onClick={onClose}
-          className="flex-1 rounded-[10px] py-2.25 text-sm font-medium text-white gradient-btn-cancel border border-white/20 transition-colors"
+          className="flex-1 cursor-pointer rounded-[10px] py-2.25 text-sm font-medium text-white gradient-btn-cancel border border-white/20 transition-colors"
         >
           Cancel
         </button>
         <button
           type="button"
           onClick={() => toast.info("Profile updates are not enabled for this account yet.")}
-          className="flex-1 rounded-[10px] py-2.25 text-base font-medium text-white trade-btn"
+          className="flex-1 cursor-pointer rounded-[10px] py-2.25 text-base font-medium text-white trade-btn"
         >
           Save Changes
         </button>
@@ -127,45 +127,45 @@ function ChangePasswordView({ onClose }: SettingsViewProps) {
 
   return (
     <div className="flex flex-col">
-      <DialogTitle className="text-base font-bold text-white mb-4.75">Change Password</DialogTitle>
+      <DialogTitle className="text-base font-semibold text-white mb-6.5">Change Password</DialogTitle>
 
-      <div className="space-y-4 mb-6">
+      <div className="space-y-4 mb-6.5">
         <div className="flex items-center gap-27">
           <label className="text-sm font-medium text-white/50 shrink-0">Current Password</label>
-          <div className="flex-1 rounded-[10px] border border-[#222] bg-[#141414] px-3 py-1.5 flex items-center justify-between">
+          <div className="flex-1 rounded-[10px] border border-white/20 bg-linear-to-b from-[#6E6E6E1A] to-[#13131505] px-3 py-1.5 flex items-center justify-between">
             <input
               type={showCurrent ? "text" : "password"}
               defaultValue="dW3z5hgUi!&^"
               className="w-full bg-transparent text-sm font-medium text-white outline-none"
             />
-            <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="p-1 -mr-1 hover:opacity-80 transition-opacity">
-              {showCurrent ? <EyeOff className="size-4 text-white/50 shrink-0" /> : <Eye className="size-4 text-white/50 shrink-0" />}
+            <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="p-1 -mr-1 hover:opacity-80 transition-opacity cursor-pointer">
+              {showCurrent ? <RiEyeCloseLine className="size-4 text-white shrink-0" /> : <Eye className="size-4 text-white/50 shrink-0" />}
             </button>
           </div>
         </div>
         <div className="flex items-center gap-32">
           <label className="text-sm font-medium text-white/50 shrink-0">New Password</label>
-          <div className="flex-1 rounded-[10px] border border-[#222] bg-[#141414] px-3 py-1.5 flex items-center justify-between">
+          <div className="flex-1 rounded-[10px] border border-white/20 bg-linear-to-b from-[#6E6E6E1A] to-white/3 px-3 py-1.5 flex items-center justify-between">
             <input
               type={showNew ? "text" : "password"}
               defaultValue=".........."
               className="w-full bg-transparent text-sm font-medium text-white outline-none"
             />
-            <button type="button" onClick={() => setShowNew(!showNew)} className="p-1 -mr-1 hover:opacity-80 transition-opacity">
-              {showNew ? <EyeOff className="size-4 text-white/50 shrink-0" /> : <Eye className="size-4 text-white/50 shrink-0" />}
+            <button type="button" onClick={() => setShowNew(!showNew)} className="p-1 -mr-1 hover:opacity-80 transition-opacity cursor-pointer">
+              {showNew ? <RiEyeCloseLine className="size-4 text-white shrink-0" /> : <Eye className="size-4 text-white/50 shrink-0" />}
             </button>
           </div>
         </div>
         <div className="flex items-center gap-18">
           <label className="text-sm font-medium text-white/50 shrink-0">Confirm New Password</label>
-          <div className="flex-1 rounded-[10px] border border-[#222] bg-[#141414] px-3 py-1.5 flex items-center justify-between">
+          <div className="flex-1 rounded-[10px] border border-white/20 bg-linear-to-b from-[#6E6E6E1A] to-white/3 px-3 py-1.5 flex items-center justify-between">
             <input
               type={showConfirm ? "text" : "password"}
               defaultValue=".........."
               className="w-full bg-transparent text-sm font-medium text-white outline-none"
             />
-            <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="p-1 -mr-1 hover:opacity-80 transition-opacity">
-              {showConfirm ? <EyeOff className="size-4 text-white/50 shrink-0" /> : <Eye className="size-4 text-white/50 shrink-0" />}
+            <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="p-1 -mr-1 hover:opacity-80 transition-opacity cursor-pointer">
+              {showConfirm ? <RiEyeCloseLine className="size-4 text-white shrink-0" /> : <Eye className="size-4 text-white/50 shrink-0" />}
             </button>
           </div>
         </div>
@@ -174,14 +174,14 @@ function ChangePasswordView({ onClose }: SettingsViewProps) {
       <div className="flex gap-6">
         <button
           onClick={onClose}
-          className="flex-1 rounded-[10px] py-3 text-sm font-medium text-white gradient-btn-cancel border border-white/20 transition-colors"
+          className="flex-1 cursor-pointer rounded-[10px] py-2.25 text-sm font-medium text-white gradient-btn-cancel border border-white/20 hover:bg-white/10 transition-colors"
         >
           Cancel
         </button>
         <button
           type="button"
           onClick={() => toast.info("Password changes are not enabled for this account yet.")}
-          className="flex-1 rounded-[10px] py-3 text-base font-semibold text-white-500 trade-btn"
+          className="flex-1 cursor-pointer rounded-[10px] py-2.25 text-base font-medium text-white trade-btn"
         >
           Update Password
         </button>
@@ -193,7 +193,7 @@ function ChangePasswordView({ onClose }: SettingsViewProps) {
 function EmailVerificationView({ onClose }: SettingsViewProps) {
   return (
     <div className="flex flex-col">
-      <DialogTitle className="text-lg font-semibold text-white mb-6">Email Verification</DialogTitle>
+      <DialogTitle className="text-lg font-semibold text-white mb-7">Email Verification</DialogTitle>
 
       <div className="space-y-8">
         <div className="flex items-center justify-between">
@@ -208,13 +208,13 @@ function EmailVerificationView({ onClose }: SettingsViewProps) {
           </div>
         </div>
         <div className="flex items-start justify-between gap-4">
-          <p className="text-sm font-normal text-white/50 leading-relaxed max-w-[250px]">
-            Your email is verified. You will receive important account notifications.
+          <p className="text-sm font-normal text-white/50 max-w-[350px]">
+            Your email is verified. You will receive importance account notifications.
           </p>
           <button
             type="button"
             onClick={() => toast.info("Email verification settings are not editable yet.")}
-            className="text-sm font-medium text-red-500 bg-[#251212] px-4 py-2 rounded-lg hover:bg-red-500/20 transition-colors shrink-0"
+            className="text-sm font-medium cursor-pointer text-destructive bg-destructive/10 border border-destructive/8 px-4 py-2 rounded-[10px] hover:bg-destructive/20 transition-colors shrink-0"
           >
             Disable
           </button>
@@ -259,14 +259,14 @@ function BillingHistoryView({ onClose }: SettingsViewProps) {
       <div className="flex gap-6">
         <button
           onClick={onClose}
-          className="flex-1 rounded-[10px] py-3 text-sm font-medium text-white gradient-btn-cancel hover:bg-[#333] transition-colors"
+          className="flex-1 cursor-pointer rounded-[10px] py-3 text-sm font-medium text-white gradient-btn-cancel hover:bg-[#333] transition-colors"
         >
           Cancel
         </button>
         <button
           type="button"
           onClick={() => toast.info("Billing changes are not enabled for free accounts.")}
-          className="flex-1 rounded-[10px] py-3 text-base font-semibold text-white-500 trade-btn"
+          className="flex-1 cursor-pointer rounded-[10px] py-3 text-base font-semibold text-white trade-btn"
         >
           Manage Billing
         </button>

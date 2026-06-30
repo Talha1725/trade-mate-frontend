@@ -1,85 +1,67 @@
 "use client";
-
 import { useState } from "react";
-import { SettingsDialogView } from "@/types/settings";
+import { toast } from "sonner";
+import Image from "next/image";
+import { AccountActionsCard } from "@/components/settings/account-actions-card";
+import { AccountActivityCard } from "@/components/settings/account-activity-card";
+import { AccountInformationCard } from "@/components/settings/account-information-card";
+import { SecurityOverviewCard } from "@/components/settings/security-overview-card";
+import { SubscriptionPlanCard } from "@/components/settings/subscription-plan-card";
 import { SettingsDialog } from "@/components/settings-dialog";
-import { PageHeader } from "@/components/page-header";
 import { AppShell } from "@/components/app-shell";
+import { PageHeader } from "@/components/page-header";
+import type { SettingsDialogView } from "@/types/settings";
+
+
 
 export default function SettingsPage() {
   const [activeView, setActiveView] = useState<SettingsDialogView>(null);
-
   return (
     <AppShell>
-    <div className="flex flex-col h-full bg-[#0c0c0e]">
-      <PageHeader title="Settings" />
-      
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
-        <div className="max-w-4xl mx-auto space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            
-            {/* Edit Profile */}
-            <div className="p-6 rounded-xl border border-[#222] bg-[#141414] flex flex-col justify-between items-start gap-4">
-              <div>
-                <h3 className="text-white font-semibold mb-1">Edit Profile</h3>
-                <p className="text-white/50 text-sm">Update your personal information and avatar.</p>
-              </div>
-              <button 
-                onClick={() => setActiveView("edit-profile")}
-                className="px-4 py-2 rounded-lg bg-[#222] text-white text-sm hover:bg-[#333] transition-colors"
-              >
-                Edit Profile
-              </button>
-            </div>
-
-            {/* Change Password */}
-            <div className="p-6 rounded-xl border border-[#222] bg-[#141414] flex flex-col justify-between items-start gap-4">
-              <div>
-                <h3 className="text-white font-semibold mb-1">Change Password</h3>
-                <p className="text-white/50 text-sm">Update your account password to stay secure.</p>
-              </div>
-              <button 
-                onClick={() => setActiveView("change-password")}
-                className="px-4 py-2 rounded-lg bg-[#222] text-white text-sm hover:bg-[#333] transition-colors"
-              >
-                Change Password
-              </button>
-            </div>
-
-            {/* Email Verification */}
-            <div className="p-6 rounded-xl border border-[#222] bg-[#141414] flex flex-col justify-between items-start gap-4">
-              <div>
-                <h3 className="text-white font-semibold mb-1">Email Verification</h3>
-                <p className="text-white/50 text-sm">Check your email verification status.</p>
-              </div>
-              <button 
-                onClick={() => setActiveView("email-verification")}
-                className="px-4 py-2 rounded-lg bg-[#222] text-white text-sm hover:bg-[#333] transition-colors"
-              >
-                Email Verification
-              </button>
-            </div>
-
-            {/* Billing History */}
-            <div className="p-6 rounded-xl border border-[#222] bg-[#141414] flex flex-col justify-between items-start gap-4">
-              <div>
-                <h3 className="text-white font-semibold mb-1">Billing History</h3>
-                <p className="text-white/50 text-sm">View your past billing cycles and plan status.</p>
-              </div>
-              <button 
-                onClick={() => setActiveView("billing-history")}
-                className="px-4 py-2 rounded-lg bg-[#222] text-white text-sm hover:bg-[#333] transition-colors"
-              >
-                Billing History
-              </button>
-            </div>
-
-          </div>
-        </div>
-      </div>
-
       <SettingsDialog view={activeView} onViewChange={setActiveView} />
-    </div>
+      <div className="flex w-full min-w-0 flex-col gap-6">
+        <PageHeader title="Settings" />
+        <div className="grid grid-cols-1 gap-5 md:gap-6 lg:grid-cols-2">
+          <AccountInformationCard
+            className=""
+            onEditProfile={() => setActiveView("edit-profile")}
+          />
+          <SecurityOverviewCard
+            onChangePassword={() => setActiveView("change-password")}
+            onManageEmailVerification={() => setActiveView("email-verification")}
+            onManageLoginAlerts={() =>
+              toast.info("Login alert settings are not editable yet.")
+            }
+          />
+          <AccountActivityCard
+            onActiveSessionsClick={() =>
+              toast.info("Active session management is not available yet.")
+            }
+          />
+          <SubscriptionPlanCard
+            onManagePlan={() =>
+              toast.info("Plan management is not available for free accounts yet.")
+            }
+            onViewHistory={() => setActiveView("billing-history")}
+          />
+        </div>
+
+        <AccountActionsCard
+          onActionClick={(actionId) => {
+            const messages: Record<string, string> = {
+              "export-data": "Data export is not available yet.",
+              "download-reports": "Report downloads are not available yet.",
+              "close-account": "Account closure is not enabled yet.",
+              "contact-support": "Support chat is not available yet.",
+            };
+            toast.info(messages[actionId] ?? "This action is not available yet.");
+          }}
+        />
+
+        {/* image */}
+        <Image src="/images/setting/settinggraphs.png" alt="Settings" width={3000} height={200} className="w-full" />
+      </div>
     </AppShell>
   );
 }
+

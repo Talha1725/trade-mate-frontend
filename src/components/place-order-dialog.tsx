@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MARKET_WATCH_ICON_IMAGES } from "@/lib/mock-data/market-watch-card";
+import { SIDEBAR_ICONS } from "@/lib/mock-data/sidebar-icons";
 import { cn } from "@/lib/utils";
 import { terminalApi } from "@/lib/services/terminal.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
@@ -119,7 +120,7 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
           </div>
           <button className="p-2 rounded-lg border border-[#108961] card-green shrink-0 hover:opacity-90 transition-opacity">
             <Image 
-              src="/sidebar icons/winrate.svg" 
+              src={SIDEBAR_ICONS.winrate} 
               alt="win rate" 
               width={16} 
               height={16} 
@@ -145,7 +146,7 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
           <button
             onClick={() => setSide("Buy")}
             className={cn(
-              "flex-1 rounded-lg py-2 text-sm font-medium transition-colors",
+              "flex-1 rounded-lg py-2 cursor-pointer text-sm font-medium transition-colors",
               side === "Buy" ? "btn-green text-white" : "text-white/50 hover:text-white"
             )}
           >
@@ -154,7 +155,7 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
           <button
             onClick={() => setSide("Sell")}
             className={cn(
-              "flex-1 rounded-lg py-2 text-sm font-medium transition-colors",
+              "flex-1 rounded-lg py-2 text-sm cursor-pointer font-medium transition-colors",
               side === "Sell" ? "btn-red text-white" : "text-white/50 hover:text-white"
             )}
           >
@@ -322,7 +323,7 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
             onClick={submitOrder}
             disabled={isSubmitting}
             className={cn(
-              "flex-1 rounded-xl py-3 text-sm font-semibold text-white disabled:opacity-60",
+              "flex-1 rounded-xl py-3 text-sm cursor-pointer font-semibold text-white disabled:opacity-60",
               side === "Buy" ? "btn-green" : "btn-red"
             )}
           >
@@ -331,7 +332,7 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
           <button
             type="button"
             onClick={() => toast.success("Risk check passed.")}
-            className="flex-1 rounded-xl py-3 text-sm font-semibold text-white/80 border border-white/10 bg-linear-to-b from-white/10 to-white/5 hover:opacity-90 transition-opacity shadow-inner shadow-white/5"
+            className="flex-1 rounded-xl py-3 cursor-pointer text-sm font-semibold text-white/80 border border-white/10 bg-linear-to-b from-white/10 to-white/5 hover:opacity-90 transition-opacity shadow-inner shadow-white/5"
           >
             Run Risk Check
           </button>

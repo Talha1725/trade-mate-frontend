@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useMemo, useState } from "react";
+import { PiDownloadFill } from "react-icons/pi";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
@@ -49,6 +50,11 @@ export function PortfolioValueChart({
   title = "Portfolio Value Over Time",
   dataByTimeframe = mockPortfolioValueChartData,
   defaultTimeframe = "1m",
+  timeframes = TRADING_TIMEFRAMES,
+  showExportButton = false,
+  exportLabel = "Export Report",
+  onExport,
+  emptyStateMessage = "No portfolio value data available.",
   className,
 }: PortfolioValueChartProps) {
   const gradientId = useId().replace(/:/g, "");
@@ -70,21 +76,34 @@ export function PortfolioValueChart({
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h3 className="text-base font-semibold text-white md:text-lg">{title}</h3>
 
-        <div className="flex items-center gap-0.5">
-          {TRADING_TIMEFRAMES.map((interval) => (
-            <TimeframeButton
-              key={interval}
-              interval={interval}
-              isActive={interval === timeframe}
-              onSelect={() => setTimeframe(interval)}
-            />
-          ))}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-0.5">
+            {timeframes.map((interval) => (
+              <TimeframeButton
+                key={interval}
+                interval={interval}
+                isActive={interval === timeframe}
+                onSelect={() => setTimeframe(interval)}
+              />
+            ))}
+          </div>
+
+          {showExportButton ? (
+            <button
+              type="button"
+              onClick={onExport}
+              className="inline-flex cursor-pointer items-center gap-2 rounded-[10px] border border-white/5 bg-white/5 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10"
+            >
+              <PiDownloadFill className="size-4" />
+              {exportLabel}
+            </button>
+          ) : null}
         </div>
       </div>
 
       <ChartContainer
         config={CHART_CONFIG}
-        className="aspect-auto h-[300px] w-full [&_.recharts-cartesian-grid-horizontal_line]:stroke-white/10 [&_.recharts-cartesian-grid-vertical_line]:stroke-white/10"
+        className="aspect-auto h-[230px] w-full [&_.recharts-cartesian-grid-horizontal_line]:stroke-white/10 [&_.recharts-cartesian-grid-vertical_line]:stroke-white/10"
         initialDimension={{ width: 740, height: 230 }}
       >
         {chartData.length > 0 ? (
@@ -139,7 +158,7 @@ export function PortfolioValueChart({
           </AreaChart>
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-white/60">
-            No portfolio value data available.
+            {emptyStateMessage}
           </div>
         )}
       </ChartContainer>

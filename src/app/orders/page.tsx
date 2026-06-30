@@ -98,7 +98,7 @@ export default function OrdersPage() {
 
   return (
     <AppShell>
-      <div className="flex w-full flex-col gap-6">
+      <div className="flex w-full min-w-0 flex-col gap-6">
         <PageHeader
           title="Orders"
           description="View and manage your open orders."
@@ -108,6 +108,7 @@ export default function OrdersPage() {
         {/* 2 grid equal  */}
         <div className="grid grid-cols-1 gap-5 md:gap-6 lg:grid-cols-2">
           <RecentTradesTable trades={recentTrades} />
+
           <DepthChartCard />
         </div>
         <OrderBookCard />

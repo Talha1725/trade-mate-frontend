@@ -9,5 +9,10 @@ export type PortfolioValueChartProps = {
   title?: string;
   dataByTimeframe?: Partial<Record<TradingTimeframe, PortfolioValuePoint[]>>;
   defaultTimeframe?: TradingTimeframe;
+  timeframes?: TradingTimeframe[];
+  showExportButton?: boolean;
+  exportLabel?: string;
+  onExport?: () => void;
+  emptyStateMessage?: string;
   className?: string;
 };
