@@ -13,18 +13,20 @@ import { PortfolioTopMoversCard } from "@/components/portfolio/portfolio-top-mov
 import { PortfolioValueChart } from "@/components/portfolio/portfolio-value-chart";
 import { terminalApi } from "@/lib/services/terminal.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
+import { useSelectedAccountStore } from "@/lib/stores/account-store";
 import { mapPortfolioPositionToPortfolioRow } from "@/lib/utils/trader-data";
 import type { UserPortfolioResponse } from "@/types/dashboard";
 
 export default function PortfolioPage() {
     const [snapshot, setSnapshot] = React.useState<UserPortfolioResponse | null>(null);
     const token = useAuthStore((state) => state.session?.token ?? null);
+    const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
 
     const refreshSnapshot = React.useCallback(async () => {
         if (!token) return;
-        const nextSnapshot = await terminalApi.getOpenPositions(token);
+        const nextSnapshot = await terminalApi.getOpenPositions(token, selectedAccountId ?? undefined);
         setSnapshot(nextSnapshot);
-    }, [token]);
+    }, [selectedAccountId, token]);
 
     React.useEffect(() => {
         void refreshSnapshot();
@@ -97,16 +99,16 @@ export default function PortfolioPage() {
                 <PortfolioMetricCards />
 
                 {/* 2 grid card  */}
-                <div className="grid grid-cols-1 gap-5 md:gap-6 lg:grid-cols-10">
-                    <div className="lg:col-span-6">
-                        <PortfolioValueChart />
+                <div className="grid grid-cols-1 items-stretch gap-5 md:gap-6 xl:grid-cols-10">
+                    <div className="flex xl:min-h-0 xl:col-span-6">
+                        <PortfolioValueChart className="w-full h-[400px] xl:h-auto" />
                     </div>
-                    <div className="lg:col-span-4">
-                        <PortfolioAllocationCard />
+                    <div className="flex xl:min-h-0 xl:col-span-4">
+                        <PortfolioAllocationCard className="w-full " />
                     </div>
                 </div>
                 {/* 2 grid card  */}
-                <div className="grid grid-cols-1 gap-5 md:gap-6  lg:grid-cols-2">
+                <div className="grid grid-cols-1 gap-5 md:gap-6  xl:grid-cols-2">
                     <PortfolioExposureBreakdownCard />
                     <PortfolioTopMoversCard />
                 </div>

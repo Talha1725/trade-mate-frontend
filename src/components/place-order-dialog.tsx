@@ -24,6 +24,7 @@ import { SIDEBAR_ICONS } from "@/lib/mock-data/sidebar-icons";
 import { cn } from "@/lib/utils";
 import { terminalApi } from "@/lib/services/terminal.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
+import { useSelectedAccountStore } from "@/lib/stores/account-store";
 
 const ORDER_SYMBOLS = ["EURUSD", "GBPUSD", "BTCUSD", "AAPL", "SPX500"];
 
@@ -41,6 +42,7 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
   const [takeProfit, setTakeProfit] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const token = useAuthStore((state) => state.session?.token ?? null);
+  const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
 
   const submitOrder = async () => {
     if (!token) {
@@ -69,7 +71,7 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
     setIsSubmitting(true);
 
     try {
-      const snapshot = await terminalApi.getOpenPositions(token);
+      const snapshot = await terminalApi.getOpenPositions(token, selectedAccountId ?? undefined);
 
       await terminalApi.placeOrder(
         {

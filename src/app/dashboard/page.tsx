@@ -9,20 +9,18 @@ import { LiveTradingView } from "@/components/common/live-trading-view";
 import { MarketWatchCard } from "@/components/dashboard/market-watch-card";
 import { MarketSnapshotCard } from "@/components/dashboard/market-snapshot-card";
 import { OpenPositionsStripCard } from "@/components/dashboard/open-positions-strip-card";
-import { EquityChart } from "@/components/dashboard/equity-chart";
-import { BreakdownWidgets } from "@/components/dashboard/breakdown-widgets";
-import { StatCards } from "@/components/dashboard/stat-cards";
-import { OpenPositionsSummary } from "@/components/dashboard/open-positions-summary";
-import { RecentActivity } from "@/components/dashboard/recent-activity";
 import {
   mockTradingFilterAssets,
   mockTradingFilterOhlcv,
   mockTradingFilterQuote,
 } from "@/lib/mock-data/trading-filter-bar";
+import { DEFAULT_WATCHLIST_ASSET_IDS } from "@/lib/mock-data/market-watch-card";
 import { mockOpenPositionsStrip } from "@/lib/mock-data/open-positions-strip";
-import { mockWatchlistItems } from "@/lib/mock-data/market-watch-card";
+import { buildWatchlistFromAssets } from "@/lib/utils/watchlist";
 import { dashboardApi } from "@/lib/services/dashboard.api";
+import { useMarketSelectionStore } from "@/lib/stores/market-selection-store";
 import { useAuthStore } from "@/lib/stores/auth-store";
+import { useSelectedAccountStore } from "@/lib/stores/account-store";
 import { mapTimeframeToTradingViewInterval } from "@/lib/utils/trading-view";
 import { buildDashboardData } from "@/lib/utils/trader-data";
 import type { AccountLedgerResponse, UserPortfolioResponse } from "@/types/dashboard";
@@ -33,12 +31,15 @@ import { PriceSocketPortfolioMessage } from "@/types";
 export default function DashboardPage() {
   const [snapshot, setSnapshot] = React.useState<UserPortfolioResponse | null>(null);
   const [ledger, setLedger] = React.useState<AccountLedgerResponse | null>(null);
-  const [selectedMarketId, setSelectedMarketId] = React.useState(
-    mockWatchlistItems[0]?.id ?? "btcusd",
-  );
+  const selectedMarketId = useMarketSelectionStore((state) => state.selectedMarketId);
+  const setSelectedMarketId = useMarketSelectionStore((state) => state.setSelectedMarketId);
   const [timeframe, setTimeframe] = React.useState<TradingTimeframe>("4H");
   const [compareAssetId, setCompareAssetId] = React.useState<string | null>(null);
+  const [watchlistIds, setWatchlistIds] = React.useState<string[]>([
+    ...DEFAULT_WATCHLIST_ASSET_IDS,
+  ]);
   const token = useAuthStore((state) => state.session?.token ?? null);
+  const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
 
   React.useEffect(() => {
     if (!token) {
@@ -50,7 +51,7 @@ export default function DashboardPage() {
 
     const refreshDashboard = async () => {
       try {
-        const accountSnapshot = await dashboardApi.getPortfolioSnapshot(token);
+        const accountSnapshot = await dashboardApi.getPortfolioSnapshot(token, selectedAccountId ?? undefined);
 
         if (!isMounted) {
           return;
@@ -84,7 +85,7 @@ export default function DashboardPage() {
         clearTimeout(timeoutId);
       }
     };
-  }, [token]);
+  }, [selectedAccountId, token]);
 
   const dashboardData = snapshot ? buildDashboardData(snapshot, ledger ?? undefined) : null;
   const liveSymbol = dashboardData?.positions[0]?.symbol;
@@ -103,7 +104,7 @@ export default function DashboardPage() {
     () => (openSymbols.length > 0 ? openSymbols : liveSymbol ? [liveSymbol] : []),
     [liveSymbol, openSymbols],
   );
-  const accountId = snapshot?.account.id ?? null;
+  const accountId = snapshot?.account.id ?? selectedAccountId ?? null;
 
   usePriceStream({
     enabled: !!token && !!accountId,
@@ -117,28 +118,45 @@ export default function DashboardPage() {
       }
 
       setSnapshot({
-        account,
+        account: {
+          ...account,
+        },
         positions: payload.positions,
       });
 
       setLedger({
-        account,
+        account: {
+          ...account,
+        },
         positions: payload.positions,
         trades: payload.trades,
       });
     },
   });
 
+  const watchlistItems = React.useMemo(
+    () => buildWatchlistFromAssets(watchlistIds, mockTradingFilterAssets),
+    [watchlistIds],
+  );
+
+  const handleWatchlistToggle = React.useCallback((assetId: string) => {
+    setWatchlistIds((current) =>
+      current.includes(assetId)
+        ? current.filter((id) => id !== assetId)
+        : [...current, assetId],
+    );
+  }, []);
+
   const initialMarketId = React.useMemo(() => {
     if (!liveSymbol) {
-      return mockWatchlistItems[0]?.id ?? "btcusd";
+      return mockTradingFilterAssets[0]?.id ?? "btcusdt";
     }
 
-    const matchedItem = mockWatchlistItems.find(
-      (item) => item.symbol.toUpperCase() === liveSymbol.toUpperCase(),
+    const matchedAsset = mockTradingFilterAssets.find(
+      (asset) => asset.symbol.toUpperCase() === liveSymbol.toUpperCase(),
     );
 
-    return matchedItem?.id ?? mockWatchlistItems[0]?.id ?? "btcusd";
+    return matchedAsset?.id ?? mockTradingFilterAssets[0]?.id ?? "btcusdt";
   }, [liveSymbol]);
 
   React.useEffect(() => {
@@ -151,7 +169,7 @@ export default function DashboardPage() {
     }
   }, [compareAssetId, selectedMarketId]);
 
-  const selectedWatchlistItem = mockWatchlistItems.find(
+  const selectedWatchlistItem = watchlistItems.find(
     (item) => item.id === selectedMarketId,
   );
   const selectedFilterAsset = mockTradingFilterAssets.find(
@@ -161,9 +179,9 @@ export default function DashboardPage() {
     selectedWatchlistItem?.symbol ??
     selectedFilterAsset?.symbol ??
     liveSymbol ??
-    "BTCUSD";
+    "BTCUSDT";
   const compareWatchlistItem = compareAssetId
-    ? mockWatchlistItems.find((item) => item.id === compareAssetId)
+    ? watchlistItems.find((item) => item.id === compareAssetId)
     : null;
   const compareFilterAsset = compareAssetId
     ? mockTradingFilterAssets.find((asset) => asset.id === compareAssetId)
@@ -171,11 +189,10 @@ export default function DashboardPage() {
   const compareSymbol =
     compareWatchlistItem?.symbol ?? compareFilterAsset?.symbol ?? null;
   const chartInterval = mapTimeframeToTradingViewInterval(timeframe);
-  const compareItems = mockWatchlistItems.map((item) => ({
+  const compareItems = watchlistItems.map((item) => ({
     id: item.id,
     symbol: item.symbol,
     name: item.name,
-    icon: item.icon,
   }));
 
   return (
@@ -190,6 +207,8 @@ export default function DashboardPage() {
           assets={mockTradingFilterAssets}
           selectedAssetId={selectedMarketId}
           onAssetChange={setSelectedMarketId}
+          watchlistAssetIds={watchlistIds}
+          onWatchlistToggle={handleWatchlistToggle}
           quote={mockTradingFilterQuote}
           ohlcv={mockTradingFilterOhlcv}
           timeframe={timeframe}
@@ -208,9 +227,10 @@ export default function DashboardPage() {
           </div>
           <div className="col-span-12 flex flex-col gap-6 xl:col-span-4">
             <MarketWatchCard
-              items={mockWatchlistItems}
+              items={watchlistItems}
               selectedItemId={selectedMarketId}
               onItemSelect={setSelectedMarketId}
+              onWatchlistToggle={handleWatchlistToggle}
             />
             <MarketSnapshotCard />
           </div>

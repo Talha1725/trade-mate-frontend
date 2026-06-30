@@ -1,5 +1,4 @@
 import type { Trade } from "@/types/trade";
-import { resolveMarketWatchIcon } from "@/lib/utils/market-symbol-icon";
 
 const BASE_MOCK_TRADES: Trade[] = [
   {
@@ -74,9 +73,6 @@ const BASE_MOCK_TRADES: Trade[] = [
   },
 ];
 
-export const mockTrades: Trade[] = BASE_MOCK_TRADES.map((trade) => ({
-  ...trade,
-  icon: resolveMarketWatchIcon(trade.symbol),
-}));
+export const mockTrades: Trade[] = BASE_MOCK_TRADES;
 
 export const mockAccountTrades = mockTrades.slice(0, 2);

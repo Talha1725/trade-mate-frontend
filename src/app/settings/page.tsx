@@ -21,7 +21,7 @@ export default function SettingsPage() {
       <SettingsDialog view={activeView} onViewChange={setActiveView} />
       <div className="flex w-full min-w-0 flex-col gap-6">
         <PageHeader title="Settings" />
-        <div className="grid grid-cols-1 gap-5 md:gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 md:gap-6 xl:grid-cols-2">
           <AccountInformationCard
             className=""
             onEditProfile={() => setActiveView("edit-profile")}

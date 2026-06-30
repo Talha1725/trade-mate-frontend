@@ -1,6 +1,6 @@
 "use client";
 
-import { CirclePlayIcon } from "lucide-react";
+import { CirclePlayIcon, Star } from "lucide-react";
 
 import { CompareAssetsDropdown } from "@/components/dashboard/compare-assets-dropdown";
 import { IndicatorsDropdown } from "@/components/dashboard/indicators-dropdown";
@@ -11,12 +11,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/dashboard/ui/select";
+import { AssetIcon } from "@/components/shared/asset-icon";
 import { TRADING_TIMEFRAMES } from "@/lib/mock-data/trading-filter-bar";
+import { isAssetInWatchlist } from "@/lib/utils/watchlist";
 import { cn } from "@/lib/utils";
 import type {
   TradingFilterBarAction,
   TradingFilterBarAsset,
-  TradingFilterBarAssetIcon,
   TradingFilterBarProps,
 } from "@/types/trading-filter-bar";
 
@@ -60,35 +61,51 @@ function formatVolume(value: number) {
   return value.toLocaleString("en-US");
 }
 
-function AssetIcon({ icon }: { icon: TradingFilterBarAssetIcon }) {
-  if (icon === "bitcoin") {
-    return (
-      <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-orange text-[10px] font-bold text-white">
-        B
-      </span>
-    );
-  }
-
-  if (icon === "forex") {
-    return (
-      <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-blue text-[9px] font-bold text-white">
-        FX
-      </span>
-    );
-  }
-
+function AssetOptionLabel({ asset }: { asset: TradingFilterBarAsset }) {
   return (
-    <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-muted-foreground/30 text-[9px] font-bold text-white">
-      ST
+    <span className="flex items-center gap-2">
+      <AssetIcon symbol={asset.symbol} label={asset.label} size={20} />
+      <span>{asset.label}</span>
     </span>
   );
 }
 
-function AssetOptionLabel({ asset }: { asset: TradingFilterBarAsset }) {
+function AssetDropdownOption({
+  asset,
+  isInWatchlist,
+  onWatchlistToggle,
+}: {
+  asset: TradingFilterBarAsset;
+  isInWatchlist: boolean;
+  onWatchlistToggle?: (assetId: string) => void;
+}) {
   return (
-    <span className="flex items-center gap-2">
-      <AssetIcon icon={asset.icon} />
-      <span>{asset.label}</span>
+    <span className="flex w-full min-w-0 items-center gap-2">
+      <span className="flex min-w-0 flex-1 items-center gap-2">
+        <AssetIcon symbol={asset.symbol} label={asset.label} size={20} />
+        <span className="truncate">{asset.label}</span>
+      </span>
+      <button
+        type="button"
+        aria-label={isInWatchlist ? `Remove ${asset.label} from watchlist` : `Add ${asset.label} to watchlist`}
+        className="pointer-events-auto cursor-pointer shrink-0 rounded-md p-1 text-white/60 transition-colors hover:bg-white/10 hover:text-primary"
+        onPointerDown={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        }}
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          onWatchlistToggle?.(asset.id);
+        }}
+      >
+        <Star
+          className={cn(
+            "size-4",
+            isInWatchlist ? "fill-primary text-primary" : "text-white/60",
+          )}
+        />
+      </button>
     </span>
   );
 }
@@ -123,6 +140,8 @@ export function TradingFilterBar({
   assets,
   selectedAssetId,
   onAssetChange,
+  watchlistAssetIds = [],
+  onWatchlistToggle,
   quote,
   ohlcv,
   timeframe,
@@ -159,14 +178,18 @@ export function TradingFilterBar({
             {selectedAsset ? <AssetOptionLabel asset={selectedAsset} /> : null}
           </SelectValue>
         </SelectTrigger>
-        <SelectContent className="border-white/15 bg-[#141417] text-white">
+        <SelectContent className="border-white/20 border rounded-lg bg-[#0d0d0d] text-white max-h-[250px]">
           {assets.map((asset) => (
             <SelectItem
               key={asset.id}
               value={asset.id}
-              className="text-white focus:bg-white/10 focus:text-white"
+              className="text-white focus:bg-white/10 focus:text-white py-1.5! [&_button]:pointer-events-auto"
             >
-              <AssetOptionLabel asset={asset} />
+              <AssetDropdownOption
+                asset={asset}
+                isInWatchlist={isAssetInWatchlist(asset.id, watchlistAssetIds)}
+                onWatchlistToggle={onWatchlistToggle}
+              />
             </SelectItem>
           ))}
         </SelectContent>

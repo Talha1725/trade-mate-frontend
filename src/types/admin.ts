@@ -2,6 +2,8 @@ import type React from "react";
 
 export interface AccountSummary {
   id: string;
+  accountNumber?: string | null;
+  fundingType?: string | null;
   name: string;
   email: string;
   balance: number;

@@ -3,9 +3,11 @@
 import * as React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Search, ChevronDown, LogOutIcon } from "lucide-react";
+import { ChevronDown, LogOutIcon } from "lucide-react";
 import { toast } from "sonner";
 
+import { AccountSwitcherDropdown } from "@/components/account-switcher-dropdown";
+import { CurrencySearch } from "@/components/currency-search";
 import { HeaderNotificationsDropdown } from "@/components/header-notifications-dropdown";
 
 import { cn } from "@/lib/utils";
@@ -22,10 +24,6 @@ import { PlaceOrderDialog } from "@/components/place-order-dialog";
 import { useAuthStore } from "@/lib/stores/auth-store";
 
 export function PageHeader({
-  title,
-  description,
-  icon: Icon,
-  actions,
   className,
 }: PageHeaderProps) {
   const router = useRouter();
@@ -48,14 +46,7 @@ export function PageHeader({
     >
       {/* Search Bar — full width on mobile, constrained on desktop */}
       <div className="w-full lg:flex-1 lg:min-w-[160px] lg:max-w-[520px]">
-        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-neutral-900 border border-border/20">
-          <Search className="size-4 text-white/60 shrink-0" />
-          <input
-            type="text"
-            placeholder="Search"
-            className="bg-transparent text-sm text-white placeholder-white/60 outline-none w-full"
-          />
-        </div>
+        <CurrencySearch />
       </div>
 
       {/* Actions — 2-col grid on mobile/tablet, flex row on desktop */}
@@ -71,12 +62,8 @@ export function PageHeader({
           <span className="size-2.5 animate-pulse rounded-full bg-primary shadow-[0_0_10px_var(--primary)]" />
           Live Market
         </button>
-
-        <div className="flex items-center justify-center gap-2 px-3 py-2 rounded-full border border-border/20 text-medium-500 text-sm">
-          <Image src="/header/united states.svg" alt="US" width={20} height={20} className="size-5" />
-          <span>NY</span>
-          <span className="text-white">13:23:51</span>
-        </div>
+        {/* Account Switcher Dropdown */}
+        <AccountSwitcherDropdown />
 
         <HeaderNotificationsDropdown
           onNotificationClick={() =>

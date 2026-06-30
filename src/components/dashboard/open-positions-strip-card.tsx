@@ -10,6 +10,7 @@ import type {
   OpenPositionStripItem,
   OpenPositionsStripCardProps,
 } from "@/types/open-positions-strip";
+import Link from "next/link";
 
 function formatPnl(value: number) {
   const prefix = value >= 0 ? "+" : "-";
@@ -95,14 +96,14 @@ export function OpenPositionsStripCard({
   className,
 }: OpenPositionsStripCardProps) {
   return (
-    <section className={cn("rounded-xl border border-white/20 bg-white/5 p-4 md:p-5", className)}>
+    <section className={cn("rounded-[10px] border border-white/20 bg-white/5 p-4 md:p-5", className)}>
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-base md:text-lg font-semibold text-white">
           {title} ({items.length})
         </h3>
-        <button type="button" className="border border-white/10 rounded-lg bg-white/5 px-3.5 py-2 hover:bg-white/10 transition-colors text-sm font-medium text-white cursor-pointer">
+        <Link href="/porfolio" type="button" className="border border-white/10 rounded-lg bg-white/5 px-3.5 py-2 hover:bg-white/10 transition-colors text-sm font-medium text-white cursor-pointer">
           View All
-        </button>
+        </Link>
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-4">

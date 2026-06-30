@@ -1,9 +1,6 @@
-import type { MarketWatchIcon } from "@/types/market-watch-card";
-
 export interface Trade {
   id: string;
   symbol: string;
-  icon?: MarketWatchIcon | null;
   type: "Buy" | "Sell";
   vol: number;
   openP: number;
@@ -53,6 +50,10 @@ export type TradeClosePayload = {
 };
 
 export type AccountMetricsSummary = {
+  accountId: string;
+  accountNumber: string | null;
+  fundingType: string | null;
+  name: string;
   balance: number;
   equity: number;
   floatingPnl: number;

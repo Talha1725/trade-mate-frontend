@@ -6,6 +6,7 @@ import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { terminalApi } from "@/lib/services/terminal.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
+import { useSelectedAccountStore } from "@/lib/stores/account-store";
 import { mapPortfolioPositionToPosition } from "@/lib/utils/trader-data";
 import { SymbolSearch } from "@/components/terminal/symbol-search";
 import { TradingChart } from "@/components/terminal/trading-chart";
@@ -25,6 +26,7 @@ export default function TerminalPage() {
   const [selectedSymbol, setSelectedSymbol] = React.useState("EURUSD");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const token = useAuthStore((state) => state.session?.token ?? null);
+  const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
 
   React.useEffect(() => {
     if (!token) {
@@ -37,7 +39,7 @@ export default function TerminalPage() {
     const refreshTerminalSnapshot = async () => {
       try {
         const [snapshotResponse, symbolResponse] = await Promise.all([
-          terminalApi.getOpenPositions(token),
+          terminalApi.getOpenPositions(token, selectedAccountId ?? undefined),
           terminalApi.getMarketSymbols(),
         ]);
 
@@ -83,7 +85,7 @@ export default function TerminalPage() {
         clearTimeout(timeoutId);
       }
     };
-  }, [token]);
+  }, [selectedAccountId, token]);
 
   React.useEffect(() => {
     if (!token || !selectedSymbol) {
@@ -153,7 +155,7 @@ export default function TerminalPage() {
     };
   }, [selectedSymbol]);
 
-  const accountId = snapshot?.account.id;
+  const accountId = snapshot?.account.id ?? selectedAccountId ?? null;
   const selectedQuote = quotes[0];
   const availableSymbols = symbols.map((item) => item.displaySymbol);
   const openPositions = React.useMemo(
@@ -186,9 +188,9 @@ export default function TerminalPage() {
       return;
     }
 
-    const updatedSnapshot = await terminalApi.getOpenPositions(token);
+    const updatedSnapshot = await terminalApi.getOpenPositions(token, selectedAccountId ?? undefined);
     setSnapshot(updatedSnapshot);
-  }, [token]);
+  }, [selectedAccountId, token]);
 
   React.useEffect(() => {
     window.addEventListener("trade-mate:positions-changed", refreshSnapshot);
@@ -260,7 +262,7 @@ export default function TerminalPage() {
 
             <div className="flex flex-col lg:col-span-4">
               <OrderTicket
-                accountId={accountId}
+                accountId={accountId ?? undefined}
                 symbol={selectedSymbol}
                 price={selectedQuote?.price ?? historyClose ?? undefined}
                 onSubmit={handleSubmitOrder}

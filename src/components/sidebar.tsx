@@ -5,13 +5,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   History,
-  Bell,
   Settings,
   Eye,
   EyeOff,
-  Trophy,
   ChevronRight,
-  type LucideIcon,
 } from "lucide-react";
 import { HiMiniChartBar } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
@@ -19,6 +16,7 @@ import Image from "next/image";
 import type { SidebarItemProps, CardRowProps } from "@/types/components";
 import { useAccountSummary } from "@/hooks/use-trades";
 import { SIDEBAR_ICONS } from "@/lib/mock-data/sidebar-icons";
+import { useSelectedAccountStore } from "@/lib/stores/account-store";
 
 function formatCurrency(value?: number) {
   return `$${(value ?? 0).toLocaleString("en-US", {
@@ -103,7 +101,8 @@ function CardRow({
 export function Sidebar({ className }: { className?: string }) {
   const pathname = usePathname();
   const [showBalance, setShowBalance] = React.useState(true);
-  const { data: accountSummary } = useAccountSummary();
+  const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
+  const { data: accountSummary } = useAccountSummary(selectedAccountId);
 
   // Map routes to determine active state
   const isTabActive = (href: string) => {
@@ -169,8 +168,7 @@ export function Sidebar({ className }: { className?: string }) {
       </div>
 
       {/* Tools Section */}
-      <div className="flex flex-col gap-[10px] pb-10 px-0">
-        
+      <div className="flex flex-col gap-[10px] pb-10 px-0 pt-2.5">
         <SidebarItem
           icon={Settings}
           label="Settings"
@@ -219,7 +217,7 @@ export function Sidebar({ className }: { className?: string }) {
           {/* Card Header & Balance */}
           <div className="flex flex-col gap-1.5">
             <span className="text-[14px] font-regular leading-3.5 text-neutral-400">
-              Free Account
+              {accountSummary?.accountNumber || accountSummary?.fundingType || "Account Overview"}
             </span>
             <div className="flex items-center justify-between">
               <span className="text-[24px] font-medium leading-6 text-white">
