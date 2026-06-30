@@ -97,16 +97,16 @@ export default function PortfolioPage() {
                 <PortfolioMetricCards />
 
                 {/* 2 grid card  */}
-                <div className="grid grid-cols-1 gap-5 md:gap-6 lg:grid-cols-10">
-                    <div className="lg:col-span-6">
-                        <PortfolioValueChart />
+                <div className="grid grid-cols-1 items-stretch gap-5 md:gap-6 xl:grid-cols-10">
+                    <div className="flex xl:min-h-0 xl:col-span-6">
+                        <PortfolioValueChart className="w-full h-[400px] xl:h-auto" />
                     </div>
-                    <div className="lg:col-span-4">
-                        <PortfolioAllocationCard />
+                    <div className="flex xl:min-h-0 xl:col-span-4">
+                        <PortfolioAllocationCard className="w-full " />
                     </div>
                 </div>
                 {/* 2 grid card  */}
-                <div className="grid grid-cols-1 gap-5 md:gap-6  lg:grid-cols-2">
+                <div className="grid grid-cols-1 gap-5 md:gap-6  xl:grid-cols-2">
                     <PortfolioExposureBreakdownCard />
                     <PortfolioTopMoversCard />
                 </div>

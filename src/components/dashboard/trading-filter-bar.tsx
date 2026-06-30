@@ -11,12 +11,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/dashboard/ui/select";
+import { AssetIcon } from "@/components/shared/asset-icon";
 import { TRADING_TIMEFRAMES } from "@/lib/mock-data/trading-filter-bar";
 import { cn } from "@/lib/utils";
 import type {
   TradingFilterBarAction,
   TradingFilterBarAsset,
-  TradingFilterBarAssetIcon,
   TradingFilterBarProps,
 } from "@/types/trading-filter-bar";
 
@@ -60,34 +60,10 @@ function formatVolume(value: number) {
   return value.toLocaleString("en-US");
 }
 
-function AssetIcon({ icon }: { icon: TradingFilterBarAssetIcon }) {
-  if (icon === "bitcoin") {
-    return (
-      <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-orange text-[10px] font-bold text-white">
-        B
-      </span>
-    );
-  }
-
-  if (icon === "forex") {
-    return (
-      <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-blue text-[9px] font-bold text-white">
-        FX
-      </span>
-    );
-  }
-
-  return (
-    <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-muted-foreground/30 text-[9px] font-bold text-white">
-      ST
-    </span>
-  );
-}
-
 function AssetOptionLabel({ asset }: { asset: TradingFilterBarAsset }) {
   return (
     <span className="flex items-center gap-2">
-      <AssetIcon icon={asset.icon} />
+      <AssetIcon symbol={asset.symbol} label={asset.label} size={20} />
       <span>{asset.label}</span>
     </span>
   );
@@ -159,12 +135,12 @@ export function TradingFilterBar({
             {selectedAsset ? <AssetOptionLabel asset={selectedAsset} /> : null}
           </SelectValue>
         </SelectTrigger>
-        <SelectContent className="border-white/15 bg-[#141417] text-white">
+        <SelectContent className="border-white/20 border rounded-lg bg-[#0d0d0d] text-white max-h-[250px]">
           {assets.map((asset) => (
             <SelectItem
               key={asset.id}
               value={asset.id}
-              className="text-white focus:bg-white/10 focus:text-white"
+              className="text-white focus:bg-white/10 focus:text-white py-1.5!"
             >
               <AssetOptionLabel asset={asset} />
             </SelectItem>

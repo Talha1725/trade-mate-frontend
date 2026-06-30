@@ -69,14 +69,14 @@ export function PortfolioValueChart({
   return (
     <article
       className={cn(
-        "rounded-[20px] border border-white/20 bg-white/5 p-4 md:p-6",
+        "flex h-full min-h-0 flex-col overflow-hidden rounded-[20px] border border-white/20 bg-white/5 p-4 md:p-6",
         className,
       )}
     >
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-4 flex shrink-0 flex-wrap items-center justify-between gap-3">
         <h3 className="text-base font-semibold text-white md:text-lg">{title}</h3>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 h-full">
           <div className="flex items-center gap-0.5">
             {timeframes.map((interval) => (
               <TimeframeButton
@@ -101,13 +101,17 @@ export function PortfolioValueChart({
         </div>
       </div>
 
-      <ChartContainer
-        config={CHART_CONFIG}
-        className="aspect-auto h-[230px] w-full [&_.recharts-cartesian-grid-horizontal_line]:stroke-white/10 [&_.recharts-cartesian-grid-vertical_line]:stroke-white/10"
-        initialDimension={{ width: 740, height: 230 }}
-      >
-        {chartData.length > 0 ? (
-          <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -30, bottom: 0 }}>
+      <div className="relative min-h-0 flex-1">
+        <ChartContainer
+          config={CHART_CONFIG}
+          initialDimension={{ width: 520, height: 240 }}
+          className="aspect-auto h-full w-full [&_.recharts-cartesian-grid-horizontal_line]:stroke-white/10 [&_.recharts-cartesian-grid-vertical_line]:stroke-white/10"
+        >
+          {chartData.length > 0 ? (
+            <AreaChart
+              data={chartData}
+              margin={{ top: 8, right: 0, left: -28, bottom: 16 }}
+            >
             <defs>
               <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#0CE9A0" stopOpacity={0.35} />
@@ -121,9 +125,8 @@ export function PortfolioValueChart({
               dataKey="label"
               tickLine={false}
               axisLine={false}
-              tickMargin={10}
-              minTickGap={0}
-              interval={0}
+              tickMargin={8}
+              minTickGap={12}
               tick={{ fill: "rgba(255,255,255,0.6)", fontSize: 12 }}
             />
 
@@ -162,6 +165,7 @@ export function PortfolioValueChart({
           </div>
         )}
       </ChartContainer>
+      </div>
     </article>
   );
 }
