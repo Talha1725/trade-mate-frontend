@@ -2,12 +2,12 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRightIcon, EyeIcon } from "lucide-react";
+import { ArrowRightIcon } from "lucide-react";
+import { RiEyeCloseLine } from "react-icons/ri";
+import { Eye } from "lucide-react";
 import { toast } from "sonner";
+import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { cn } from "@/lib/utils";
 import type { AuthStatus, LoginFormValues, LoginFormProps } from "@/types";
@@ -72,63 +72,63 @@ export function LoginForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className={cn("flex flex-col gap-6", className)}
+      className={cn("flex flex-col", className)}
       noValidate
     >
-      <div className="space-y-1.5 text-center">
-        <h2 className="text-[22px] font-semibold tracking-tight text-[#1a1a1a]">
+      <div className="flex flex-col items-center gap-1.5 mb-8 text-center">
+        <h2 className="text-[22px] font-semibold text-white">
           Welcome back
         </h2>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-white/50">
           Sign in with your assigned ID to access the trader dashboard.
         </p>
       </div>
 
-      <div className="space-y-4">
-        <div className="space-y-1.5">
-          <Label htmlFor="login-assigned-id" className="text-sm font-semibold text-[#1a1a1a]">
+      <div className="space-y-5 mb-6">
+        <div className="flex flex-col gap-2">
+          <label htmlFor="login-assigned-id" className="text-sm font-medium text-white/50">
             Assigned ID
-          </Label>
-          <Input
-            id="login-assigned-id"
-            type="text"
-            autoComplete="username"
-            placeholder="TM-1001"
-            value={values.assignedId}
-            onChange={(event) =>
-              setValues((prev) => ({ ...prev, assignedId: event.target.value }))
-            }
-            required
-            disabled={isSubmitting}
-            className="h-10 border-gray-200 bg-[#eff3f8] px-3 py-2 text-sm text-[#1a1a1a] shadow-none outline-none focus-visible:ring-1 focus-visible:ring-gray-300"
-          />
+          </label>
+          <div className="w-full rounded-[10px] border border-white/20 gradient-btn-trade px-3 py-2.5 flex items-center">
+            <input
+              id="login-assigned-id"
+              type="text"
+              autoComplete="username"
+              value={values.assignedId}
+              onChange={(event) =>
+                setValues((prev) => ({ ...prev, assignedId: event.target.value }))
+              }
+              required
+              disabled={isSubmitting}
+              className="w-full bg-transparent text-sm font-medium text-white outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 placeholder:text-white/30"
+            />
+          </div>
         </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="login-password" className="text-sm font-semibold text-[#1a1a1a]">
+        <div className="flex flex-col gap-2">
+          <label htmlFor="login-password" className="text-sm font-medium text-white/50">
             Password
-          </Label>
-          <div className="relative">
-            <Input
+          </label>
+          <div className="w-full rounded-[10px] border border-white/20 gradient-btn-trade px-3 py-2 flex items-center justify-between">
+            <input
               id="login-password"
               type={showPassword ? "text" : "password"}
               autoComplete="current-password"
-              placeholder="••••••••"
               value={values.password}
               onChange={(event) =>
                 setValues((prev) => ({ ...prev, password: event.target.value }))
               }
               required
               disabled={isSubmitting}
-              className="h-10 border-gray-200 bg-[#eff3f8] px-3 py-2 pr-10 text-sm text-[#1a1a1a] shadow-none outline-none focus-visible:ring-1 focus-visible:ring-gray-300"
+              className="w-full bg-transparent text-sm font-medium text-white outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 placeholder:text-white/30"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+              className="p-1 -mr-1 hover:opacity-80 transition-opacity cursor-pointer shrink-0"
               tabIndex={-1}
             >
-              <EyeIcon className="size-4" />
+              {showPassword ? <RiEyeCloseLine className="size-4 text-white" /> : <Eye className="size-4 text-white/50" />}
             </button>
           </div>
         </div>
@@ -137,22 +137,22 @@ export function LoginForm({
       {errorMessage ? (
         <p
           role="alert"
-          className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600"
+          className="mb-6 rounded-md border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-500"
         >
           {errorMessage}
         </p>
       ) : null}
 
-      <Button
+      <button
         type="submit"
         disabled={isSubmitting}
-        className="mt-2 h-10 w-full gap-2 rounded-lg bg-[#1a1a1a] text-white hover:bg-black"
+        className="w-full cursor-pointer flex items-center justify-center gap-2 rounded-[10px] py-2.5 text-base font-semibold text-white btn-green hover:opacity-90 transition-opacity"
       >
         {!isSubmitting ? <ArrowRightIcon className="size-4" /> : null}
         {isSubmitting ? "Signing in..." : "Sign in"}
-      </Button>
+      </button>
 
-      <div className="text-center text-sm text-gray-500">
+      <div className="text-center text-sm text-white/50 mt-4">
         Contact support if you do not have assigned login credentials.
       </div>
     </form>
