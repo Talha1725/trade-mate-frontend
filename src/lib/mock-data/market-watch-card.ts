@@ -5,11 +5,10 @@ import type {
   MarketWatchItem,
   MarketWatchTabConfig,
 } from "@/types/market-watch-card";
+import { DEFAULT_WATCHLIST_ASSET_IDS } from "@/lib/utils/watchlist";
 
 export const MARKET_WATCH_TABS: MarketWatchTabConfig[] = [
   { id: "watchlist", label: "Watchlist" },
-  // { id: "signals", label: "Signals" },
-  // { id: "news", label: "News" },
 ];
 
 export const MARKET_WATCH_ICON_IMAGES: Record<MarketWatchIcon, string> = {
@@ -22,46 +21,43 @@ export const MARKET_WATCH_ICON_IMAGES: Record<MarketWatchIcon, string> = {
 
 export const mockWatchlistItems: MarketWatchItem[] = [
   {
-    id: "btcusd",
-    symbol: "BTCUSD",
-    name: "Bitcoin",
+    id: "btcusdt",
+    symbol: "BTCUSDT",
+    name: "BTC / USDT",
     price: 69102.75,
     changePercent: 0.86,
-    icon: "bitcoin",
   },
   {
-    id: "ethusd",
-    symbol: "ETHUSD",
-    name: "Ethereum",
+    id: "ethusdt",
+    symbol: "ETHUSDT",
+    name: "ETH / USDT",
     price: 3450.25,
     changePercent: 0.86,
-    icon: "ethereum",
   },
   {
-    id: "solusd",
-    symbol: "SOLUSD",
-    name: "Solana",
+    id: "solusdt",
+    symbol: "SOLUSDT",
+    name: "SOL / USDT",
     price: 142.8,
     changePercent: 0.86,
-    icon: "solana",
   },
   {
-    id: "xrpusd",
-    symbol: "XRPUSD",
-    name: "Ripple",
+    id: "xrpusdt",
+    symbol: "XRPUSDT",
+    name: "XRP / USDT",
     price: 0.62,
     changePercent: 0.86,
-    icon: "ripple",
   },
   {
-    id: "adausd",
-    symbol: "ADAUSD",
-    name: "Cardano",
+    id: "adausdt",
+    symbol: "ADAUSDT",
+    name: "ADA / USDT",
     price: 0.45,
     changePercent: 0.86,
-    icon: "cardano",
   },
 ];
+
+export { DEFAULT_WATCHLIST_ASSET_IDS };
 
 export const mockMarketSignals: MarketSignalItem[] = [
   {
