@@ -29,7 +29,10 @@ function SnapshotBadge({ badge }: { badge: MarketSnapshotBadge }) {
 
   return (
     <span className="inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/5 px-2.5 py-2 text-sm font-medium text-white">
-      <Image src={Icon} alt={badge.label} className="" width={14} height={14} />
+      <Image src={Icon} alt={badge.label} className="" width={14} height={14} loading="eager" style={{
+        width: "auto",
+        height: "auto",
+      }} />
       {badge.label}
     </span>
   );
@@ -75,7 +78,7 @@ export function MarketSnapshotCard({ data, className }: MarketSnapshotCardProps)
         <div className="relative z-10">
           <div className="flex items-center gap-2.5 text-primary">
             <span className="">
-              <Image src="/images/globe.svg" alt="logo" className="" width={32} height={32} />
+              <Image src="/images/globe.svg" alt="logo" className="" width={32} height={32} loading="eager"/>
             </span>
             <span className="text-sm font-regular">Market Snapshot</span>
           </div>

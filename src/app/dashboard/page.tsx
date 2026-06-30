@@ -14,7 +14,6 @@ import {
   mockTradingFilterOhlcv,
   mockTradingFilterQuote,
 } from "@/lib/mock-data/trading-filter-bar";
-import { DEFAULT_WATCHLIST_ASSET_IDS } from "@/lib/mock-data/market-watch-card";
 import { mockOpenPositionsStrip } from "@/lib/mock-data/open-positions-strip";
 import { buildWatchlistFromAssets } from "@/lib/utils/watchlist";
 import { dashboardApi } from "@/lib/services/dashboard.api";
@@ -33,11 +32,10 @@ export default function DashboardPage() {
   const [ledger, setLedger] = React.useState<AccountLedgerResponse | null>(null);
   const selectedMarketId = useMarketSelectionStore((state) => state.selectedMarketId);
   const setSelectedMarketId = useMarketSelectionStore((state) => state.setSelectedMarketId);
+  const watchlistIds = useMarketSelectionStore((state) => state.watchlistIds);
+  const toggleWatchlistAsset = useMarketSelectionStore((state) => state.toggleWatchlistAsset);
   const [timeframe, setTimeframe] = React.useState<TradingTimeframe>("4H");
   const [compareAssetId, setCompareAssetId] = React.useState<string | null>(null);
-  const [watchlistIds, setWatchlistIds] = React.useState<string[]>([
-    ...DEFAULT_WATCHLIST_ASSET_IDS,
-  ]);
   const token = useAuthStore((state) => state.session?.token ?? null);
   const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
 
@@ -139,30 +137,6 @@ export default function DashboardPage() {
     [watchlistIds],
   );
 
-  const handleWatchlistToggle = React.useCallback((assetId: string) => {
-    setWatchlistIds((current) =>
-      current.includes(assetId)
-        ? current.filter((id) => id !== assetId)
-        : [...current, assetId],
-    );
-  }, []);
-
-  const initialMarketId = React.useMemo(() => {
-    if (!liveSymbol) {
-      return mockTradingFilterAssets[0]?.id ?? "btcusdt";
-    }
-
-    const matchedAsset = mockTradingFilterAssets.find(
-      (asset) => asset.symbol.toUpperCase() === liveSymbol.toUpperCase(),
-    );
-
-    return matchedAsset?.id ?? mockTradingFilterAssets[0]?.id ?? "btcusdt";
-  }, [liveSymbol]);
-
-  React.useEffect(() => {
-    setSelectedMarketId(initialMarketId);
-  }, [initialMarketId]);
-
   React.useEffect(() => {
     if (compareAssetId && compareAssetId === selectedMarketId) {
       setCompareAssetId(null);
@@ -208,7 +182,7 @@ export default function DashboardPage() {
           selectedAssetId={selectedMarketId}
           onAssetChange={setSelectedMarketId}
           watchlistAssetIds={watchlistIds}
-          onWatchlistToggle={handleWatchlistToggle}
+          onWatchlistToggle={toggleWatchlistAsset}
           quote={mockTradingFilterQuote}
           ohlcv={mockTradingFilterOhlcv}
           timeframe={timeframe}
@@ -230,7 +204,7 @@ export default function DashboardPage() {
               items={watchlistItems}
               selectedItemId={selectedMarketId}
               onItemSelect={setSelectedMarketId}
-              onWatchlistToggle={handleWatchlistToggle}
+              onWatchlistToggle={toggleWatchlistAsset}
             />
             <MarketSnapshotCard />
           </div>

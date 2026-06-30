@@ -1,7 +1,4 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
-
-import { TradingFilterBar } from "@/components/dashboard/trading-filter-bar";
 import { TradingChart } from "@/components/terminal/trading-chart";
 import type { LiveTradingViewProps } from "@/types";
 
@@ -10,7 +7,7 @@ export function LiveTradingView({
   compareSymbol = null,
   interval = "60",
 }: LiveTradingViewProps) {
-  const chartSymbol = symbol ?? "BTCUSD";
+  const chartSymbol = symbol ?? "BTCUSDT";
 
   return (
     <TradingChart
@@ -27,4 +24,6 @@ export function LiveTradingView({
       contentClassName="min-h-[420px]"
     />
   );
+
 }
+

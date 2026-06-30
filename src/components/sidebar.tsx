@@ -122,7 +122,7 @@ export function Sidebar({ className }: { className?: string }) {
     <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar py-1">
       {/* Brand Header */}
       <div className="flex items-center gap-3 select-none">
-        <Image src="/images/logo.svg" alt="logo" height={40} width={213} />
+        <Image src="/images/logo.svg" alt="logo" height={40} width={213} loading="eager" />
       </div>
 
       {/* Workspace Label */} 
@@ -187,7 +187,7 @@ export function Sidebar({ className }: { className?: string }) {
           <div className="absolute -bottom-12 -left-12 size-24 blur-[30px] rounded-full pointer-events-none" />
 
           <div className="flex justify-center">
-            <Image src={SIDEBAR_ICONS.diamond} alt="diamond" width={214} height={88} />
+            <Image src={SIDEBAR_ICONS.diamond} alt="diamond" width={214} height={88} loading="eager" />
           </div>
 
           <div className="flex flex-col items-center gap-2.5 py-5 text-center">

@@ -173,7 +173,7 @@ export function MarketWatchCard({
         })}
       </div>
 
-      <div className="mt-4 flex-1 max-h-[312px] overflow-auto">
+      <div className="mt-4 flex-1 min-h-[312px] max-h-[312px] overflow-auto">
         {activeTab === "watchlist" ? (
           <div className="flex flex-col gap-2">
             {items.length > 0 ? (

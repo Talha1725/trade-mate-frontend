@@ -46,7 +46,7 @@ export function AppShell({
         {/* Mobile/Tablet Top Bar — below lg */}
         <div className="flex lg:hidden items-center justify-between px-4 py-3 border-b border-neutral-800 shrink-0">
           {/* Logo */}
-          <Image src="/images/logo.svg" alt="Trade Mate" height={32} width={160} />
+          <Image src="/images/logo.svg" alt="Trade Mate" height={32} width={160} loading="eager" />
 
           {/* Right: Notification + Hamburger */}
           <div className="flex items-center gap-3">

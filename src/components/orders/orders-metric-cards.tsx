@@ -13,7 +13,10 @@ import type {
 function MetricIconBox({ iconSrc }: { iconSrc: string }) {
   return (
     <span className="relative flex size-11 shrink-0 items-center justify-center rounded-[10px] btn-green">
-      <Image src={iconSrc} alt="" width={20} height={20} unoptimized />
+      <Image src={iconSrc} alt="" width={20} height={20} unoptimized style={{
+        width: "auto",
+        height: "auto",
+      }} />
     </span>
   );
 }
