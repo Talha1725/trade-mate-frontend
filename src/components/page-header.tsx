@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Search, ChevronDown, LogOutIcon } from "lucide-react";
 import { toast } from "sonner";
 
+import { AccountSwitcherDropdown } from "@/components/account-switcher-dropdown";
 import { HeaderNotificationsDropdown } from "@/components/header-notifications-dropdown";
 
 import { cn } from "@/lib/utils";
@@ -71,6 +72,8 @@ export function PageHeader({
           <span className="size-2.5 animate-pulse rounded-full bg-primary shadow-[0_0_10px_var(--primary)]" />
           Live Market
         </button>
+        {/* Account Switcher Dropdown */}
+        <AccountSwitcherDropdown />
 
         <div className="flex items-center justify-center gap-2 px-3 py-2 rounded-full border border-border/20 text-medium-500 text-sm">
           <Image src="/header/united states.svg" alt="US" width={20} height={20} className="size-5" />
