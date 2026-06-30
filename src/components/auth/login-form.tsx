@@ -86,7 +86,7 @@ export function LoginForm({
 
       <div className="space-y-5 mb-6">
         <div className="flex flex-col gap-2">
-          <label htmlFor="login-assigned-id" className="text-sm font-medium text-white/50">
+          <label htmlFor="login-assigned-id" className="text-sm font-normal text-white/50">
             Assigned ID
           </label>
           <div className="w-full rounded-[10px] border border-white/20 gradient-btn-trade px-3 py-2.5 flex items-center">
@@ -100,13 +100,13 @@ export function LoginForm({
               }
               required
               disabled={isSubmitting}
-              className="w-full bg-transparent text-sm font-medium text-white outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 placeholder:text-white/30"
+              className="w-full bg-transparent text-sm font-normal text-white outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 placeholder:text-white/30"
             />
           </div>
         </div>
 
         <div className="flex flex-col gap-2">
-          <label htmlFor="login-password" className="text-sm font-medium text-white/50">
+          <label htmlFor="login-password" className="text-sm font-normal text-white/50">
             Password
           </label>
           <div className="w-full rounded-[10px] border border-white/20 gradient-btn-trade px-3 py-2 flex items-center justify-between">
@@ -120,7 +120,7 @@ export function LoginForm({
               }
               required
               disabled={isSubmitting}
-              className="w-full bg-transparent text-sm font-medium text-white outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 placeholder:text-white/30"
+              className="w-full bg-transparent text-sm font-normal text-white outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 placeholder:text-white/30"
             />
             <button
               type="button"
@@ -146,7 +146,7 @@ export function LoginForm({
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full cursor-pointer flex items-center justify-center gap-2 rounded-[10px] py-2.5 text-base font-semibold text-white btn-green hover:opacity-90 transition-opacity"
+        className="w-full cursor-pointer flex items-center justify-center gap-2 rounded-[10px] py-2.5 text-base font-medium text-white btn-green hover:opacity-90 transition-opacity"
       >
         {!isSubmitting ? <ArrowRightIcon className="size-4" /> : null}
         {isSubmitting ? "Signing in..." : "Sign in"}

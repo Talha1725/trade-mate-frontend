@@ -44,7 +44,7 @@ function AccountActionTile({
     <button
       type="button"
       onClick={onClick}
-      className="group flex w-full cursor-pointer items-center gap-3 rounded-[12px] border border-white/20 bg-linear-to-b from-[#13131505] to-white/6 p-3.5 text-left transition-colors hover:border-white/30 hover:from-white/10 hover:to-white/5 md:gap-4 md:p-4"
+      className="group flex w-full cursor-pointer items-center gap-3 rounded-[10px] border border-white/20 bg-linear-to-b from-[#13131505] to-white/6 p-3.5 text-left transition-colors hover:border-white/30 hover:from-white/10 hover:to-white/5 md:gap-4 md:p-3"
     >
       <ActionIconBox iconSrc={action.iconSrc} tone={action.iconTone} />
       <div className="min-w-0 flex-1">
@@ -73,7 +73,7 @@ export function AccountActionsCard({
       )}
     >
       <h3 className="text-base font-semibold text-white md:text-lg">{title}</h3>
-      <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {actions.map((action) => (
           <AccountActionTile
             key={action.id}
