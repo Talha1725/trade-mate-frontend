@@ -39,7 +39,7 @@ export default function LoginPage() {
             </div>
           ) : (
             <LoginForm redirectTo="/dashboard" />
-          )}
+           )} 
         </div>
       </div>
     </main>

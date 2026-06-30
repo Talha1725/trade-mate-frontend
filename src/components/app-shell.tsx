@@ -63,18 +63,16 @@ export function AppShell({
                 </button>
               </DrawerTrigger>
               <DrawerContent
-                className=" bg-[#0d0d0d] p-0 flex flex-col"
+                className="flex h-dvh max-h-dvh flex-col overflow-hidden! bg-[#0d0d0d] p-0"
                 style={{ width: "100%" }}
               >
-                {/* Scrollable inner content */}
-                <div className="relative h-full">
-                  {/* Close button — absolutely positioned inline with the logo */}
+                <div className="relative min-h-0 flex-1 overflow-hidden">
                   <DrawerClose asChild>
                     <button className="absolute top-4 right-4 z-10 p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition-colors">
                       <X className="size-5" />
                     </button>
                   </DrawerClose>
-                  <Sidebar className="w-full border-0 rounded-none h-full" />
+                  <Sidebar className="h-full w-full border-0 rounded-none" />
                 </div>
               </DrawerContent>
             </Drawer>
