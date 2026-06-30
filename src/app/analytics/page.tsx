@@ -27,11 +27,11 @@ export default function AnalyticsPage() {
                     className="md:grid-cols-2 xl:grid-cols-3 min-[1700px]:grid-cols-6!"
                 />
                 {/* 2grid card  */}
-                <div className="grid grid-cols-1 gap-5 md:gap-6 lg:grid-cols-10">
-                    <div className="lg:col-span-4">
-                        <ChallengeProgressCard />
+                <div className="grid grid-cols-1 items-stretch gap-5 md:gap-6 xl:grid-cols-10 2xl:grid-cols-10 min-[1800px]:grid-cols-10">
+                    <div className="flex min-h-0 xl:col-span-6 2xl:col-span-5 min-[1800px]:col-span-4!">
+                        <ChallengeProgressCard className="w-full" />
                     </div>
-                    <div className="lg:col-span-6">
+                    <div className="flex min-h-0 xl:col-span-5 2xl:col-span-5 min-[1800px]:col-span-6!">
                         <PortfolioValueChart
                             title="Equity Curve"
                             dataByTimeframe={mockEquityCurveChartData}
@@ -39,12 +39,12 @@ export default function AnalyticsPage() {
                             defaultTimeframe="1m"
                             showExportButton
                             emptyStateMessage="No equity curve data available."
-                            className="h-full"
+                            className="w-full h-[400px] xl:h-auto"
                         />
                     </div>
                 </div>
                 {/* 3 grid card  */}
-                <div className="grid grid-cols-1 gap-5 md:gap-6 lg:grid-cols-3">
+                <div className="grid grid-cols-1 gap-5 md:gap-6 xl:grid-cols-3">
                     <TradingCalendarCard />
                     <RecentTradesTable
                         variant="strategy-performance"

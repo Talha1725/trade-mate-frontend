@@ -34,7 +34,7 @@ export default function DashboardPage() {
   const [snapshot, setSnapshot] = React.useState<UserPortfolioResponse | null>(null);
   const [ledger, setLedger] = React.useState<AccountLedgerResponse | null>(null);
   const [selectedMarketId, setSelectedMarketId] = React.useState(
-    mockWatchlistItems[0]?.id ?? "btcusd",
+    mockTradingFilterAssets[0]?.id ?? "btcusdt",
   );
   const [timeframe, setTimeframe] = React.useState<TradingTimeframe>("4H");
   const [compareAssetId, setCompareAssetId] = React.useState<string | null>(null);

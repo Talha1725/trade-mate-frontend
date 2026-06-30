@@ -169,8 +169,7 @@ export function Sidebar({ className }: { className?: string }) {
       </div>
 
       {/* Tools Section */}
-      <div className="flex flex-col gap-[10px] pb-10 px-0">
-        
+      <div className="flex flex-col gap-[10px] pb-10 px-0 pt-2.5">
         <SidebarItem
           icon={Settings}
           label="Settings"
