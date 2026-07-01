@@ -9,19 +9,22 @@ import { LiveTradingView } from "@/components/common/live-trading-view";
 import { MarketWatchCard } from "@/components/dashboard/market-watch-card";
 import { MarketSnapshotCard } from "@/components/dashboard/market-snapshot-card";
 import { OpenPositionsStripCard } from "@/components/dashboard/open-positions-strip-card";
-import {
-  mockTradingFilterOhlcv,
-  mockTradingFilterQuote,
-} from "@/lib/mock-data/trading-filter-bar";
 import { mockOpenPositionsStrip } from "@/lib/mock-data/open-positions-strip";
 import { dashboardApi } from "@/lib/services/dashboard.api";
 import { useAccountWishlist } from "@/hooks/use-account-wishlist";
+import { useChartMarketData } from "@/hooks/use-chart-market-data";
+import { useEodhdMarketQuotes } from "@/hooks/use-eodhd-market-quotes";
 import { useResolvedAccountNumber } from "@/hooks/use-resolved-account-number";
 import { useSyncedTradingAssets } from "@/hooks/use-synced-trading-assets";
+import {
+  buildMarketSnapshotFromQuote,
+  enrichWatchlistItemsWithQuotes,
+  mapEodhdQuoteToFilterOhlcv,
+  mapEodhdQuoteToFilterQuote,
+} from "@/lib/utils/eodhd-quote";
 import { useMarketSelectionStore } from "@/lib/stores/market-selection-store";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
-import { mapTimeframeToTradingViewInterval } from "@/lib/utils/trading-view";
 import { buildDashboardData } from "@/lib/utils/trader-data";
 import type { AccountLedgerResponse, UserPortfolioResponse } from "@/types/dashboard";
 import { usePriceStream } from "@/hooks/use-price-stream";
@@ -160,7 +163,39 @@ export default function DashboardPage() {
     : null;
   const compareSymbol =
     compareWatchlistItem?.symbol ?? compareFilterAsset?.symbol ?? null;
-  const chartInterval = mapTimeframeToTradingViewInterval(timeframe);
+
+  const quoteSymbols = React.useMemo(() => {
+    const symbols = new Set<string>([chartSymbol]);
+
+    watchlistItems.forEach((item) => {
+      symbols.add(item.symbol);
+    });
+
+    return Array.from(symbols);
+  }, [chartSymbol, watchlistItems]);
+
+  const { data: quotesResponse } = useEodhdMarketQuotes(quoteSymbols);
+  const quotes = quotesResponse?.quotes ?? {};
+  const selectedQuote = quotes[chartSymbol.toUpperCase()] ?? null;
+
+  const enrichedWatchlistItems = React.useMemo(
+    () => enrichWatchlistItemsWithQuotes(watchlistItems, quotes),
+    [quotes, watchlistItems],
+  );
+
+  const { data: snapshotCandleData } = useChartMarketData(chartSymbol, "D");
+
+  const filterQuote = selectedQuote
+    ? mapEodhdQuoteToFilterQuote(selectedQuote)
+    : { price: 0, change: 0, changePercent: 0 };
+
+  const filterOhlcv = selectedQuote
+    ? mapEodhdQuoteToFilterOhlcv(selectedQuote)
+    : { open: 0, high: 0, low: 0, volume: 0 };
+
+  const marketSnapshot = selectedQuote
+    ? buildMarketSnapshotFromQuote(selectedQuote, snapshotCandleData?.candles ?? [])
+    : undefined;
 
   return (
     <AppShell>
@@ -175,8 +210,8 @@ export default function DashboardPage() {
           selectedAssetId={selectedMarketId}
           onAssetChange={setSelectedMarketId}
           accountNumber={snapshot?.account.accountNumber}
-          quote={mockTradingFilterQuote}
-          ohlcv={mockTradingFilterOhlcv}
+          quote={filterQuote}
+          ohlcv={filterOhlcv}
           timeframe={timeframe}
           onTimeframeChange={setTimeframe}
           compareAssetId={compareAssetId}
@@ -187,18 +222,19 @@ export default function DashboardPage() {
             <LiveTradingView
               symbol={chartSymbol}
               compareSymbol={compareSymbol}
-              interval={chartInterval}
+              timeframe={timeframe}
+              liveQuote={selectedQuote}
             />
           </div>
           <div className="col-span-12 flex flex-col gap-6 xl:col-span-4">
             <MarketWatchCard
-              items={watchlistItems}
+              items={enrichedWatchlistItems}
               isLoading={isWishlistLoading}
               selectedItemId={selectedMarketId}
               onItemSelect={setSelectedMarketId}
               onWatchlistToggle={toggleWishlistAsset}
             />
-            <MarketSnapshotCard />
+            <MarketSnapshotCard data={marketSnapshot} />
           </div>
         </div>
 
