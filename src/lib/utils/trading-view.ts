@@ -98,6 +98,20 @@ export function mapTimeframeToTradingViewInterval(timeframe: TradingTimeframe) {
   return intervalMap[timeframe];
 }
 
+export function mapTimeframeToMarketInterval(timeframe: TradingTimeframe) {
+  const intervalMap: Record<TradingTimeframe, string> = {
+    "1m": "1m",
+    "5m": "5m",
+    "15m": "15m",
+    "1H": "1h",
+    "4H": "4h",
+    D: "1d",
+    W: "1w",
+  };
+
+  return intervalMap[timeframe];
+}
+
 function getPageUri() {
   if (typeof window === "undefined") {
     return "";
