@@ -1,0 +1,263 @@
+import type { PortfolioMetricCard } from "@/types/portfolio-metric-card";
+import type { PortfolioOverviewResponse } from "@/types/portfolio-overview";
+import type { PortfolioExposureItem, PortfolioAllocationItem } from "@/types/portfolio-overview";
+import type { PortfolioAccount, PortfolioPosition } from "@/types/dashboard";
+import { resolveCryptoIconCode } from "@/lib/utils/resolve-crypto-icon";
+import { resolveForexPairIcon } from "@/lib/utils/forex-flag";
+
+const COMMODITY_SYMBOL_PREFIXES = new Set(["XAU"]);
+
+function formatCurrency(value: number) {
+  return value.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+function formatSignedCurrency(value: number) {
+  const prefix = value >= 0 ? "+$" : "-$";
+  return `${prefix}${Math.abs(value).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+function getRiskTone(label: PortfolioOverviewResponse["summary"]["riskLabel"]) {
+  return label === "High" ? "red" : label === "Medium" ? "orange" : "green";
+}
+
+function getRiskLabel(marginUsagePercent: number): PortfolioOverviewResponse["summary"]["riskLabel"] {
+  if (marginUsagePercent >= 80) {
+    return "High";
+  }
+
+  if (marginUsagePercent >= 55) {
+    return "Medium";
+  }
+
+  return "Low";
+}
+
+function getAssetGroup(symbol: string) {
+  const normalized = symbol.trim().toUpperCase();
+
+  if (resolveCryptoIconCode(normalized)) {
+    return "crypto";
+  }
+
+  if (COMMODITY_SYMBOL_PREFIXES.has(normalized.slice(0, 3))) {
+    return "commodities";
+  }
+
+  if (resolveForexPairIcon(normalized)) {
+    return "forex";
+  }
+
+  return "commodities";
+}
+
+const DECORATIVE_CHART = [41, 44, 47, 50, 53, 55, 52, 54, 57, 60, 58, 61, 64, 62, 65, 63, 66, 69, 67, 70, 72, 74, 75];
+const DECORATIVE_DOWN_CHART = [58, 57, 56, 55, 54, 52, 51, 50, 49, 48, 47, 46, 45];
+
+function toNumber(value: string | number | null | undefined) {
+  if (value == null) {
+    return 0;
+  }
+
+  return typeof value === "number" ? value : Number(value);
+}
+
+export function buildPortfolioAllocationItems(
+  account: Pick<PortfolioAccount, "equity">,
+  positions: PortfolioPosition[],
+): PortfolioAllocationItem[] {
+  const groups = {
+    crypto: 0,
+    forex: 0,
+    cash: 0,
+    commodities: 0,
+  };
+
+  for (const position of positions.filter((item) => item.status === "OPEN")) {
+    const value = Math.abs(toNumber(position.lots) * toNumber(position.currentPrice ?? position.entryPrice));
+    const group = getAssetGroup(position.symbol);
+    groups[group] += value;
+  }
+
+  const equity = Math.max(0, toNumber(account.equity));
+  const positionValueSum = groups.crypto + groups.forex + groups.commodities;
+  groups.cash = Math.max(0, equity - positionValueSum);
+
+  const total = Math.max(1, Math.max(equity, positionValueSum));
+
+  return [
+    { id: "crypto", label: "Crypto", value: Number(groups.crypto.toFixed(2)), percent: Number(((groups.crypto / total) * 100).toFixed(1)), color: "#22E0A2" },
+    { id: "forex", label: "Forex", value: Number(groups.forex.toFixed(2)), percent: Number(((groups.forex / total) * 100).toFixed(1)), color: "#3B82F6" },
+    { id: "cash", label: "Cash", value: Number(groups.cash.toFixed(2)), percent: Number(((groups.cash / total) * 100).toFixed(1)), color: "#FF8000" },
+    { id: "commodities", label: "Commodities", value: Number(groups.commodities.toFixed(2)), percent: Number(((groups.commodities / total) * 100).toFixed(1)), color: "#03D5D5" },
+  ];
+}
+
+export function buildPortfolioExposureItems(positions: PortfolioPosition[]): PortfolioExposureItem[] {
+  const groupedCounts = {
+    crypto: 0,
+    forex: 0,
+    commodities: 0,
+  };
+
+  for (const position of positions.filter((item) => item.status === "OPEN")) {
+    const group = getAssetGroup(position.symbol);
+    groupedCounts[group] += 1;
+  }
+
+  const entries = [
+    {
+      id: "crypto",
+      label: "Crypto",
+      count: groupedCounts.crypto,
+      iconSrc: "/images/portfolio/btc.svg",
+      iconTone: "green" as const,
+      fill: "linear-gradient(180deg, #0CE9A0 0%, #108961 100%)",
+    },
+    {
+      id: "forex",
+      label: "Forex",
+      count: groupedCounts.forex,
+      iconSrc: "/images/portfolio/dollar.svg",
+      iconTone: "blue" as const,
+      fill: "linear-gradient(180deg, #60A5FA 0%, #3B82F6 100%)",
+    },
+    {
+      id: "commodities",
+      label: "Commodities",
+      count: groupedCounts.commodities,
+      iconSrc: "/images/portfolio/graph.svg",
+      iconTone: "orange" as const,
+      fill: "linear-gradient(180deg, #56F0F0 0%, #03D5D5 100%)",
+    },
+  ].filter((item) => item.count > 0);
+
+  const total = entries.reduce((sum, item) => sum + item.count, 0);
+
+  if (total <= 0) {
+    return [];
+  }
+
+  const normalized = entries.map((item) => {
+    const exact = (item.count / total) * 100;
+    return {
+      ...item,
+      exact,
+      percent: Math.floor(exact),
+      remainder: exact - Math.floor(exact),
+    };
+  });
+
+  let remainingPoints = Math.max(0, 100 - normalized.reduce((sum, item) => sum + item.percent, 0));
+
+  const byRemainder = [...normalized].sort((left, right) => right.remainder - left.remainder);
+  let index = 0;
+  while (remainingPoints > 0 && byRemainder.length > 0) {
+    const target = byRemainder[index % byRemainder.length];
+    target.percent += 1;
+    remainingPoints -= 1;
+    index += 1;
+  }
+
+  return normalized
+    .map(({ count: _count, exact: _exact, remainder: _remainder, ...item }) => ({
+      ...item,
+      percent: item.percent,
+    }))
+    .filter((item) => item.percent > 0);
+}
+
+export function buildPortfolioMetricCards(
+  account: Pick<PortfolioAccount, "balance" | "equity" | "floatingPnl" | "marginUsed">,
+  overview: Pick<PortfolioOverviewResponse, "summary" | "chart">,
+): PortfolioMetricCard[] {
+  const summary = overview.summary;
+  const availableMargin = Number(account.equity) - Number(account.marginUsed);
+  const marginUsagePercent = Number(account.equity) > 0 ? (Number(account.marginUsed) / Number(account.equity)) * 100 : 0;
+  const riskLabel = getRiskLabel(marginUsagePercent);
+  const currentProfit = Number(account.equity) - summary.profitTarget.baseBalance;
+  const profitTargetPercent =
+    summary.profitTarget.targetAmount > 0 ? Math.min(100, (currentProfit / summary.profitTarget.targetAmount) * 100) : 0;
+  const remaining = Math.max(0, summary.profitTarget.targetAmount - currentProfit);
+  const thirtyDayHigh =
+    overview.chart.dataByTimeframe["D"]?.reduce((max, point) => Math.max(max, Number(point.value)), 0) ??
+    Number(account.equity);
+
+  return [
+    {
+      id: "wallet",
+      variant: "icon-stats",
+      title: "Wallet",
+      value: `$${formatCurrency(Number(account.balance))}`,
+      subtitle: `Equity ${formatCurrency(Number(account.equity))}`,
+      subtitleTone: "default",
+      iconSrc: "/images/portfolio/wallet.svg",
+      iconTone: "green",
+      subStats: [
+        { label: "30 Days High", value: `$${formatCurrency(thirtyDayHigh)}` },
+        { label: "Assets Held", value: `${summary.openPositionsCount} positions` },
+      ],
+      chartValues: DECORATIVE_CHART,
+      valueTone: "default",
+    },
+    {
+      id: "pnl",
+      variant: "icon-stats",
+      title: "P&L",
+      value: formatSignedCurrency(Number(account.floatingPnl)),
+      subtitle: "Across open positions",
+      subtitleTone: Number(account.floatingPnl) >= 0 ? "positive" : "negative",
+      iconSrc: "/images/portfolio/graph.svg",
+      iconTone: Number(account.floatingPnl) >= 0 ? "green" : "red",
+      subStats: [
+        { label: "Winning", value: `${summary.winningPositionsCount} positions`, tone: "positive" },
+        { label: "Losing", value: `${summary.losingPositionsCount} positions`, tone: "negative" },
+      ],
+      chartValues: DECORATIVE_DOWN_CHART,
+      valueTone: Number(account.floatingPnl) >= 0 ? "positive" : "negative",
+    },
+    {
+      id: "available-margin",
+      variant: "gauge-progress",
+      title: "Available Margin",
+      value: `$${formatCurrency(availableMargin)}`,
+      subtitle: `Margin usage ${marginUsagePercent.toFixed(1)}%`,
+      gaugeValue: marginUsagePercent,
+      progressValue: Math.max(0, 100 - marginUsagePercent),
+      progressLeftLabel: "Free Margin",
+      progressRightLabel: `$${formatCurrency(availableMargin)}`,
+    },
+    {
+      id: "risk-score",
+      variant: "icon-stats",
+      title: "Risk Score",
+      value: riskLabel,
+      subtitle: "Healthy portfolio exposure",
+      subtitleTone: getRiskTone(riskLabel) === "green" ? "positive" : "default",
+      iconSrc: "/images/portfolio/risk.svg",
+      iconTone: getRiskTone(riskLabel),
+      subStats: [
+        { label: "VAR", value: `${marginUsagePercent.toFixed(1)}%` },
+        { label: "Compliance", value: summary.winRate >= 50 ? "Good" : "Review", tone: summary.winRate >= 50 ? "positive" : "negative" },
+      ],
+      chartValues: DECORATIVE_CHART,
+      valueTone: getRiskTone(riskLabel) === "red" ? "negative" : "positive",
+    },
+    {
+      id: "profit-target",
+      variant: "gauge-progress",
+      title: "Profit Target",
+      value: `${profitTargetPercent.toFixed(0)}%`,
+      subtitle: `$${formatCurrency(currentProfit)} / $${formatCurrency(summary.profitTarget.targetAmount)}`,
+      gaugeValue: profitTargetPercent,
+      progressValue: profitTargetPercent,
+      progressLeftLabel: "Remaining",
+      progressRightLabel: `$${formatCurrency(remaining)}`,
+    },
+  ];
+}
