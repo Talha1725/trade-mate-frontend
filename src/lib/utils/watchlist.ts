@@ -30,13 +30,7 @@ const WATCHLIST_MOCK_PRICES: Record<string, { price: number; changePercent: numb
 
 const DEFAULT_WATCHLIST_QUOTE = { price: 100, changePercent: 0 };
 
-export const DEFAULT_WATCHLIST_ASSET_IDS = [
-  "btcusdt",
-  "ethusdt",
-  "solusdt",
-  "xrpusdt",
-  "adausdt",
-] as const;
+export const DEFAULT_WATCHLIST_ASSET_IDS: string[] = [];
 
 function getWatchlistQuote(symbol: string) {
   return WATCHLIST_MOCK_PRICES[symbol.toUpperCase()] ?? DEFAULT_WATCHLIST_QUOTE;

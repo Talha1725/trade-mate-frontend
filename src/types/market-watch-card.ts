@@ -39,6 +39,7 @@ export type MarketWatchCardProps = {
   signals?: MarketSignalItem[];
   news?: MarketNewsItem[];
   selectedItemId: string;
+  isLoading?: boolean;
   onItemSelect?: (itemId: string) => void;
   onWatchlistToggle?: (itemId: string) => void;
   className?: string;

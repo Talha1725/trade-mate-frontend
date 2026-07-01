@@ -45,8 +45,8 @@ export function PageHeader({
       )}
     >
       {/* Search Bar — full width on mobile, constrained on desktop */}
-      <div className="w-full lg:flex-1 lg:min-w-[160px] lg:max-w-[520px]">
-        <CurrencySearch />
+      <div className="w-full min-w-0 lg:flex-1 lg:min-w-[160px] lg:max-w-[520px]">
+        <CurrencySearch className="w-full" />
       </div>
 
       {/* Actions — 2-col grid on mobile/tablet, flex row on desktop */}

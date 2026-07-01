@@ -3,42 +3,107 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-import { mockTradingFilterAssets } from "@/lib/mock-data/trading-filter-bar";
-import { DEFAULT_WATCHLIST_ASSET_IDS } from "@/lib/utils/watchlist";
 import type { MarketSelectionStore } from "@/types/market-selection-store";
+import type { TradingTimeframe } from "@/types/trading-filter-bar";
+import { TRADING_TIMEFRAMES } from "@/lib/mock-data/trading-filter-bar";
 
-const DEFAULT_SELECTED_MARKET_ID = mockTradingFilterAssets[0]?.id ?? "btcusdt";
-const VALID_ASSET_IDS = new Set(mockTradingFilterAssets.map((asset) => asset.id));
+const DEFAULT_TIMEFRAME: TradingTimeframe = "4H";
 
-function normalizeSelectedMarketId(marketId: string) {
-  return VALID_ASSET_IDS.has(marketId) ? marketId : DEFAULT_SELECTED_MARKET_ID;
+function normalizeTimeframe(timeframe: TradingTimeframe) {
+  return TRADING_TIMEFRAMES.includes(timeframe) ? timeframe : DEFAULT_TIMEFRAME;
 }
 
-function normalizeWatchlistIds(watchlistIds: string[]) {
-  const normalized = watchlistIds.filter((assetId) => VALID_ASSET_IDS.has(assetId));
+function normalizeSelectedMarketId(
+  marketId: string,
+  validAssetIds: Set<string>,
+  fallbackId: string,
+) {
+  return validAssetIds.has(marketId) ? marketId : fallbackId;
+}
 
-  return normalized.length > 0 ? normalized : [...DEFAULT_WATCHLIST_ASSET_IDS];
+function normalizeCompareAssetId(
+  compareAssetId: string | null,
+  validAssetIds: Set<string>,
+  selectedMarketId: string,
+) {
+  if (!compareAssetId || !validAssetIds.has(compareAssetId)) {
+    return null;
+  }
+
+  if (compareAssetId === selectedMarketId) {
+    return null;
+  }
+
+  return compareAssetId;
 }
 
 export const useMarketSelectionStore = create<MarketSelectionStore>()(
   persist(
     (set, get) => ({
-      selectedMarketId: DEFAULT_SELECTED_MARKET_ID,
-      watchlistIds: [...DEFAULT_WATCHLIST_ASSET_IDS],
+      selectedMarketId: "",
+      compareAssetId: null,
+      timeframe: DEFAULT_TIMEFRAME,
+      knownAssetIds: [],
       hasHydrated: false,
-      setSelectedMarketId: (marketId) =>
-        set({ selectedMarketId: normalizeSelectedMarketId(marketId) }),
-      toggleWatchlistAsset: (assetId) => {
-        if (!VALID_ASSET_IDS.has(assetId)) {
+      setSelectedMarketId: (marketId) => {
+        const validAssetIds = new Set(get().knownAssetIds);
+
+        if (validAssetIds.size > 0 && !validAssetIds.has(marketId)) {
           return;
         }
 
-        const currentWatchlistIds = get().watchlistIds;
+        const nextState: Partial<Pick<MarketSelectionStore, "selectedMarketId" | "compareAssetId">> = {
+          selectedMarketId: marketId,
+        };
+
+        if (get().compareAssetId === marketId) {
+          nextState.compareAssetId = null;
+        }
+
+        set(nextState);
+      },
+      setCompareAssetId: (assetId) => {
+        const { knownAssetIds, selectedMarketId } = get();
+
+        if (assetId !== null) {
+          if (knownAssetIds.length > 0 && !knownAssetIds.includes(assetId)) {
+            return;
+          }
+
+          if (assetId === selectedMarketId) {
+            return;
+          }
+        }
+
+        set({ compareAssetId: assetId });
+      },
+      setTimeframe: (timeframe) => {
+        set({ timeframe: normalizeTimeframe(timeframe) });
+      },
+      syncAssets: (assets) => {
+        const validAssetIds = new Set(assets.map((asset) => asset.id));
+        const fallbackId = assets[0]?.id ?? "";
+        const state = get();
+
+        if (validAssetIds.size === 0) {
+          set({ knownAssetIds: [] });
+          return;
+        }
+
+        const selectedMarketId = normalizeSelectedMarketId(
+          state.selectedMarketId,
+          validAssetIds,
+          fallbackId,
+        );
 
         set({
-          watchlistIds: currentWatchlistIds.includes(assetId)
-            ? currentWatchlistIds.filter((id) => id !== assetId)
-            : [...currentWatchlistIds, assetId],
+          knownAssetIds: Array.from(validAssetIds),
+          selectedMarketId,
+          compareAssetId: normalizeCompareAssetId(
+            state.compareAssetId,
+            validAssetIds,
+            selectedMarketId,
+          ),
         });
       },
       setHasHydrated: (value) => set({ hasHydrated: value }),
@@ -48,16 +113,15 @@ export const useMarketSelectionStore = create<MarketSelectionStore>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         selectedMarketId: state.selectedMarketId,
-        watchlistIds: state.watchlistIds,
+        compareAssetId: state.compareAssetId,
+        timeframe: state.timeframe,
       }),
       onRehydrateStorage: () => (state) => {
-        if (!state) {
-          return;
+        if (state) {
+          state.timeframe = normalizeTimeframe(state.timeframe ?? DEFAULT_TIMEFRAME);
         }
 
-        state.selectedMarketId = normalizeSelectedMarketId(state.selectedMarketId);
-        state.watchlistIds = normalizeWatchlistIds(state.watchlistIds);
-        state.setHasHydrated(true);
+        state?.setHasHydrated(true);
       },
     },
   ),

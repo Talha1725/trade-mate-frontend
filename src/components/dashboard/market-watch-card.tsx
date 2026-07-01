@@ -1,6 +1,6 @@
 "use client";
 
-import { Star } from "lucide-react";
+import { Star, Loader2 } from "lucide-react";
 import { useState } from "react";
 
 import { AssetIcon } from "@/components/shared/asset-icon";
@@ -138,6 +138,7 @@ export function MarketWatchCard({
   signals = mockMarketSignals,
   news = mockMarketNews,
   selectedItemId,
+  isLoading = false,
   onItemSelect,
   onWatchlistToggle,
   className,
@@ -176,7 +177,12 @@ export function MarketWatchCard({
       <div className="mt-4 flex-1 min-h-[312px] max-h-[312px] overflow-auto">
         {activeTab === "watchlist" ? (
           <div className="flex flex-col gap-2">
-            {items.length > 0 ? (
+            {isLoading ? (
+              <div className="flex items-center justify-center gap-2 rounded-[10px] border border-dashed border-white/15 px-4 py-6 text-sm text-white/50">
+                <Loader2 className="size-4 animate-spin" />
+                Loading watchlist...
+              </div>
+            ) : items.length > 0 ? (
               items.map((item) => (
                 <WatchlistRow
                   key={item.id}

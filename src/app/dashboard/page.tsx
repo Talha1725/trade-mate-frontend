@@ -10,20 +10,20 @@ import { MarketWatchCard } from "@/components/dashboard/market-watch-card";
 import { MarketSnapshotCard } from "@/components/dashboard/market-snapshot-card";
 import { OpenPositionsStripCard } from "@/components/dashboard/open-positions-strip-card";
 import {
-  mockTradingFilterAssets,
   mockTradingFilterOhlcv,
   mockTradingFilterQuote,
 } from "@/lib/mock-data/trading-filter-bar";
 import { mockOpenPositionsStrip } from "@/lib/mock-data/open-positions-strip";
-import { buildWatchlistFromAssets } from "@/lib/utils/watchlist";
 import { dashboardApi } from "@/lib/services/dashboard.api";
+import { useAccountWishlist } from "@/hooks/use-account-wishlist";
+import { useResolvedAccountNumber } from "@/hooks/use-resolved-account-number";
+import { useSyncedTradingAssets } from "@/hooks/use-synced-trading-assets";
 import { useMarketSelectionStore } from "@/lib/stores/market-selection-store";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
 import { mapTimeframeToTradingViewInterval } from "@/lib/utils/trading-view";
 import { buildDashboardData } from "@/lib/utils/trader-data";
 import type { AccountLedgerResponse, UserPortfolioResponse } from "@/types/dashboard";
-import type { TradingTimeframe } from "@/types/trading-filter-bar";
 import { usePriceStream } from "@/hooks/use-price-stream";
 import { PriceSocketPortfolioMessage } from "@/types";
 
@@ -32,12 +32,13 @@ export default function DashboardPage() {
   const [ledger, setLedger] = React.useState<AccountLedgerResponse | null>(null);
   const selectedMarketId = useMarketSelectionStore((state) => state.selectedMarketId);
   const setSelectedMarketId = useMarketSelectionStore((state) => state.setSelectedMarketId);
-  const watchlistIds = useMarketSelectionStore((state) => state.watchlistIds);
-  const toggleWatchlistAsset = useMarketSelectionStore((state) => state.toggleWatchlistAsset);
-  const [timeframe, setTimeframe] = React.useState<TradingTimeframe>("4H");
-  const [compareAssetId, setCompareAssetId] = React.useState<string | null>(null);
+  const compareAssetId = useMarketSelectionStore((state) => state.compareAssetId);
+  const setCompareAssetId = useMarketSelectionStore((state) => state.setCompareAssetId);
+  const timeframe = useMarketSelectionStore((state) => state.timeframe);
+  const setTimeframe = useMarketSelectionStore((state) => state.setTimeframe);
   const token = useAuthStore((state) => state.session?.token ?? null);
   const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
+  const { data: tradingAssets = [] } = useSyncedTradingAssets();
 
   React.useEffect(() => {
     if (!token) {
@@ -132,21 +133,18 @@ export default function DashboardPage() {
     },
   });
 
-  const watchlistItems = React.useMemo(
-    () => buildWatchlistFromAssets(watchlistIds, mockTradingFilterAssets),
-    [watchlistIds],
-  );
-
-  React.useEffect(() => {
-    if (compareAssetId && compareAssetId === selectedMarketId) {
-      setCompareAssetId(null);
-    }
-  }, [compareAssetId, selectedMarketId]);
+  const accountNumber = useResolvedAccountNumber(snapshot?.account.accountNumber);
+  const {
+    watchlistItems,
+    wishlistAssetIds,
+    toggleWishlistAsset,
+    isLoading: isWishlistLoading,
+  } = useAccountWishlist(accountNumber, tradingAssets);
 
   const selectedWatchlistItem = watchlistItems.find(
     (item) => item.id === selectedMarketId,
   );
-  const selectedFilterAsset = mockTradingFilterAssets.find(
+  const selectedFilterAsset = tradingAssets.find(
     (asset) => asset.id === selectedMarketId,
   );
   const chartSymbol =
@@ -158,16 +156,11 @@ export default function DashboardPage() {
     ? watchlistItems.find((item) => item.id === compareAssetId)
     : null;
   const compareFilterAsset = compareAssetId
-    ? mockTradingFilterAssets.find((asset) => asset.id === compareAssetId)
+    ? tradingAssets.find((asset) => asset.id === compareAssetId)
     : null;
   const compareSymbol =
     compareWatchlistItem?.symbol ?? compareFilterAsset?.symbol ?? null;
   const chartInterval = mapTimeframeToTradingViewInterval(timeframe);
-  const compareItems = watchlistItems.map((item) => ({
-    id: item.id,
-    symbol: item.symbol,
-    name: item.name,
-  }));
 
   return (
     <AppShell>
@@ -178,16 +171,14 @@ export default function DashboardPage() {
         />
 
         <TradingFilterBar
-          assets={mockTradingFilterAssets}
+          assets={tradingAssets}
           selectedAssetId={selectedMarketId}
           onAssetChange={setSelectedMarketId}
-          watchlistAssetIds={watchlistIds}
-          onWatchlistToggle={toggleWatchlistAsset}
+          accountNumber={snapshot?.account.accountNumber}
           quote={mockTradingFilterQuote}
           ohlcv={mockTradingFilterOhlcv}
           timeframe={timeframe}
           onTimeframeChange={setTimeframe}
-          compareItems={compareItems}
           compareAssetId={compareAssetId}
           onCompareChange={setCompareAssetId}
         />
@@ -202,9 +193,10 @@ export default function DashboardPage() {
           <div className="col-span-12 flex flex-col gap-6 xl:col-span-4">
             <MarketWatchCard
               items={watchlistItems}
+              isLoading={isWishlistLoading}
               selectedItemId={selectedMarketId}
               onItemSelect={setSelectedMarketId}
-              onWatchlistToggle={toggleWatchlistAsset}
+              onWatchlistToggle={toggleWishlistAsset}
             />
             <MarketSnapshotCard />
           </div>
