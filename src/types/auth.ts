@@ -13,7 +13,7 @@ export type AuthUser = {
 };
 
 export type LoginCredentials = {
-  assignedId: string;
+  email: string;
   password: string;
 };
 

@@ -128,7 +128,8 @@ export function buildAdvancedChartEmbedUrl({
     hide_side_toolbar: false,
     hide_top_toolbar: false,
     save_image: false,
-    backgroundColor: "rgba(0, 0, 0, 0)",
+    backgroundColor: "#000000",
+    color: "#FFFFFF",
     gridColor: "rgba(255, 255, 255, 0.06)",
     "page-uri": getPageUri(),
   };
