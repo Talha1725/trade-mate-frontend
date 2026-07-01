@@ -5,7 +5,6 @@ export type CompareAssetItem = {
 };
 
 export type CompareAssetsDropdownProps = {
-  items: CompareAssetItem[];
   primaryAssetId: string;
   compareAssetId?: string | null;
   onCompareChange?: (assetId: string | null) => void;

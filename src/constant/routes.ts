@@ -37,6 +37,10 @@ export const ROUTES = {
     SUMMARY:        `/api/account/summary`,
     BY_ID:  (id: string) => `/api/account/${id}`,
     LIST:           `/api/accounts`,
+    WISHLIST: (accountNumber: string) =>
+      `/api/accounts/${encodeURIComponent(accountNumber)}/wishlist`,
+    WISHLIST_ITEM: (accountNumber: string, assetId: string) =>
+      `/api/accounts/${encodeURIComponent(accountNumber)}/wishlist/${encodeURIComponent(assetId)}`,
   },
 
   /** Dashboard Module */
@@ -46,6 +50,11 @@ export const ROUTES = {
     BREAKDOWN:      `/api/dashboard/breakdown`,
     RECENT_ACTIVITY:`/api/dashboard/recent-activity`,
     STAT_CARDS:     `/api/dashboard/stat-cards`,
+  },
+
+  /** Assets Module */
+  ASSETS: {
+    LIST:           `/api/assets`,
   },
 
   /** Admin Module */

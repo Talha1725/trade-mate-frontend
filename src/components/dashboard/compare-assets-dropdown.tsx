@@ -1,6 +1,8 @@
 "use client";
 
+import * as React from "react";
 import { ArrowLeftRightIcon } from "lucide-react";
+import { FaTrash } from "react-icons/fa6";
 
 import { AssetIcon } from "@/components/shared/asset-icon";
 import {
@@ -8,12 +10,21 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/dashboard/ui/dropDown";
+import { useSyncedTradingAssets } from "@/hooks/use-synced-trading-assets";
 import { cn } from "@/lib/utils";
 import type {
   CompareAssetItem,
   CompareAssetsDropdownProps,
 } from "@/types/trading-compare-assets";
-import { FaTrash } from "react-icons/fa6";
+import type { TradingFilterBarAsset } from "@/types/trading-filter-bar";
+
+function mapAssetToCompareItem(asset: TradingFilterBarAsset): CompareAssetItem {
+  return {
+    id: asset.id,
+    symbol: asset.symbol,
+    name: asset.label,
+  };
+}
 
 function CompareAssetIcon({ symbol, name }: { symbol: string; name: string }) {
   return (
@@ -50,9 +61,7 @@ function CompareAssetRow({
         <CompareAssetIcon symbol={item.symbol} name={item.name} />
         <span className="min-w-0">
           <p className="truncate text-sm font-medium text-white md:text-base">{item.symbol}</p>
-          <p className="truncate text-xs text-white/60 md:text-sm">
-            {item.name} / US Dollar
-          </p>
+          <p className="truncate text-xs text-white/60 md:text-sm">{item.name}</p>
         </span>
       </span>
 
@@ -75,13 +84,16 @@ function RemoveComparisonRow({ onRemove }: { onRemove: () => void }) {
         event.preventDefault();
         onRemove();
       }}
-      className="flex w-full items-center justify-between gap-3 py-2.5 text-left transition-colors hover:opacity-90"
+      className="flex w-full cursor-pointer items-center justify-between gap-3 py-2.5 text-left transition-colors hover:opacity-90"
     >
       <div className="min-w-0">
         <p className="text-sm font-medium text-white md:text-base">Remove Comparison</p>
         <p className="text-xs text-white/60 md:text-sm">Clear secondary line</p>
       </div>
-      <button className="flex rounded-full hover:bg-white/10 transition-colors p-1.5 cursor-pointer shrink-0 items-center justify-center text-white/80">
+      <button
+        type="button"
+        className="flex shrink-0 cursor-pointer items-center justify-center rounded-full p-1.5 text-white/80 transition-colors hover:bg-white/10"
+      >
         <FaTrash color="white" className="size-4" />
       </button>
     </div>
@@ -89,13 +101,20 @@ function RemoveComparisonRow({ onRemove }: { onRemove: () => void }) {
 }
 
 export function CompareAssetsDropdown({
-  items,
   primaryAssetId,
   compareAssetId = null,
   onCompareChange,
   className,
 }: CompareAssetsDropdownProps) {
-  const compareOptions = items.filter((item) => item.id !== primaryAssetId);
+  const { data: tradingAssets = [] } = useSyncedTradingAssets();
+
+  const compareOptions = React.useMemo(
+    () =>
+      tradingAssets
+        .filter((asset) => asset.id !== primaryAssetId)
+        .map(mapAssetToCompareItem),
+    [primaryAssetId, tradingAssets],
+  );
 
   const handleSelect = (assetId: string) => {
     if (compareAssetId === assetId) {
@@ -126,25 +145,33 @@ export function CompareAssetsDropdown({
       <DropdownMenuContent
         align="start"
         sideOffset={8}
-        className="w-[333px] cursor-pointer max-w-[333px] max-h-[615px] overflow-y-auto rounded-xl border border-white/20 bg-black/50 p-0 py-6 text-white backdrop-blur-sm"
+        className="flex w-[333px] max-w-[333px] flex-col overflow-hidden rounded-xl border border-white/20 bg-black/50 p-0 text-white backdrop-blur-sm"
         finalFocus={false}
       >
-        <div className="sticky top-0 z-10 px-4 pb-3 md:px-6">
+        <div className="shrink-0 px-4 py-4 md:px-6">
           <h4 className="text-base font-medium text-white/80 md:text-lg">Compare Asset</h4>
         </div>
 
-        <div className="space-y-2 px-4 md:px-6">
-          {compareOptions.map((item) => (
-            <CompareAssetRow
-              key={item.id}
-              item={item}
-              isActive={compareAssetId === item.id}
-              onSelect={() => handleSelect(item.id)}
-            />
-          ))}
+        <div className="max-h-[280px] min-h-0 overflow-y-auto px-4 md:px-6">
+          <div className="space-y-2 pb-2">
+            {compareOptions.length > 0 ? (
+              compareOptions.map((item) => (
+                <CompareAssetRow
+                  key={item.id}
+                  item={item}
+                  isActive={compareAssetId === item.id}
+                  onSelect={() => handleSelect(item.id)}
+                />
+              ))
+            ) : (
+              <p className="rounded-xl border border-dashed border-white/15 px-3 py-5 text-center text-sm text-white/50">
+                No assets available to compare.
+              </p>
+            )}
+          </div>
         </div>
 
-        <div className="sticky bottom-0 mt-2 px-4 md:px-6">
+        <div className="shrink-0 border-t border-white/10 px-4 py-3 md:px-6">
           <RemoveComparisonRow onRemove={handleRemove} />
         </div>
       </DropdownMenuContent>

@@ -12,8 +12,9 @@ import {
   SelectValue,
 } from "@/components/dashboard/ui/select";
 import { AssetIcon } from "@/components/shared/asset-icon";
+import { useAccountWishlist } from "@/hooks/use-account-wishlist";
+import { useResolvedAccountNumber } from "@/hooks/use-resolved-account-number";
 import { TRADING_TIMEFRAMES } from "@/lib/mock-data/trading-filter-bar";
-import { isAssetInWatchlist } from "@/lib/utils/watchlist";
 import { cn } from "@/lib/utils";
 import type {
   TradingFilterBarAction,
@@ -73,10 +74,12 @@ function AssetOptionLabel({ asset }: { asset: TradingFilterBarAsset }) {
 function AssetDropdownOption({
   asset,
   isInWatchlist,
+  isDisabled,
   onWatchlistToggle,
 }: {
   asset: TradingFilterBarAsset;
   isInWatchlist: boolean;
+  isDisabled?: boolean;
   onWatchlistToggle?: (assetId: string) => void;
 }) {
   return (
@@ -87,8 +90,14 @@ function AssetDropdownOption({
       </span>
       <button
         type="button"
+        disabled={isDisabled}
         aria-label={isInWatchlist ? `Remove ${asset.label} from watchlist` : `Add ${asset.label} to watchlist`}
-        className="pointer-events-auto cursor-pointer shrink-0 rounded-md p-1 text-white/60 transition-colors hover:bg-white/10 hover:text-primary"
+        className={cn(
+          "pointer-events-auto shrink-0 rounded-md p-1 transition-colors",
+          isDisabled
+            ? "cursor-not-allowed text-white/30"
+            : "cursor-pointer text-white/60 hover:bg-white/10 hover:text-primary",
+        )}
         onPointerDown={(event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -140,18 +149,24 @@ export function TradingFilterBar({
   assets,
   selectedAssetId,
   onAssetChange,
-  watchlistAssetIds = [],
-  onWatchlistToggle,
+  accountNumber: accountNumberProp,
   quote,
   ohlcv,
   timeframe,
   onTimeframeChange,
-  compareItems,
   compareAssetId = null,
   onCompareChange,
   onActionClick,
   className,
 }: TradingFilterBarProps) {
+  const resolvedAccountNumber = useResolvedAccountNumber(accountNumberProp);
+  const {
+    wishlistAssetIds,
+    toggleWishlistAsset,
+    isMutating: isWishlistMutating,
+  } = useAccountWishlist(resolvedAccountNumber, assets);
+  const isWishlistDisabled = !resolvedAccountNumber || isWishlistMutating;
+
   const selectedAsset =
     assets.find((asset) => asset.id === selectedAssetId) ?? assets[0];
   const isPositive = quote.change >= 0;
@@ -187,8 +202,9 @@ export function TradingFilterBar({
             >
               <AssetDropdownOption
                 asset={asset}
-                isInWatchlist={isAssetInWatchlist(asset.id, watchlistAssetIds)}
-                onWatchlistToggle={onWatchlistToggle}
+                isInWatchlist={wishlistAssetIds.includes(asset.id)}
+                isDisabled={isWishlistDisabled}
+                onWatchlistToggle={toggleWishlistAsset}
               />
             </SelectItem>
           ))}
@@ -234,7 +250,6 @@ export function TradingFilterBar({
       <div className="flex flex-wrap items-center gap-2 ">
         <IndicatorsDropdown />
         <CompareAssetsDropdown
-          items={compareItems}
           primaryAssetId={selectedAssetId}
           compareAssetId={compareAssetId}
           onCompareChange={onCompareChange}
