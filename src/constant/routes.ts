@@ -53,6 +53,16 @@ export const ROUTES = {
     STAT_CARDS:     `/api/dashboard/stat-cards`,
   },
 
+  /** Portfolio Module */
+  PORTFOLIO: {
+    OVERVIEW:       `/api/portfolio/overview`,
+    SUMMARY:        `/api/portfolio/summary`,
+    CHART:          `/api/portfolio/chart`,
+    ALLOCATION:     `/api/portfolio/allocation`,
+    EXPOSURE:       `/api/portfolio/exposure`,
+    TOP_MOVERS:     `/api/portfolio/top-movers`,
+  },
+
   /** Assets Module */
   ASSETS: {
     LIST:           `/api/assets`,

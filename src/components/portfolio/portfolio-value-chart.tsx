@@ -110,7 +110,7 @@ export function PortfolioValueChart({
           {chartData.length > 0 ? (
             <AreaChart
               data={chartData}
-              margin={{ top: 8, right: 0, left: -28, bottom: 16 }}
+              margin={{ top: 8, right: 12, left: 8, bottom: 16 }}
             >
             <defs>
               <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
@@ -133,10 +133,11 @@ export function PortfolioValueChart({
             <YAxis
               domain={yAxis.domain}
               ticks={yAxis.ticks}
+              width={56}
               tickLine={false}
               axisLine={false}
-              tickMargin={8}
-              tick={{ fill: "rgba(255,255,255,0.6)", fontSize: 12, }}
+              tickMargin={6}
+              tick={{ fill: "rgba(255,255,255,0.6)", fontSize: 12 }}
             />
 
             <Area
