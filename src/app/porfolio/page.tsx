@@ -16,6 +16,8 @@ import { useAuthStore } from "@/lib/stores/auth-store";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
 import { mapPortfolioPositionToPortfolioRow } from "@/lib/utils/trader-data";
 import type { UserPortfolioResponse } from "@/types/dashboard";
+import { usePriceStream } from "@/hooks/use-price-stream";
+import type { PriceSocketPortfolioMessage } from "@/types";
 
 export default function PortfolioPage() {
     const [snapshot, setSnapshot] = React.useState<UserPortfolioResponse | null>(null);
@@ -38,9 +40,28 @@ export default function PortfolioPage() {
     }, [refreshSnapshot]);
 
     const positions = React.useMemo(
-        () => snapshot?.positions.map(mapPortfolioPositionToPortfolioRow) ?? [],
+        () => snapshot?.positions.map((position) => mapPortfolioPositionToPortfolioRow(position)) ?? [],
         [snapshot?.positions],
     );
+
+    const accountId = snapshot?.account.id ?? selectedAccountId ?? null;
+
+    usePriceStream({
+        enabled: !!token && !!accountId,
+        accountIds: accountId ? [accountId] : [],
+        onPortfolio: (payload: PriceSocketPortfolioMessage) => {
+            const account = payload.accounts[0];
+
+            if (!account) {
+                return;
+            }
+
+            setSnapshot({
+                account,
+                positions: payload.positions,
+            });
+        },
+    });
 
     const handleClosePosition = React.useCallback(
         async (positionId: string) => {

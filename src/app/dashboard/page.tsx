@@ -9,7 +9,6 @@ import { MarketWatchCard } from "@/components/dashboard/market-watch-card";
 import { OpenPositionsStripCard } from "@/components/dashboard/open-positions-strip-card";
 import { TradingFilterBar } from "@/components/dashboard/trading-filter-bar";
 import { PageHeader } from "@/components/page-header";
-import { mockOpenPositionsStrip } from "@/lib/mock-data/open-positions-strip";
 import { mockTradingFilterOhlcv, mockTradingFilterQuote } from "@/lib/mock-data/trading-filter-bar";
 import { dashboardApi } from "@/lib/services/dashboard.api";
 import { marketApi } from "@/lib/services/market.api";
@@ -21,9 +20,12 @@ import {
   mapTimeframeToTradingViewInterval,
 } from "@/lib/utils/trading-view";
 import { buildDashboardData } from "@/lib/utils/trader-data";
+import { resolveMarketWatchIcon } from "@/lib/utils/market-symbol-icon";
 import type { AccountLedgerResponse, UserPortfolioResponse } from "@/types/dashboard";
 import type { MarketSnapshotChartSummary, MarketSnapshotData } from "@/types/market-snapshot";
 import type { MarketWatchItem } from "@/types/market-watch-card";
+import type { OpenPositionStripItem } from "@/types/open-positions-strip";
+import type { PortfolioPosition } from "@/types/dashboard";
 import type { PriceSocketPortfolioMessage, PriceSocketQuote } from "@/types";
 import { usePriceStream } from "@/hooks/use-price-stream";
 import { useAccountWishlist } from "@/hooks/use-account-wishlist";
@@ -35,6 +37,8 @@ export default function DashboardPage() {
   const [ledger, setLedger] = React.useState<AccountLedgerResponse | null>(null);
   const [marketSnapshot, setMarketSnapshot] = React.useState<MarketSnapshotData | null>(null);
   const [marketChart, setMarketChart] = React.useState<MarketSnapshotChartSummary | null>(null);
+  const [livePositions, setLivePositions] = React.useState<PortfolioPosition[]>([]);
+  const [liveQuotes, setLiveQuotes] = React.useState<Record<string, PriceSocketQuote>>({});
 
   const selectedMarketId = useMarketSelectionStore((state) => state.selectedMarketId);
   const setSelectedMarketId = useMarketSelectionStore((state) => state.setSelectedMarketId);
@@ -98,16 +102,22 @@ export default function DashboardPage() {
 
   const dashboardData = snapshot ? buildDashboardData(snapshot, ledger ?? undefined) : null;
   const liveSymbol = dashboardData?.positions[0]?.symbol;
+  const openPortfolioPositions = React.useMemo(
+    () => dashboardData?.positions.filter((position) => position.status === "OPEN") ?? [],
+    [dashboardData?.positions],
+  );
+  React.useEffect(() => {
+    setLivePositions(openPortfolioPositions);
+  }, [openPortfolioPositions]);
   const openSymbols = React.useMemo(
     () =>
       Array.from(
         new Set(
-          (dashboardData?.positions ?? [])
-            .filter((position) => position.status === "OPEN")
+          openPortfolioPositions
             .map((position) => position.symbol),
         ),
       ),
-    [dashboardData?.positions],
+    [openPortfolioPositions],
   );
   const accountId = snapshot?.account.id ?? selectedAccountId ?? null;
 
@@ -203,6 +213,60 @@ export default function DashboardPage() {
     [marketChart],
   );
 
+  function buildPositionTrend(entryPrice: number, currentPrice: number, side: "long" | "short") {
+    const base = entryPrice || currentPrice || 0;
+    const end = currentPrice || base;
+    const delta = end - base;
+    const amplitude = Math.max(Math.abs(delta) * 0.18, Math.max(base * 0.003, 0.5));
+
+    return Array.from({ length: 8 }, (_, index) => {
+      const progress = index / 7;
+      const wave = Math.sin(progress * Math.PI * 1.8) * amplitude * 0.28;
+      const directionBias = side === "long" ? amplitude * 0.05 : -amplitude * 0.05;
+      const value = base + delta * progress + wave + directionBias;
+
+      return { value: Number(value.toFixed(4)) };
+    });
+  }
+
+  function mapPositionToOpenStripItem(position: PortfolioPosition): OpenPositionStripItem {
+    const entryPrice = Number(position.entryPrice);
+    const liveQuote = liveQuotes[position.symbol.toUpperCase()];
+    const currentPrice = Number(liveQuote?.price ?? position.currentPrice ?? position.entryPrice);
+    const lots = Number(position.lots);
+    const isLong = position.direction === "BUY";
+    const side = isLong ? "long" : "short";
+    const pnl =
+      position.floatingPnl != null && position.floatingPnl !== ""
+        ? Number(position.floatingPnl)
+        : (isLong ? currentPrice - entryPrice : entryPrice - currentPrice) * lots;
+    const pnlPercent = entryPrice > 0
+      ? ((isLong ? currentPrice - entryPrice : entryPrice - currentPrice) / entryPrice) * 100
+      : 0;
+    const sizeUnit = position.symbol.replace(/USD$/i, "") || position.symbol;
+
+    return {
+      id: position.id,
+      symbol: position.symbol,
+      icon: resolveMarketWatchIcon(position.symbol) ?? "bitcoin",
+      side,
+      pnl: Number(pnl.toFixed(2)),
+      pnlPercent: Number(pnlPercent.toFixed(2)),
+      sizeLabel: `${lots.toFixed(4)} ${sizeUnit}`,
+      entryLabel: `Entry ${entryPrice.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`,
+      trend: buildPositionTrend(entryPrice, currentPrice, side),
+      palette: pnl >= 0 ? "profit" : "loss",
+    };
+  }
+
+  const openPositionItems = React.useMemo(
+    () => livePositions.map(mapPositionToOpenStripItem),
+    [livePositions, liveQuotes],
+  );
+
   const handleMarketQuotes = React.useCallback(
     (quotes: PriceSocketQuote[]) => {
       const liveQuote =
@@ -256,6 +320,16 @@ export default function DashboardPage() {
           };
         }),
       );
+
+      setLiveQuotes((current) => {
+        const nextQuotes = { ...current };
+
+        for (const quote of quotes) {
+          nextQuotes[quote.symbol.toUpperCase()] = quote;
+        }
+
+        return nextQuotes;
+      });
     },
     [chartSymbol],
   );
@@ -295,6 +369,8 @@ export default function DashboardPage() {
         positions: payload.positions,
         trades: payload.trades,
       });
+
+      setLivePositions(payload.positions.filter((position) => position.status === "OPEN"));
     },
   });
 
@@ -338,7 +414,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <OpenPositionsStripCard items={mockOpenPositionsStrip} />
+        <OpenPositionsStripCard items={openPositionItems} />
       </div>
     </AppShell>
   );

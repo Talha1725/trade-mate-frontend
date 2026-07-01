@@ -86,11 +86,19 @@ export function mapPortfolioPositionToPosition(position: PortfolioPosition): Pos
   };
 }
 
-export function mapPortfolioPositionToPortfolioRow(position: PortfolioPosition): PortfolioOpenPositionRow {
+export function mapPortfolioPositionToPortfolioRow(
+  position: PortfolioPosition,
+): PortfolioOpenPositionRow {
   const entryPrice = toNumber(position.entryPrice);
   const markPrice = toNumber(position.currentPrice ?? position.entryPrice);
-  const pnl = toNumber(position.floatingPnl);
   const size = toNumber(position.lots);
+  const directionMultiplier = position.direction === "BUY" ? 1 : -1;
+  const pnl =
+    position.floatingPnl != null && position.floatingPnl !== ""
+      ? toNumber(position.floatingPnl)
+      : entryPrice > 0
+        ? (markPrice - entryPrice) * size * directionMultiplier
+        : 0;
   const pnlPercent = entryPrice > 0 && size > 0 ? (pnl / (entryPrice * size)) * 100 : 0;
 
   return {
