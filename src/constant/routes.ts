@@ -10,6 +10,7 @@ export const ROUTES = {
     QUOTES:         `/api/market/quotes`,
     HISTORY:        `/api/market/history`,
     SYMBOLS:        `/api/market/symbols`,
+    SNAPSHOT:       `/api/market/snapshot`,
     BY_SYMBOL: (s: string) => `/api/market/${s}`,
     CHART:    (s: string) => `/api/market/${s}/chart`,
   },
@@ -37,6 +38,10 @@ export const ROUTES = {
     SUMMARY:        `/api/account/summary`,
     BY_ID:  (id: string) => `/api/account/${id}`,
     LIST:           `/api/accounts`,
+    WISHLIST: (accountNumber: string) =>
+      `/api/accounts/${encodeURIComponent(accountNumber)}/wishlist`,
+    WISHLIST_ITEM: (accountNumber: string, assetId: string) =>
+      `/api/accounts/${encodeURIComponent(accountNumber)}/wishlist/${encodeURIComponent(assetId)}`,
   },
 
   /** Dashboard Module */
@@ -46,6 +51,11 @@ export const ROUTES = {
     BREAKDOWN:      `/api/dashboard/breakdown`,
     RECENT_ACTIVITY:`/api/dashboard/recent-activity`,
     STAT_CARDS:     `/api/dashboard/stat-cards`,
+  },
+
+  /** Assets Module */
+  ASSETS: {
+    LIST:           `/api/assets`,
   },
 
   /** Admin Module */

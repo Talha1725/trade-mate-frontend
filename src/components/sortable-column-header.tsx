@@ -23,7 +23,7 @@ export function SortableColumnHeader<TData, TValue = unknown>({
     <Button
       variant="ghost"
       onClick={() => column.toggleSorting(sortDirection === "asc")}
-      className={cn("h-auto px-0 font-medium", className)}
+      className={cn("h-auto px-0 font-medium hover:bg-transparent hover:text-white cursor-pointer", className)}
     >
       {label}
       <SortIcon className="ml-2 h-4 w-4" />

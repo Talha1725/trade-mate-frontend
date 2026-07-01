@@ -1,12 +1,18 @@
+import type { TradingFilterBarAsset, TradingTimeframe } from "@/types/trading-filter-bar";
+
 export type MarketSelectionStoreState = {
   selectedMarketId: string;
-  watchlistIds: string[];
+  compareAssetId: string | null;
+  timeframe: TradingTimeframe;
+  knownAssetIds: string[];
   hasHydrated: boolean;
 };
 
 export type MarketSelectionStoreActions = {
   setSelectedMarketId: (marketId: string) => void;
-  toggleWatchlistAsset: (assetId: string) => void;
+  setCompareAssetId: (assetId: string | null) => void;
+  setTimeframe: (timeframe: TradingTimeframe) => void;
+  syncAssets: (assets: TradingFilterBarAsset[]) => void;
   setHasHydrated: (value: boolean) => void;
 };
 

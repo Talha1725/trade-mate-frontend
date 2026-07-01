@@ -1,5 +1,3 @@
-import type { CompareAssetItem } from "@/types/trading-compare-assets";
-
 export type TradingTimeframe = "1m" | "5m" | "15m" | "1H" | "4H" | "D" | "W";
 
 export type TradingFilterBarActionId = "indicators" | "compare" | "replay";
@@ -32,13 +30,11 @@ export type TradingFilterBarProps = {
   assets: TradingFilterBarAsset[];
   selectedAssetId: string;
   onAssetChange?: (assetId: string) => void;
-  watchlistAssetIds?: string[];
-  onWatchlistToggle?: (assetId: string) => void;
+  accountNumber?: string | null;
   quote: TradingFilterBarQuote;
   ohlcv: TradingFilterBarOhlcv;
   timeframe: TradingTimeframe;
   onTimeframeChange?: (timeframe: TradingTimeframe) => void;
-  compareItems: CompareAssetItem[];
   compareAssetId?: string | null;
   onCompareChange?: (assetId: string | null) => void;
   onActionClick?: (action: TradingFilterBarActionId) => void;

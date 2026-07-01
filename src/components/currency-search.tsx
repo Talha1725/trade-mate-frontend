@@ -3,10 +3,10 @@
 import * as React from "react";
 import { createPortal } from "react-dom";
 import { usePathname, useRouter } from "next/navigation";
-import { Search } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 
 import { AssetIcon } from "@/components/shared/asset-icon";
-import { mockTradingFilterAssets } from "@/lib/mock-data/trading-filter-bar";
+import { useSyncedTradingAssets } from "@/hooks/use-synced-trading-assets";
 import { useMarketSelectionStore } from "@/lib/stores/market-selection-store";
 import { filterTradingAssets } from "@/lib/utils/filter-trading-assets";
 import { cn } from "@/lib/utils";
@@ -41,18 +41,26 @@ export function CurrencySearch({ className }: CurrencySearchProps) {
   const [isMounted, setIsMounted] = React.useState(false);
   const setSelectedMarketId = useMarketSelectionStore((state) => state.setSelectedMarketId);
   const selectedMarketId = useMarketSelectionStore((state) => state.selectedMarketId);
+  const hasHydrated = useMarketSelectionStore((state) => state.hasHydrated);
+  const { data: tradingAssets = [], isLoading, isFetching } = useSyncedTradingAssets();
 
   const selectedAsset = React.useMemo(
-    () => mockTradingFilterAssets.find((asset) => asset.id === selectedMarketId),
-    [selectedMarketId],
+    () => tradingAssets.find((asset) => asset.id === selectedMarketId),
+    [selectedMarketId, tradingAssets],
   );
 
-  const results = React.useMemo(
-    () => filterTradingAssets(mockTradingFilterAssets, query),
-    [query],
-  );
+  const results = React.useMemo(() => {
+    const normalizedQuery = query.trim();
 
-  const showResults = isOpen && query.trim().length > 0;
+    if (!normalizedQuery) {
+      return tradingAssets;
+    }
+
+    return filterTradingAssets(tradingAssets, normalizedQuery);
+  }, [query, tradingAssets]);
+
+  const isAssetsLoading = isLoading || isFetching;
+  const showResults = isOpen && isMounted;
 
   const updateDropdownPosition = React.useCallback(() => {
     if (!containerRef.current) {
@@ -101,7 +109,7 @@ export function CurrencySearch({ className }: CurrencySearchProps) {
       window.removeEventListener("resize", handleReposition);
       window.removeEventListener("scroll", handleReposition, true);
     };
-  }, [showResults, query, updateDropdownPosition]);
+  }, [showResults, query, tradingAssets.length, updateDropdownPosition]);
 
   React.useEffect(() => {
     const handlePointerDown = (event: MouseEvent) => {
@@ -122,15 +130,15 @@ export function CurrencySearch({ className }: CurrencySearchProps) {
   }, []);
 
   React.useEffect(() => {
-    if (!selectedAsset || document.activeElement === inputRef.current) {
+    if (!hasHydrated || !selectedAsset || document.activeElement === inputRef.current) {
       return;
     }
 
     setQuery(selectedAsset.label);
-  }, [selectedAsset]);
+  }, [hasHydrated, selectedAsset]);
 
   const dropdown =
-    showResults && dropdownPosition && isMounted
+    showResults && dropdownPosition
       ? createPortal(
           <div
             ref={dropdownRef}
@@ -144,7 +152,12 @@ export function CurrencySearch({ className }: CurrencySearchProps) {
               maxWidth: dropdownPosition.width,
             }}
           >
-            {results.length > 0 ? (
+            {isAssetsLoading ? (
+              <div className="flex items-center justify-center gap-2 px-3 py-4 text-sm text-white/60">
+                <Loader2 className="size-4 animate-spin" />
+                Loading assets...
+              </div>
+            ) : results.length > 0 ? (
               results.map((asset) => (
                 <button
                   key={asset.id}
@@ -163,7 +176,9 @@ export function CurrencySearch({ className }: CurrencySearchProps) {
               ))
             ) : (
               <p className="px-3 py-4 text-center text-sm text-white/60">
-                No currencies match your search.
+                {query.trim()
+                  ? "No currencies match your search."
+                  : "No assets available."}
               </p>
             )}
           </div>,
@@ -175,13 +190,18 @@ export function CurrencySearch({ className }: CurrencySearchProps) {
     <>
       <div ref={containerRef} className={cn("relative w-full min-w-0", className)}>
         <div className="flex w-full items-center gap-2 rounded-lg border border-border/20 bg-neutral-900 px-4 py-2">
-          <Search className="size-4 shrink-0 text-white/60" />
+          {isAssetsLoading ? (
+            <Loader2 className="size-4 shrink-0 animate-spin text-white/60" />
+          ) : (
+            <Search className="size-4 shrink-0 text-white/60" />
+          )}
           <input
             ref={inputRef}
             type="text"
             value={query}
-            placeholder="Search Currencies"
-            className="w-full bg-transparent text-sm text-white outline-none placeholder:text-white/60"
+            placeholder={isAssetsLoading ? "Loading assets..." : "Search Currencies"}
+            disabled={isAssetsLoading && tradingAssets.length === 0}
+            className="w-full bg-transparent text-sm text-white outline-none placeholder:text-white/60 disabled:cursor-wait disabled:opacity-70"
             onFocus={(event) => {
               setIsOpen(true);
               updateDropdownPosition();

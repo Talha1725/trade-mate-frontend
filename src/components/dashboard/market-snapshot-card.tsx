@@ -39,15 +39,21 @@ function SnapshotBadge({ badge }: { badge: MarketSnapshotBadge }) {
 }
 
 function SnapshotStatRow({ stat }: { stat: MarketSnapshotStat }) {
+  const valueClassName =
+    stat.tone === "primary"
+      ? "text-primary"
+      : stat.tone === "success"
+        ? "text-emerald-400"
+        : stat.tone === "warning"
+          ? "text-amber-400"
+          : stat.tone === "destructive"
+            ? "text-destructive"
+            : "text-white";
+
   return (
     <div className="flex items-center justify-between gap-3 text-sm">
       <span className="text-white/60 text-sm">{stat.label}</span>
-      <span
-        className={cn(
-          "font-semibold",
-          stat.tone === "primary" ? "text-primary" : "text-white",
-        )}
-      >
+      <span className={cn("font-semibold", valueClassName)}>
         {stat.value}
       </span>
     </div>

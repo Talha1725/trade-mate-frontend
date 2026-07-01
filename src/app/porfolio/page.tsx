@@ -15,17 +15,36 @@ import { terminalApi } from "@/lib/services/terminal.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
 import { mapPortfolioPositionToPortfolioRow } from "@/lib/utils/trader-data";
+import { mergeStablePositions } from "@/lib/utils/stable-positions";
 import type { UserPortfolioResponse } from "@/types/dashboard";
+import { usePriceStream } from "@/hooks/use-price-stream";
+import type { PriceSocketPortfolioMessage } from "@/types";
 
 export default function PortfolioPage() {
     const [snapshot, setSnapshot] = React.useState<UserPortfolioResponse | null>(null);
     const token = useAuthStore((state) => state.session?.token ?? null);
     const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
+    const positionOrderRef = React.useRef(new Map<string, number>());
+    const positionOrderCounterRef = React.useRef(0);
+    const positionMissingCountsRef = React.useRef(new Map<string, number>());
 
     const refreshSnapshot = React.useCallback(async () => {
         if (!token) return;
         const nextSnapshot = await terminalApi.getOpenPositions(token, selectedAccountId ?? undefined);
-        setSnapshot(nextSnapshot);
+        setSnapshot((current) => {
+            if (!current) {
+                return nextSnapshot;
+            }
+
+            return {
+                ...nextSnapshot,
+                positions: mergeStablePositions(
+                    current.positions,
+                    nextSnapshot.positions,
+                    positionMissingCountsRef.current,
+                ),
+            };
+        });
     }, [selectedAccountId, token]);
 
     React.useEffect(() => {
@@ -37,10 +56,61 @@ export default function PortfolioPage() {
         return () => window.removeEventListener("trade-mate:positions-changed", refreshSnapshot);
     }, [refreshSnapshot]);
 
-    const positions = React.useMemo(
-        () => snapshot?.positions.map(mapPortfolioPositionToPortfolioRow) ?? [],
-        [snapshot?.positions],
-    );
+    const positions = React.useMemo(() => {
+        const nextPositions = snapshot?.positions.map((position) => mapPortfolioPositionToPortfolioRow(position)) ?? [];
+
+        for (const position of nextPositions) {
+            if (!positionOrderRef.current.has(position.id)) {
+                positionOrderRef.current.set(position.id, positionOrderCounterRef.current += 1);
+            }
+        }
+
+        return [...nextPositions].sort((left, right) => {
+            const leftOrder = positionOrderRef.current.get(left.id) ?? Number.MAX_SAFE_INTEGER;
+            const rightOrder = positionOrderRef.current.get(right.id) ?? Number.MAX_SAFE_INTEGER;
+            return leftOrder - rightOrder;
+        });
+    }, [snapshot?.positions]);
+
+    const accountId = snapshot?.account.id ?? selectedAccountId ?? null;
+
+    usePriceStream({
+        enabled: !!token && !!accountId,
+        accountIds: accountId ? [accountId] : [],
+        onPortfolio: (payload: PriceSocketPortfolioMessage) => {
+          const account = payload.accounts[0];
+
+            if (!account) {
+                return;
+            }
+
+            const closedIds = new Set(
+                payload.trades
+                    .filter((trade) => trade.status === "CLOSED" && trade.positionId)
+                    .map((trade) => trade.positionId as string),
+            );
+
+            setSnapshot((current) => {
+                if (!current) {
+                    return {
+                        account,
+                        positions: payload.positions,
+                    };
+                }
+
+                return {
+                    ...current,
+                    account,
+                    positions: mergeStablePositions(
+                        current.positions,
+                        payload.positions,
+                        positionMissingCountsRef.current,
+                        { closedIds },
+                    ),
+                };
+            });
+        },
+    });
 
     const handleClosePosition = React.useCallback(
         async (positionId: string) => {
