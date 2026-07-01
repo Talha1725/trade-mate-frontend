@@ -35,18 +35,18 @@ export function AppShell({
   };
 
   return (
-    <div className={cn("flex h-screen overflow-hidden bg-black text-white", className)}>
+    <div className={cn("flex min-h-screen bg-black text-white", className)}>
       {/* Desktop Sidebar — lg and above */}
-      <div className="hidden lg:block h-screen shrink-0">
+      <div className="hidden lg:block shrink-0">
         <Sidebar />
       </div>
 
       {/* Main content */}
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col">
         {/* Mobile/Tablet Top Bar — below lg */}
         <div className="flex lg:hidden items-center justify-between px-4 py-3 border-b border-neutral-800 shrink-0">
           {/* Logo */}
-          <Image src="/images/logo.svg" alt="Trade Mate" height={32} width={160} />
+          <Image src="/images/logo.svg" alt="Trade Mate" height={32} width={160} loading="eager" />
 
           {/* Right: Notification + Hamburger */}
           <div className="flex items-center gap-3">
@@ -63,18 +63,16 @@ export function AppShell({
                 </button>
               </DrawerTrigger>
               <DrawerContent
-                className="bg-black border-neutral-800 p-0 flex flex-col"
+                className="flex h-dvh max-h-dvh flex-col overflow-hidden! bg-[#0d0d0d] p-0"
                 style={{ width: "100%" }}
               >
-                {/* Scrollable inner content */}
-                <div className="flex-1 overflow-y-auto relative">
-                  {/* Close button — absolutely positioned inline with the logo */}
+                <div className="relative min-h-0 flex-1 overflow-hidden">
                   <DrawerClose asChild>
                     <button className="absolute top-4 right-4 z-10 p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition-colors">
                       <X className="size-5" />
                     </button>
                   </DrawerClose>
-                  <Sidebar className="w-full border-0 rounded-none min-h-full" />
+                  <Sidebar className="h-full w-full border-0 rounded-none" />
                 </div>
               </DrawerContent>
             </Drawer>
@@ -83,7 +81,7 @@ export function AppShell({
 
 
         {/* Page content */}
-        <main className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-black px-4 py-6 md:px-6">
+        <main className="min-h-0 flex-1 bg-black px-4 py-6 md:px-6">
           {children}
         </main>
       </div>

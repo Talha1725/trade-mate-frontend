@@ -115,14 +115,16 @@ export function Sidebar({ className }: { className?: string }) {
   return (
     <aside
       className={cn(
-        "flex h-full w-[278px] shrink-0 flex-col justify-between overflow-hidden rounded-[20px] border border-[#999999]/20 p-4 lg:sticky lg:top-0 lg:h-screen lg:self-start bg-linear-to-t from-white/7 to-white/5",
+        "flex w-[278px] shrink-0 flex-col overflow-x-hidden rounded-[20px] border border-white/20 p-4",
+        "h-full overflow-y-auto no-scrollbar",
+        "lg:sticky lg:top-0 lg:min-h-dvh lg:max-h-dvh lg:self-start lg:overflow-hidden lg:no-scrollbar",
         className,
       )}
     >
-    <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar">
+    <div className="flex min-h-0 flex-1 flex-col py-1">
       {/* Brand Header */}
       <div className="flex items-center gap-3 select-none">
-        <Image src="/images/logo.svg" alt="logo" height={40} width={213} />
+        <Image src="/images/logo.svg" alt="logo" height={40} width={213} loading="eager" />
       </div>
 
       {/* Workspace Label */} 
@@ -132,7 +134,7 @@ export function Sidebar({ className }: { className?: string }) {
         </h3>
       </div>
       {/* Workspace Section */}
-      <div className="flex flex-col gap-2.5 px-0">
+      <div className="flex flex-col overflow-visible gap-2.5 px-0">
         
         <SidebarItem
           icon={HiMiniChartBar}
@@ -168,7 +170,7 @@ export function Sidebar({ className }: { className?: string }) {
       </div>
 
       {/* Tools Section */}
-      <div className="flex flex-col gap-[10px] pb-10 px-0 pt-2.5">
+      <div className="flex flex-col gap-[10px] px-0 pt-2.5">
         <SidebarItem
           icon={Settings}
           label="Settings"
@@ -179,15 +181,12 @@ export function Sidebar({ className }: { className?: string }) {
     </div>
 
       {/* Account Widget Card */}
-      {pathname === "/dashboard" ? (
-        <div
-          className="p-4 rounded-[20px] card-green border border-white/20 flex flex-col w-full"
-          style={{ height: 258 }}
-        >
+      {pathname === "/porfolio" ? (
+        <div className="mt-4 shrink-0 p-4 rounded-[20px] card-green border border-white/20 flex flex-col w-full">
           <div className="absolute -bottom-12 -left-12 size-24 blur-[30px] rounded-full pointer-events-none" />
 
           <div className="flex justify-center">
-            <Image src={SIDEBAR_ICONS.diamond} alt="diamond" width={214} height={88} />
+            <Image src={SIDEBAR_ICONS.diamond} alt="diamond" width={214} height={88} loading="eager" />
           </div>
 
           <div className="flex flex-col items-center gap-2.5 py-5 text-center">
@@ -210,7 +209,7 @@ export function Sidebar({ className }: { className?: string }) {
           </Link>
         </div>
       ) : (
-        <div className="p-4 rounded-[20px] card-green from-neutral-900/80 to-[#0C0C0E]/90 border border-white/20 flex flex-col gap-3.5 relative overflow-hidden">
+        <div className="mt-4 shrink-0 p-4 rounded-[20px] card-green from-neutral-900/80 to-[#0C0C0E]/90 border border-white/20 flex flex-col gap-3.5 relative overflow-hidden">
           {/* Decorative Green Glow Spot */}
           <div className="absolute -bottom-12 -left-12 size-24 bg-[#22E0A2]/10 blur-[30px] rounded-full pointer-events-none" />
 

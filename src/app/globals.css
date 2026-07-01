@@ -344,4 +344,14 @@
 }
 
 @utility gradient-btn-tradebox {
-  background: radial-gradient(100% 100% at 50% 0%, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.05) 100%);}
+  background: radial-gradient(100% 100% at 50% 0%, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.05) 100%);
+}
+
+/* Fix for browser autofill background color on dark theme inputs */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  transition: background-color 5000s ease-in-out 0s;
+  -webkit-text-fill-color: white !important;
+}
