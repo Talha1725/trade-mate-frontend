@@ -23,6 +23,6 @@ export type PortfolioOpenPositionsTableProps = {
   positions?: PortfolioOpenPositionRow[];
   onExport?: () => void;
   onCloseAll?: () => void;
-  onCancel?: (positionId: string) => void;
+  onCancel?: (positionId: string) => void | Promise<void>;
   className?: string;
 };

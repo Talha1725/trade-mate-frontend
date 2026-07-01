@@ -3,9 +3,9 @@
 import * as React from "react";
 import { flexRender, getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef, type SortingState } from "@tanstack/react-table";
 import Image from "next/image";
-import { IoCloseCircle } from "react-icons/io5";
 import { IoIosTrendingDown, IoIosTrendingUp } from "react-icons/io";
-
+import { Loader2Icon } from "lucide-react";
+import { IoCloseCircle } from "react-icons/io5";
 import { TradingTableCard } from "@/components/shared/trading-table-card";
 import { SortableColumnHeader } from "@/components/sortable-column-header";
 import { MARKET_WATCH_ICON_IMAGES } from "@/lib/mock-data/market-watch-card";
@@ -130,6 +130,36 @@ const riskOrder: Record<PortfolioOpenPositionRisk, number> = {
   high: 2,
 };
 
+function CancelButton({ positionId, onCancel }: { positionId: string; onCancel?: (positionId: string) => void | Promise<void> }) {
+  const [isPending, setIsPending] = React.useState(false);
+
+  const handleClick = async () => {
+    if (!onCancel) return;
+    setIsPending(true);
+    try {
+      await onCancel(positionId);
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={isPending}
+      className="inline-flex cursor-pointer items-center gap-2 rounded-[10px] border border-destructive/10 bg-destructive/10 px-3.5 py-2 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {isPending ? (
+        <Loader2Icon className="size-4 animate-spin text-destructive" />
+      ) : (
+        <IoCloseCircle className="size-4 text-destructive" />
+      )}
+      Cancel
+    </button>
+  );
+}
+
 export function PortfolioOpenPositionsTable({
   positions = [],
   onExport,
@@ -194,15 +224,6 @@ export function PortfolioOpenPositionsTable({
         cell: ({ row }) => <PnlPercentValue value={row.original.pnlPercent} />,
       },
       {
-        accessorKey: "liquidationPrice",
-        header: ({ column }) => <SortableColumnHeader column={column} label="Liq" />,
-        cell: ({ row }) => (
-          <span className="font-medium text-white/60">
-            {formatPrice(row.original.liquidationPrice)}
-          </span>
-        ),
-      },
-      {
         accessorKey: "risk",
         header: ({ column }) => <SortableColumnHeader column={column} label="Risk" />,
         sortingFn: (rowA, rowB, columnId) => {
@@ -216,14 +237,7 @@ export function PortfolioOpenPositionsTable({
         id: "actions",
         header: "Actions",
         cell: ({ row }) => (
-          <button
-            type="button"
-            onClick={() => onCancel?.(row.original.id)}
-            className="inline-flex cursor-pointer items-center gap-2 rounded-[10px] border border-destructive/10 bg-destructive/10 px-3.5 py-2 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20"
-          >
-            <IoCloseCircle className="size-4 text-destructive" />
-            Cancel
-          </button>
+          <CancelButton positionId={row.original.id} onCancel={onCancel} />
         ),
       },
     ],
