@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import type { AuthStatus, LoginFormValues, LoginFormProps } from "@/types";
 
 const initialValues: LoginFormValues = {
-  assignedId: "",
+  email: "",
   password: "",
   rememberMe: true,
 };
@@ -45,7 +45,7 @@ export function LoginForm({
         await onSubmit(values);
       } else {
         await signIn({
-          assignedId: values.assignedId,
+          email: values.email,
           password: values.password,
         });
       }
@@ -80,23 +80,24 @@ export function LoginForm({
           Welcome back
         </h2>
         <p className="text-sm text-white/50">
-          Sign in with your assigned ID to access the trader dashboard.
+          Sign in with your email to access the trader dashboard.
         </p>
       </div>
 
       <div className="space-y-5 mb-6">
         <div className="flex flex-col gap-2">
-          <label htmlFor="login-assigned-id" className="text-sm font-normal text-white/50">
-            Assigned ID
+          <label htmlFor="login-email" className="text-sm font-normal text-white/50">
+            Email
           </label>
           <div className="w-full rounded-[10px] border border-white/20 gradient-btn-trade px-3 py-2.5 flex items-center">
             <input
-              id="login-assigned-id"
-              type="text"
-              autoComplete="username"
-              value={values.assignedId}
+              id="login-email"
+              type="email"
+              autoComplete="email"
+              placeholder="Enter your email"
+              value={values.email}
               onChange={(event) =>
-                setValues((prev) => ({ ...prev, assignedId: event.target.value }))
+                setValues((prev) => ({ ...prev, email: event.target.value }))
               }
               required
               disabled={isSubmitting}
@@ -114,6 +115,7 @@ export function LoginForm({
               id="login-password"
               type={showPassword ? "text" : "password"}
               autoComplete="current-password"
+              placeholder="Enter your password"
               value={values.password}
               onChange={(event) =>
                 setValues((prev) => ({ ...prev, password: event.target.value }))
