@@ -20,6 +20,7 @@ import {
   mapTimeframeToTradingViewInterval,
 } from "@/lib/utils/trading-view";
 import { buildDashboardData } from "@/lib/utils/trader-data";
+import { mergeStablePositions } from "@/lib/utils/stable-positions";
 import { resolveMarketWatchIcon } from "@/lib/utils/market-symbol-icon";
 import type { AccountLedgerResponse, UserPortfolioResponse } from "@/types/dashboard";
 import type { MarketSnapshotChartSummary, MarketSnapshotData } from "@/types/market-snapshot";
@@ -39,6 +40,9 @@ export default function DashboardPage() {
   const [marketChart, setMarketChart] = React.useState<MarketSnapshotChartSummary | null>(null);
   const [livePositions, setLivePositions] = React.useState<PortfolioPosition[]>([]);
   const [liveQuotes, setLiveQuotes] = React.useState<Record<string, PriceSocketQuote>>({});
+  const openPositionOrderRef = React.useRef(new Map<string, number>());
+  const openPositionOrderCounterRef = React.useRef(0);
+  const livePositionMissingCountsRef = React.useRef(new Map<string, number>());
 
   const selectedMarketId = useMarketSelectionStore((state) => state.selectedMarketId);
   const setSelectedMarketId = useMarketSelectionStore((state) => state.setSelectedMarketId);
@@ -70,7 +74,20 @@ export default function DashboardPage() {
           return;
         }
 
-        setSnapshot(accountSnapshot);
+        setSnapshot((current) => {
+          if (!current) {
+            return accountSnapshot;
+          }
+
+          return {
+            ...accountSnapshot,
+            positions: mergeStablePositions(
+              current.positions,
+              accountSnapshot.positions,
+              livePositionMissingCountsRef.current,
+            ),
+          };
+        });
 
         const accountLedger = await dashboardApi.getAccountLedger(accountSnapshot.account.id, token);
 
@@ -78,7 +95,20 @@ export default function DashboardPage() {
           return;
         }
 
-        setLedger(accountLedger);
+        setLedger((current) => {
+          if (!current) {
+            return accountLedger;
+          }
+
+          return {
+            ...accountLedger,
+            positions: mergeStablePositions(
+              current.positions,
+              accountLedger.positions,
+              livePositionMissingCountsRef.current,
+            ),
+          };
+        });
       } catch {
         // Keep the last successful snapshot/ledger visible if a refresh fails.
       } finally {
@@ -106,8 +136,26 @@ export default function DashboardPage() {
     () => dashboardData?.positions.filter((position) => position.status === "OPEN") ?? [],
     [dashboardData?.positions],
   );
+
   React.useEffect(() => {
-    setLivePositions(openPortfolioPositions);
+    if (openPortfolioPositions.length === 0) {
+      setLivePositions([]);
+      return;
+    }
+
+    for (const position of openPortfolioPositions) {
+      if (!openPositionOrderRef.current.has(position.id)) {
+        openPositionOrderRef.current.set(position.id, openPositionOrderCounterRef.current += 1);
+      }
+    }
+
+    const nextPositions = [...openPortfolioPositions].sort((left, right) => {
+      const leftOrder = openPositionOrderRef.current.get(left.id) ?? Number.MAX_SAFE_INTEGER;
+      const rightOrder = openPositionOrderRef.current.get(right.id) ?? Number.MAX_SAFE_INTEGER;
+      return leftOrder - rightOrder;
+    });
+
+    setLivePositions(nextPositions);
   }, [openPortfolioPositions]);
   const openSymbols = React.useMemo(
     () =>
@@ -263,7 +311,7 @@ export default function DashboardPage() {
   }
 
   const openPositionItems = React.useMemo(
-    () => livePositions.map(mapPositionToOpenStripItem),
+    () => livePositions.slice(0, 4).map(mapPositionToOpenStripItem),
     [livePositions, liveQuotes],
   );
 
@@ -355,22 +403,61 @@ export default function DashboardPage() {
         return;
       }
 
-      setSnapshot({
-        account: {
-          ...account,
-        },
-        positions: payload.positions,
+      const closedIds = new Set(
+        payload.trades
+          .filter((trade) => trade.status === "CLOSED" && trade.positionId)
+          .map((trade) => trade.positionId as string),
+      );
+
+      setSnapshot((current) => {
+        if (!current) {
+          return {
+            account: {
+              ...account,
+            },
+            positions: payload.positions,
+          };
+        }
+
+        return {
+          ...current,
+          account: {
+            ...account,
+          },
+          positions: mergeStablePositions(
+            current.positions,
+            payload.positions,
+            livePositionMissingCountsRef.current,
+            { closedIds },
+          ),
+        };
       });
 
-      setLedger({
-        account: {
-          ...account,
-        },
-        positions: payload.positions,
-        trades: payload.trades,
-      });
+      setLedger((current) => {
+        if (!current) {
+          return {
+            account: {
+              ...account,
+            },
+            positions: payload.positions,
+            trades: payload.trades,
+          };
+        }
 
-      setLivePositions(payload.positions.filter((position) => position.status === "OPEN"));
+        return {
+          ...current,
+          account: {
+            ...account,
+          },
+          positions: mergeStablePositions(
+            current.positions,
+            payload.positions,
+            livePositionMissingCountsRef.current,
+            { closedIds },
+          ),
+          trades: payload.trades,
+        };
+      });
     },
   });
 
