@@ -23,6 +23,7 @@ import {
 import { buildDashboardData } from "@/lib/utils/trader-data";
 import type { AccountLedgerResponse, UserPortfolioResponse } from "@/types/dashboard";
 import type { MarketSnapshotChartSummary, MarketSnapshotData } from "@/types/market-snapshot";
+import type { MarketWatchItem } from "@/types/market-watch-card";
 import type { PriceSocketPortfolioMessage, PriceSocketQuote } from "@/types";
 import { usePriceStream } from "@/hooks/use-price-stream";
 import { useAccountWishlist } from "@/hooks/use-account-wishlist";
@@ -112,17 +113,22 @@ export default function DashboardPage() {
 
   const accountNumber = useResolvedAccountNumber(snapshot?.account.accountNumber);
   const {
-    watchlistItems,
+    watchlistItems: accountWatchlistItems,
     toggleWishlistAsset,
     isLoading: isWishlistLoading,
   } = useAccountWishlist(accountNumber, tradingAssets);
+  const [liveWatchlistItems, setLiveWatchlistItems] = React.useState<MarketWatchItem[]>([]);
 
-  const selectedWatchlistItem = watchlistItems.find((item) => item.id === selectedMarketId);
+  React.useEffect(() => {
+    setLiveWatchlistItems(accountWatchlistItems);
+  }, [accountWatchlistItems]);
+
+  const selectedWatchlistItem = liveWatchlistItems.find((item) => item.id === selectedMarketId);
   const selectedFilterAsset = tradingAssets.find((asset) => asset.id === selectedMarketId);
   const chartSymbol =
     selectedWatchlistItem?.symbol ?? selectedFilterAsset?.symbol ?? liveSymbol ?? "BTCUSDT";
   const compareWatchlistItem = compareAssetId
-    ? watchlistItems.find((item) => item.id === compareAssetId)
+    ? liveWatchlistItems.find((item) => item.id === compareAssetId)
     : null;
   const compareFilterAsset = compareAssetId
     ? tradingAssets.find((asset) => asset.id === compareAssetId)
@@ -234,6 +240,22 @@ export default function DashboardPage() {
           close: liveQuote.price,
         };
       });
+
+      setLiveWatchlistItems((current) =>
+        current.map((item) => {
+          const quote = quotes.find((candidate) => candidate.symbol.toUpperCase() === item.symbol.toUpperCase());
+
+          if (!quote) {
+            return item;
+          }
+
+          return {
+            ...item,
+            price: quote.price,
+            changePercent: quote.changePercent ?? item.changePercent,
+          };
+        }),
+      );
     },
     [chartSymbol],
   );
@@ -242,10 +264,14 @@ export default function DashboardPage() {
     () => Array.from(new Set([chartSymbol, ...openSymbols].filter(Boolean))),
     [chartSymbol, openSymbols],
   );
+  const watchlistMarketSymbols = React.useMemo(
+    () => liveWatchlistItems.map((item) => item.symbol),
+    [liveWatchlistItems],
+  );
 
   usePriceStream({
-    enabled: !!token && subscriptionMarketSymbols.length > 0,
-    symbols: subscriptionMarketSymbols,
+    enabled: !!token && (subscriptionMarketSymbols.length > 0 || watchlistMarketSymbols.length > 0),
+    symbols: Array.from(new Set([...subscriptionMarketSymbols, ...watchlistMarketSymbols])),
     accountIds: accountId ? [accountId] : [],
     onQuotes: handleMarketQuotes,
     onPortfolio: (payload: PriceSocketPortfolioMessage) => {
@@ -303,7 +329,7 @@ export default function DashboardPage() {
 
           <div className="col-span-12 flex flex-col gap-6 xl:col-span-4">
             <MarketWatchCard
-              items={watchlistItems}
+              items={liveWatchlistItems}
               selectedItemId={selectedMarketId}
               onItemSelect={setSelectedMarketId}
               onWatchlistToggle={toggleWishlistAsset}
