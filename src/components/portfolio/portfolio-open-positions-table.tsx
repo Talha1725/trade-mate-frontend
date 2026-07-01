@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { IoIosTrendingDown, IoIosTrendingUp } from "react-icons/io";
-import { IoCloseCircle } from "react-icons/io5";
+import { Loader2Icon } from "lucide-react";
 
 import { TradingTableCard } from "@/components/shared/trading-table-card";
 import {
@@ -135,6 +135,42 @@ function PnlPercentValue({ value }: { value: number }) {
   );
 }
 
+const riskOrder: Record<PortfolioOpenPositionRisk, number> = {
+  low: 0,
+  medium: 1,
+  high: 2,
+};
+
+function CancelButton({ positionId, onCancel }: { positionId: string; onCancel?: (positionId: string) => void | Promise<void> }) {
+  const [isPending, setIsPending] = React.useState(false);
+
+  const handleClick = async () => {
+    if (!onCancel) return;
+    setIsPending(true);
+    try {
+      await onCancel(positionId);
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={isPending}
+      className="inline-flex cursor-pointer items-center gap-2 rounded-[10px] border border-destructive/10 bg-destructive/10 px-3.5 py-2 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {isPending ? (
+        <Loader2Icon className="size-4 animate-spin text-destructive" />
+      ) : (
+        <IoCloseCircle className="size-4 text-destructive" />
+      )}
+      Cancel
+    </button>
+  );
+}
+
 export function PortfolioOpenPositionsTable({
   positions = mockPortfolioOpenPositions,
   onExport,
@@ -142,6 +178,92 @@ export function PortfolioOpenPositionsTable({
   onCancel,
   className,
 }: PortfolioOpenPositionsTableProps) {
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+
+  const columns = React.useMemo<ColumnDef<PortfolioOpenPositionRow>[]>(
+    () => [
+      {
+        accessorKey: "symbol",
+        header: ({ column }) => <SortableColumnHeader column={column} label="Symbol" />,
+        cell: ({ row }) => (
+          <SymbolCell icon={row.original.icon} symbol={row.original.symbol} />
+        ),
+      },
+      {
+        accessorKey: "side",
+        header: ({ column }) => <SortableColumnHeader column={column} label="Side" />,
+        cell: ({ row }) => <SideBadge side={row.original.side} />,
+      },
+      {
+        accessorKey: "size",
+        header: ({ column }) => <SortableColumnHeader column={column} label="Size" />,
+        cell: ({ row }) => (
+          <span className="font-medium text-white/60">
+            {formatSize(row.original.size, row.original.sizeUnit)}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "avgEntry",
+        header: ({ column }) => <SortableColumnHeader column={column} label="Avg Entry" />,
+        cell: ({ row }) => (
+          <span className="font-medium text-white/60">{formatPrice(row.original.avgEntry)}</span>
+        ),
+      },
+      {
+        accessorKey: "markPrice",
+        header: ({ column }) => <SortableColumnHeader column={column} label="Mark Price" />,
+        cell: ({ row }) => (
+          <span className="font-medium text-white/60">{formatPrice(row.original.markPrice)}</span>
+        ),
+      },
+      {
+        accessorKey: "leverage",
+        header: ({ column }) => <SortableColumnHeader column={column} label="Lev." />,
+        cell: ({ row }) => (
+          <span className="font-medium text-white/60">{row.original.leverage}x</span>
+        ),
+      },
+      {
+        accessorKey: "pnl",
+        header: ({ column }) => <SortableColumnHeader column={column} label="P&L" />,
+        cell: ({ row }) => <PnlValue value={row.original.pnl} />,
+      },
+      {
+        accessorKey: "pnlPercent",
+        header: ({ column }) => <SortableColumnHeader column={column} label="P&L %" />,
+        cell: ({ row }) => <PnlPercentValue value={row.original.pnlPercent} />,
+      },
+      {
+        accessorKey: "risk",
+        header: ({ column }) => <SortableColumnHeader column={column} label="Risk" />,
+        sortingFn: (rowA, rowB, columnId) => {
+          const left = riskOrder[rowA.getValue(columnId) as PortfolioOpenPositionRisk];
+          const right = riskOrder[rowB.getValue(columnId) as PortfolioOpenPositionRisk];
+          return left - right;
+        },
+        cell: ({ row }) => <RiskBadge risk={row.original.risk} />,
+      },
+      {
+        id: "actions",
+        header: "Actions",
+        cell: ({ row }) => (
+          <CancelButton positionId={row.original.id} onCancel={onCancel} />
+        ),
+      },
+    ],
+    [onCancel],
+  );
+
+  const table = useReactTable({
+    data: positions,
+    columns,
+    state: { sorting },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  });
+
   return (
     <TradingTableCard
       title="Open Positions"

@@ -132,14 +132,10 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Info Cards */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="mb-4">
           <div className="rounded-xl border border-white/20 gradient-btn-tradebox p-3">
             <div className="text-xs text-white/50 mb-1">Buying Power</div>
             <div className="text-sm font-semibold text-white">$18.2K</div>
-          </div>
-          <div className="rounded-xl border border-white/20 gradient-btn-tradebox p-3">
-            <div className="text-xs text-white/50 mb-1">Mode</div>
-            <div className="text-sm font-semibold text-white">Cross Margin</div>
           </div>
         </div>
 
@@ -166,8 +162,8 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="space-y-4">
-          {/* Symbol & Order Type Row */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Symbol Row */}
+          <div>
             {/* Symbol */}
             <div>
               <label className="text-xs text-white/50 mb-1.5 block">Symbol</label>
@@ -195,23 +191,10 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
                 </SelectContent>
               </Select>
             </div>
-
-            {/* Order Type */}
-            <div>
-              <label className="text-xs text-white/50 mb-1.5 block">Order Type</label>
-              <Select value="Market" disabled>
-                <SelectTrigger className="flex w-full items-center justify-between rounded-lg border border-[#222] bg-[#141414] px-3 h-9 text-sm font-medium text-white shadow-none">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-[#141414] border border-white/20 text-white">
-                  <SelectItem value="Market">Market</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
 
-          {/* Other 6 fields in 2 rows of 3 */}
-          <div className="grid grid-cols-3 gap-3">
+          {/* Other 4 fields in 2x2 grid */}
+          <div className="grid grid-cols-2 gap-3">
             {/* Quantity */}
             <div>
               <label className="text-xs text-white/50 mb-1.5 block">Quantity</label>
@@ -240,32 +223,6 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
                   <SelectItem value="20x">20x</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            {/* Limit Price */}
-            <div>
-              <label className="text-xs text-white/50 mb-1.5 block">Limit Price</label>
-              <div className="rounded-lg border border-white/20 gradient-btn-trade px-3 py-2">
-                <input
-                  type="text"
-                  value="Market"
-                  disabled
-                  className="w-full bg-transparent text-sm text-white outline-none"
-                />
-              </div>
-            </div>
-
-            {/* Trailing Stop */}
-            <div>
-              <label className="text-xs text-white/50 mb-1.5 block">Trailing Stop</label>
-              <div className="rounded-lg border border-white/20 gradient-btn-trade px-3 py-2">
-                <input
-                  type="text"
-                  value="Off"
-                  disabled
-                  className="w-full bg-transparent text-sm text-white outline-none"
-                />
-              </div>
             </div>
 
             {/* Stop Loss */}
