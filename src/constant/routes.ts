@@ -10,6 +10,7 @@ export const ROUTES = {
     QUOTES:         `/api/market/quotes`,
     HISTORY:        `/api/market/history`,
     SYMBOLS:        `/api/market/symbols`,
+    SNAPSHOT:       `/api/market/snapshot`,
     BY_SYMBOL: (s: string) => `/api/market/${s}`,
     CHART:    (s: string) => `/api/market/${s}/chart`,
   },

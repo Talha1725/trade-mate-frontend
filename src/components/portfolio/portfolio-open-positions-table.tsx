@@ -1,20 +1,14 @@
 "use client";
 
+import * as React from "react";
+import { flexRender, getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef, type SortingState } from "@tanstack/react-table";
 import Image from "next/image";
-import { IoIosTrendingDown, IoIosTrendingUp } from "react-icons/io";
 import { IoCloseCircle } from "react-icons/io5";
+import { IoIosTrendingDown, IoIosTrendingUp } from "react-icons/io";
 
 import { TradingTableCard } from "@/components/shared/trading-table-card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { SortableColumnHeader } from "@/components/sortable-column-header";
 import { MARKET_WATCH_ICON_IMAGES } from "@/lib/mock-data/market-watch-card";
-import { mockPortfolioOpenPositions } from "@/lib/mock-data/portfolio-open-positions";
 import { cn } from "@/lib/utils";
 import type {
   PortfolioOpenPositionRisk,
@@ -23,6 +17,7 @@ import type {
 } from "@/types/portfolio-open-positions";
 import type { MarketWatchIcon } from "@/types/market-watch-card";
 import type { OpenPositionSide } from "@/types/open-positions-strip";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 function formatPrice(value: number) {
   return value.toLocaleString("en-US", {
@@ -78,7 +73,7 @@ function SideBadge({ side }: { side: OpenPositionSide }) {
   const Icon = isLong ? IoIosTrendingUp : IoIosTrendingDown;
 
   return (
-    <span className="inline-flex items-center gap-2.5 border-white/10 bg-white/1 rounded-full border px-1 py-1 text-sm font-normal text-white pr-2.5">
+    <span className="inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 py-1 pr-2.5 pl-1 text-sm font-normal text-white">
       <span
         className={cn(
           "flex size-6 items-center justify-center rounded-full",
@@ -98,10 +93,10 @@ function RiskBadge({ risk }: { risk: PortfolioOpenPositionRisk }) {
   return (
     <span
       className={cn(
-        "inline-flex rounded-full px-2.5 py-1 text-xs font-medium border",
-        risk === "low" && "bg-primary/5 text-primary border-primary/3",
-        risk === "medium" && "bg-orange/5 text-orange border-orange/3",
-        risk === "high" && "bg-destructive/5 text-destructive border-destructive/3",
+        "inline-flex rounded-full border px-2.5 py-1 text-xs font-medium",
+        risk === "low" && "border-primary/20 bg-primary/5 text-primary",
+        risk === "medium" && "border-orange/20 bg-orange/5 text-orange",
+        risk === "high" && "border-destructive/20 bg-destructive/5 text-destructive",
       )}
     >
       {risk === "low" ? "Low" : risk === "medium" ? "Medium" : "High"}
@@ -113,13 +108,7 @@ function PnlValue({ value, className }: { value: number; className?: string }) {
   const isPositive = value > 0;
 
   return (
-    <span
-      className={cn(
-        "font-medium",
-        isPositive ? "text-primary" : "text-destructive",
-        className,
-      )}
-    >
+    <span className={cn("font-medium", isPositive ? "text-primary" : "text-destructive", className)}>
       {formatSignedCurrency(value)}
     </span>
   );
@@ -135,85 +124,171 @@ function PnlPercentValue({ value }: { value: number }) {
   );
 }
 
+const riskOrder: Record<PortfolioOpenPositionRisk, number> = {
+  low: 0,
+  medium: 1,
+  high: 2,
+};
+
 export function PortfolioOpenPositionsTable({
-  positions = mockPortfolioOpenPositions,
+  positions = [],
   onExport,
   onCloseAll,
   onCancel,
   className,
 }: PortfolioOpenPositionsTableProps) {
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+
+  const columns = React.useMemo<ColumnDef<PortfolioOpenPositionRow>[]>(
+    () => [
+      {
+        accessorKey: "symbol",
+        header: ({ column }) => <SortableColumnHeader column={column} label="Symbol" />,
+        cell: ({ row }) => (
+          <SymbolCell icon={row.original.icon} symbol={row.original.symbol} />
+        ),
+      },
+      {
+        accessorKey: "side",
+        header: ({ column }) => <SortableColumnHeader column={column} label="Side" />,
+        cell: ({ row }) => <SideBadge side={row.original.side} />,
+      },
+      {
+        accessorKey: "size",
+        header: ({ column }) => <SortableColumnHeader column={column} label="Size" />,
+        cell: ({ row }) => (
+          <span className="font-medium text-white/60">
+            {formatSize(row.original.size, row.original.sizeUnit)}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "avgEntry",
+        header: ({ column }) => <SortableColumnHeader column={column} label="Avg Entry" />,
+        cell: ({ row }) => (
+          <span className="font-medium text-white/60">{formatPrice(row.original.avgEntry)}</span>
+        ),
+      },
+      {
+        accessorKey: "markPrice",
+        header: ({ column }) => <SortableColumnHeader column={column} label="Mark Price" />,
+        cell: ({ row }) => (
+          <span className="font-medium text-white/60">{formatPrice(row.original.markPrice)}</span>
+        ),
+      },
+      {
+        accessorKey: "leverage",
+        header: ({ column }) => <SortableColumnHeader column={column} label="Lev." />,
+        cell: ({ row }) => (
+          <span className="font-medium text-white/60">{row.original.leverage}x</span>
+        ),
+      },
+      {
+        accessorKey: "pnl",
+        header: ({ column }) => <SortableColumnHeader column={column} label="P&L" />,
+        cell: ({ row }) => <PnlValue value={row.original.pnl} />,
+      },
+      {
+        accessorKey: "pnlPercent",
+        header: ({ column }) => <SortableColumnHeader column={column} label="P&L %" />,
+        cell: ({ row }) => <PnlPercentValue value={row.original.pnlPercent} />,
+      },
+      {
+        accessorKey: "liquidationPrice",
+        header: ({ column }) => <SortableColumnHeader column={column} label="Liq" />,
+        cell: ({ row }) => (
+          <span className="font-medium text-white/60">
+            {formatPrice(row.original.liquidationPrice)}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "risk",
+        header: ({ column }) => <SortableColumnHeader column={column} label="Risk" />,
+        sortingFn: (rowA, rowB, columnId) => {
+          const left = riskOrder[rowA.getValue(columnId) as PortfolioOpenPositionRisk];
+          const right = riskOrder[rowB.getValue(columnId) as PortfolioOpenPositionRisk];
+          return left - right;
+        },
+        cell: ({ row }) => <RiskBadge risk={row.original.risk} />,
+      },
+      {
+        id: "actions",
+        header: "Actions",
+        cell: ({ row }) => (
+          <button
+            type="button"
+            onClick={() => onCancel?.(row.original.id)}
+            className="inline-flex cursor-pointer items-center gap-2 rounded-[10px] border border-destructive/10 bg-destructive/10 px-3.5 py-2 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20"
+          >
+            <IoCloseCircle className="size-4 text-destructive" />
+            Cancel
+          </button>
+        ),
+      },
+    ],
+    [onCancel],
+  );
+
+  const table = useReactTable({
+    data: positions,
+    columns,
+    state: { sorting },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  });
+
   return (
-    <TradingTableCard
-      title="Open Positions"
-      onExport={onExport}
-      onCloseAll={onCloseAll}
-      className={className}
-    >
+    <TradingTableCard title="Open Positions" onExport={onExport} onCloseAll={onCloseAll} className={className}>
       <Table className="min-w-[980px]">
         <TableHeader variant="gradient">
-          <TableRow className="hover:bg-transparent">
-            <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Symbol</TableHead>
-            <TableHead className="px-4 h-11 text-sm font-medium text-white/60">Side</TableHead>
-            <TableHead className="px-4 h-11 text-sm font-medium text-white/60">Size</TableHead>
-            <TableHead className="px-4 h-11 text-sm font-medium text-white/60">Avg Entry</TableHead>
-            <TableHead className="px-4 h-11 text-sm font-medium text-white/60">Mark Price</TableHead>
-            <TableHead className="px-4 h-11 text-sm font-medium text-white/60">Lev.</TableHead>
-            <TableHead className="px-4 h-11 text-sm font-medium text-white/60">P&L</TableHead>
-            <TableHead className="px-4 h-11 text-sm font-medium text-white/60">P&L %</TableHead>
-            <TableHead className="px-4 h-11 text-sm font-medium text-white/60">Liq</TableHead>
-            <TableHead className="px-4 h-11 text-sm font-medium text-white/60">Risk</TableHead>
-            <TableHead className="px-4 h-11 text-right text-sm font-medium text-white/60">
-              Actions
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-
-        <TableBody className="">
-          {positions.map((position) => (
-            <TableRow
-              key={position.id}
-              className="border-white/10 b-0! hover:bg-white/5 data-[state=selected]:bg-white/5"
-            >
-              <TableCell className="px-4 py-1.5">
-                <SymbolCell icon={position.icon} symbol={position.symbol} />
-              </TableCell>
-              <TableCell className="px-4 py-1.5">
-                <SideBadge side={position.side} />
-              </TableCell>
-              <TableCell className="px-4 py-1.5 text-white/60 font-medium">
-                {formatSize(position.size, position.sizeUnit)}
-              </TableCell>
-              <TableCell className="px-4 py-1.5 text-white/60 font-medium">
-                {formatPrice(position.avgEntry)}
-              </TableCell>
-              <TableCell className="px-4 py-1.5 text-white/60 font-medium">
-                {formatPrice(position.markPrice)}
-              </TableCell>
-              <TableCell className="px-4 py-1.5 text-white/60 font-medium">{position.leverage}x</TableCell>
-              <TableCell className="px-4 py-1.5 text-white/60 font-medium">
-                <PnlValue value={position.pnl} />
-              </TableCell>
-              <TableCell className="px-4 py-1.5">
-                <PnlPercentValue value={position.pnlPercent} />
-              </TableCell>
-              <TableCell className="px-4 py-1.5 text-white/60 font-medium">
-                {formatPrice(position.liquidationPrice)}
-              </TableCell>
-              <TableCell className="px-4 py-1.5">
-                <RiskBadge risk={position.risk} />
-              </TableCell>
-              <TableCell className="px-4 py-1.5 text-right">
-                <button
-                  type="button"
-                  onClick={() => onCancel?.(position.id)}
-                  className="inline-flex cursor-pointer items-center gap-2 rounded-[10px] border border-destructive/10 bg-destructive/10 px-3.5 py-2 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20"
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id} className="hover:bg-transparent">
+              {headerGroup.headers.map((header) => (
+                <TableHead
+                  key={header.id}
+                  className={cn(
+                    "h-11 px-4 text-sm font-medium text-white/60",
+                    header.column.id === "actions" && "text-right",
+                  )}
                 >
-                  <IoCloseCircle className="size-4 text-destructive" />
-                  Cancel
-                </button>
-              </TableCell>
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(header.column.columnDef.header, header.getContext())}
+                </TableHead>
+              ))}
             </TableRow>
           ))}
+        </TableHeader>
+
+        <TableBody>
+          {table.getRowModel().rows.length ? (
+            table.getRowModel().rows.map((row) => (
+              <TableRow
+                key={row.id}
+                className="border-white/10 hover:bg-white/5 data-[state=selected]:bg-white/5"
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell
+                    key={cell.id}
+                    className={cn(
+                      "px-4 py-1.5",
+                      cell.column.id === "actions" && "text-right",
+                    )}
+                  >
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="h-24 text-center text-white/60">
+                No open positions.
+              </TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
     </TradingTableCard>
