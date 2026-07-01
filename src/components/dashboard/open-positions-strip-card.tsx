@@ -88,7 +88,7 @@ function PositionCard({ item }: { item: OpenPositionStripItem }) {
           values={item.trend.map((point) => point.value)}
           palette={item.palette ?? (isPositive ? "profit" : "loss")}
           showEndDot={false}
-          className="h-full w-full"
+          className="h-[65px] w-full"
         />
       </div>
     </article>

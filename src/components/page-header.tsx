@@ -53,7 +53,7 @@ export function PageHeader({
       <div className="grid grid-cols-2 gap-2 lg:flex lg:items-center lg:gap-3">
         <PlaceOrderDialog>
           <button className="flex gap-2 cursor-pointer hover:opacity-80 duration-300 items-center justify-center trade-btn px-4 py-[9px] rounded-lg btn-new-trade text-white text-sm font-medium whitespace-nowrap">
-            <Image src="/header/add circle.svg" alt="add" width={18} height={18} className="size-4 shrink-0" />
+            <Image src="/header/add circle.svg" alt="add" width={18} height={18} className=" shrink-0" />
             New Trade
           </button>
         </PlaceOrderDialog>
