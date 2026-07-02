@@ -238,7 +238,6 @@ export function buildPortfolioMetricCards(
         { label: "Winning", value: `${summary.winningPositionsCount} positions`, tone: "positive" },
         { label: "Losing", value: `${summary.losingPositionsCount} positions`, tone: "negative" },
       ],
-      chartValues: DECORATIVE_DOWN_CHART,
       valueTone: Number(account.floatingPnl) >= 0 ? "positive" : "negative",
     },
     {
@@ -265,7 +264,6 @@ export function buildPortfolioMetricCards(
         { label: "VAR", value: `${marginUsagePercent.toFixed(1)}%` },
         { label: "Compliance", value: summary.winRate >= 50 ? "Good" : "Review", tone: summary.winRate >= 50 ? "positive" : "negative" },
       ],
-      chartValues: DECORATIVE_CHART,
       valueTone: getRiskTone(riskLabel) === "red" ? "negative" : "positive",
     },
     {
