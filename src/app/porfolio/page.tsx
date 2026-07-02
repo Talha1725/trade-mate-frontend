@@ -36,18 +36,25 @@ export default function PortfolioPage() {
     const positionOrderCounterRef = React.useRef(0);
     const positionMissingCountsRef = React.useRef(new Map<string, number>());
 
-    const normalizeOpenPositions = React.useCallback((positions: UserPortfolioResponse["positions"]) => {
-        const seen = new Set<string>();
+    const normalizeOpenPositions = React.useCallback(
+        (positions: UserPortfolioResponse["positions"]) => {
+            const seen = new Set<string>();
 
-        return positions.filter((position) => {
-            if (position.status !== "OPEN" || seen.has(position.id)) {
-                return false;
-            }
+            return positions.filter((position) => {
+                if (position.status !== "OPEN" || seen.has(position.id)) {
+                    return false;
+                }
 
-            seen.add(position.id);
-            return true;
-        });
-    }, []);
+                if (selectedAccountId && position.accountId !== selectedAccountId) {
+                    return false;
+                }
+
+                seen.add(position.id);
+                return true;
+            });
+        },
+        [selectedAccountId],
+    );
     const refreshOverview = React.useCallback(async () => {
         if (!token) return;
 
