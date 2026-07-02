@@ -61,11 +61,18 @@ export default function PortfolioPage() {
 
     const refreshSnapshot = React.useCallback(async () => {
         if (!token) return;
-        const nextSnapshot = await terminalApi.getOpenPositions(token, selectedAccountId ?? undefined);
-        setSnapshot({
-            ...nextSnapshot,
-            positions: normalizeOpenPositions(nextSnapshot.positions),
-        });
+
+        try {
+            const nextSnapshot = await terminalApi.getOpenPositions(token, selectedAccountId ?? undefined);
+            setSnapshot({
+                ...nextSnapshot,
+                positions: normalizeOpenPositions(nextSnapshot.positions),
+            });
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "Unable to load portfolio snapshot.";
+            toast.error(message);
+            console.error("Unable to load portfolio snapshot.", error);
+        }
     }, [normalizeOpenPositions, selectedAccountId, token]);
 
     React.useEffect(() => {

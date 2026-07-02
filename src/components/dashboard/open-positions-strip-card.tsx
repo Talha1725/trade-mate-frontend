@@ -111,11 +111,17 @@ export function OpenPositionsStripCard({
         </Link>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-4">
-        {items.map((item) => (
-          <PositionCard key={item.id} item={item} />
-        ))}
-      </div>
+      {items.length > 0 ? (
+        <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-4">
+          {items.map((item) => (
+            <PositionCard key={item.id} item={item} />
+          ))}
+        </div>
+      ) : (
+        <div className="flex min-h-[150px] items-center justify-center rounded-[16px] border border-dashed border-white/10 bg-white/5 px-6 text-center">
+          <p className="text-sm text-white/50">No open positions available.</p>
+        </div>
+      )}
     </section>
   );
 }

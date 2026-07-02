@@ -1,9 +1,6 @@
 "use client";
 
-import { GaugeIcon, GlobeIcon, HeartPulseIcon } from "lucide-react";
-
 import { SparklineChart } from "@/components/dashboard/sparkline-chart";
-import { mockMarketSnapshot } from "@/lib/mock-data/market-snapshot";
 import { cn } from "@/lib/utils";
 import type {
   MarketSnapshotBadge,
@@ -61,7 +58,22 @@ function SnapshotStatRow({ stat }: { stat: MarketSnapshotStat }) {
 }
 
 export function MarketSnapshotCard({ data, className }: MarketSnapshotCardProps) {
-  const snapshot = data ?? mockMarketSnapshot;
+  if (!data) {
+    return (
+      <div
+        className={cn(
+          "card-green overflow-hidden rounded-[10px] border border-white/20 p-4 md:p-6",
+          className,
+        )}
+      >
+        <div className="flex min-h-[240px] items-center justify-center rounded-[8px] border border-dashed border-white/10 bg-white/5 px-6 text-center">
+          <p className="text-sm text-white/50">No market snapshot available.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const snapshot = data;
   const isPositive = snapshot.changePercent >= 0;
   const sparklinePalette = isPositive ? "profit" : "loss";
 
