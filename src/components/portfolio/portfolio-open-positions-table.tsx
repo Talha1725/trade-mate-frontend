@@ -28,7 +28,7 @@ function formatPrice(value: number) {
 
 function formatSize(value: number, unit: string) {
   const decimals = unit === "XRP" ? 4 : 4;
-  return `${value.toFixed(decimals)} ${unit}`;
+  return value.toFixed(decimals);
 }
 
 function formatSignedCurrency(value: number) {
