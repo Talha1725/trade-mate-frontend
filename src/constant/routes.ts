@@ -68,6 +68,12 @@ export const ROUTES = {
     LIST:           `/api/assets`,
   },
 
+  /** Integrations Module */
+  INTEGRATIONS: {
+    URFX_PRICING_RULES: (planKey: string) =>
+      `/api/integrations/urfx/pricing-rules/${encodeURIComponent(planKey)}`,
+  },
+
   /** Admin Module */
   ADMIN: {
     ACCOUNTS:        `/api/admin/accounts`,

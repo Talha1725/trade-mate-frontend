@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ChevronDown, X } from "lucide-react";
+import { X } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 
@@ -17,27 +17,76 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { terminalApi } from "@/lib/services/terminal.api";
+import { urfxPricingApi } from "@/lib/services/urfx-pricing.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
 import { useSyncedTradingAssets } from "@/hooks/use-synced-trading-assets";
 import { AssetIcon } from "@/components/shared/asset-icon";
 import { SIDEBAR_ICONS } from "@/lib/mock-data/sidebar-icons";
+import { DEFAULT_URFX_LEVERAGE, resolveUrfxPlanKey } from "@/lib/utils/urfx-pricing";
 
 export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = React.useState(false);
   const [side, setSide] = React.useState<"Buy" | "Sell">("Buy");
   const [symbol, setSymbol] = React.useState("BTCUSD");
-  const [quantity, setQuantity] = React.useState("0.75");
+  const [loadSize, setLoadSize] = React.useState("0.75");
   const [stopLoss, setStopLoss] = React.useState("");
   const [takeProfit, setTakeProfit] = React.useState("");
+  const [accountBalance, setAccountBalance] = React.useState<string | null>(null);
+  const [fixedLeverage, setFixedLeverage] = React.useState(DEFAULT_URFX_LEVERAGE);
+  const [isAccountContextLoading, setIsAccountContextLoading] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const token = useAuthStore((state) => state.session?.token ?? null);
   const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
   const { data: tradingAssets = [], isLoading: isAssetsLoading } = useSyncedTradingAssets();
+
+  const loadAccountContext = React.useCallback(
+    async (options?: { silent?: boolean }) => {
+      if (!token) {
+        return null;
+      }
+
+      setIsAccountContextLoading(true);
+
+      try {
+        const snapshot = await terminalApi.getOpenPositions(token, selectedAccountId ?? undefined);
+        const planKey = resolveUrfxPlanKey(snapshot.account.fundingType);
+        let leverageLabel = DEFAULT_URFX_LEVERAGE;
+
+        if (planKey) {
+          try {
+            const pricingPlan = await urfxPricingApi.getPricingPlan(planKey);
+            leverageLabel = pricingPlan.leverage || DEFAULT_URFX_LEVERAGE;
+          } catch (error) {
+            if (!options?.silent) {
+              console.error("Unable to load URFX pricing plan leverage.", error);
+            }
+          }
+        }
+
+        setAccountBalance(snapshot.account.balance);
+        setFixedLeverage(leverageLabel);
+
+        return {
+          accountId: snapshot.account.id,
+          balance: snapshot.account.balance,
+          leverageLabel,
+        };
+      } catch (error) {
+        if (!options?.silent) {
+          console.error("Unable to load account context.", error);
+        }
+
+        return null;
+      } finally {
+        setIsAccountContextLoading(false);
+      }
+    },
+    [selectedAccountId, token],
+  );
 
   React.useEffect(() => {
     if (tradingAssets.length === 0) {
@@ -51,16 +100,24 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
     }
   }, [symbol, tradingAssets]);
 
+  React.useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    void loadAccountContext({ silent: true });
+  }, [loadAccountContext, open]);
+
   const submitOrder = async () => {
     if (!token) {
       toast.error("Please sign in before placing a trade.");
       return;
     }
 
-    const lots = Number(quantity);
+    const lots = Number(loadSize);
 
     if (!Number.isFinite(lots) || lots <= 0) {
-      toast.error("Enter a valid quantity greater than 0.");
+      toast.error("Enter a valid load size greater than 0.");
       return;
     }
 
@@ -78,11 +135,15 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
     setIsSubmitting(true);
 
     try {
-      const snapshot = await terminalApi.getOpenPositions(token, selectedAccountId ?? undefined);
+      const accountContext = (await loadAccountContext()) ?? null;
+
+      if (!accountContext) {
+        throw new Error("Unable to load account details.");
+      }
 
       await terminalApi.placeOrder(
         {
-          accountId: snapshot.account.id,
+          accountId: accountContext.accountId,
           symbol,
           direction: side === "Buy" ? "BUY" : "SELL",
           lots,
@@ -142,7 +203,16 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
         <div className="mb-4">
           <div className="rounded-xl border border-white/20 gradient-btn-tradebox p-3">
             <div className="text-xs text-white/50 mb-1">Buying Power</div>
-            <div className="text-sm font-semibold text-white">$18.2K</div>
+            <div className="text-sm font-semibold text-white">
+              {accountBalance == null
+                ? isAccountContextLoading
+                  ? "Loading..."
+                  : "—"
+                : `$${Number(accountBalance).toLocaleString("en-US", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}`}
+            </div>
           </div>
         </div>
 
@@ -205,12 +275,12 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
           <div className="grid grid-cols-2 gap-3">
             {/* Quantity */}
             <div>
-              <label className="text-xs text-white/50 mb-1.5 block">Quantity</label>
+              <label className="text-xs text-white/50 mb-1.5 block">Load Size</label>
               <div className="rounded-lg border border-white/20 gradient-btn-trade px-3 py-2">
                 <input
                   type="text"
-                  value={quantity}
-                  onChange={(event) => setQuantity(event.target.value)}
+                  value={loadSize}
+                  onChange={(event) => setLoadSize(event.target.value)}
                   className="w-full bg-transparent text-sm text-white outline-none"
                 />
               </div>
@@ -219,18 +289,12 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
             {/* Leverage */}
             <div>
               <label className="text-xs text-white/50 mb-1.5 block">Leverage</label>
-              <Select value="1x" disabled>
-                <SelectTrigger className="flex w-full items-center justify-between rounded-lg border border-[#222] bg-[#141414] px-3 h-9 text-sm font-medium text-white shadow-none">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-[#141414] border border-white/20 text-white">
-                  <SelectItem value="1x">1x</SelectItem>
-                  <SelectItem value="2x">2x</SelectItem>
-                  <SelectItem value="5x">5x</SelectItem>
-                  <SelectItem value="10x">10x</SelectItem>
-                  <SelectItem value="20x">20x</SelectItem>
-                </SelectContent>
-              </Select>
+              <div
+                title={fixedLeverage}
+                className="flex h-9 w-full items-center rounded-lg border border-[#222] bg-[#141414] px-3 text-sm font-medium text-white/80"
+              >
+                <span className="truncate">{fixedLeverage}</span>
+              </div>
             </div>
 
             {/* Stop Loss */}
