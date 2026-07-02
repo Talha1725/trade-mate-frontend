@@ -176,10 +176,30 @@ export function buildPortfolioMetricCards(
   account: Pick<PortfolioAccount, "balance" | "equity" | "floatingPnl" | "marginUsed">,
   overview: Pick<PortfolioOverviewResponse, "summary" | "chart">,
 ): PortfolioMetricCard[] {
-  const summary = overview.summary;
   const availableMargin = Number(account.equity) - Number(account.marginUsed);
   const marginUsagePercent = Number(account.equity) > 0 ? (Number(account.marginUsed) / Number(account.equity)) * 100 : 0;
   const riskLabel = getRiskLabel(marginUsagePercent);
+  const summary =
+    overview.summary ?? {
+      walletBalance: Number(account.balance),
+      equity: Number(account.equity),
+      floatingPnl: Number(account.floatingPnl),
+      availableMargin: Math.max(0, Number(account.equity) - Number(account.marginUsed)),
+      marginUsagePercent: Number(marginUsagePercent.toFixed(1)),
+      openPositionsCount: 0,
+      winningPositionsCount: 0,
+      losingPositionsCount: 0,
+      winRate: 0,
+      riskLabel,
+      riskTone: getRiskTone(riskLabel),
+      profitTarget: {
+        baseBalance: Number(account.balance),
+        targetAmount: Math.max(1, Number(account.balance) * 0.1),
+        currentProfit: Number(account.equity) - Number(account.balance),
+        remaining: Math.max(0, Math.max(1, Number(account.balance) * 0.1) - (Number(account.equity) - Number(account.balance))),
+        progressPercent: 0,
+      },
+    };
   const currentProfit = Number(account.equity) - summary.profitTarget.baseBalance;
   const profitTargetPercent =
     summary.profitTarget.targetAmount > 0 ? Math.min(100, (currentProfit / summary.profitTarget.targetAmount) * 100) : 0;

@@ -35,14 +35,14 @@ export function AppShell({
   };
 
   return (
-    <div className={cn("flex min-h-screen bg-black text-white", className)}>
+    <div className={cn("flex min-h-screen bg-black text-white min-w-0", className)}>
       {/* Desktop Sidebar — lg and above */}
       <div className="hidden lg:block shrink-0">
         <Sidebar />
       </div>
 
       {/* Main content */}
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col min-w-0">
         {/* Mobile/Tablet Top Bar — below lg */}
         <div className="flex lg:hidden items-center justify-between px-4 py-3 border-b border-neutral-800 shrink-0">
           {/* Logo */}
@@ -81,7 +81,7 @@ export function AppShell({
 
 
         {/* Page content */}
-        <main className="min-h-0 flex-1 bg-black px-4 py-6 md:px-6">
+        <main className="min-h-0 flex-1 bg-black px-4 py-6 md:px-6 min-w-0">
           {children}
         </main>
       </div>

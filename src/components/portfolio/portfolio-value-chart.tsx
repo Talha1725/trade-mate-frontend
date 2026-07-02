@@ -105,7 +105,7 @@ export function PortfolioValueChart({
         <ChartContainer
           config={CHART_CONFIG}
           initialDimension={{ width: 520, height: 240 }}
-          className="aspect-auto h-full w-full [&_.recharts-cartesian-grid-horizontal_line]:stroke-white/10 [&_.recharts-cartesian-grid-vertical_line]:stroke-white/10"
+          className="relative aspect-auto h-full w-full [&_.recharts-cartesian-grid-horizontal_line]:stroke-white/10 [&_.recharts-cartesian-grid-vertical_line]:stroke-white/10"
         >
           {chartData.length > 0 ? (
             <AreaChart
@@ -161,8 +161,8 @@ export function PortfolioValueChart({
             />
           </AreaChart>
         ) : (
-          <div className="flex h-full items-center justify-center text-sm text-white/60">
-            {emptyStateMessage}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <p className="px-4 text-center text-sm text-white/60">{emptyStateMessage}</p>
           </div>
         )}
       </ChartContainer>
