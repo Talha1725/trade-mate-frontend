@@ -11,21 +11,58 @@ import { PortfolioExposureBreakdownCard } from "@/components/portfolio/portfolio
 import { PortfolioOpenPositionsTable } from "@/components/portfolio/portfolio-open-positions-table";
 import { PortfolioTopMoversCard } from "@/components/portfolio/portfolio-top-movers-card";
 import { PortfolioValueChart } from "@/components/portfolio/portfolio-value-chart";
+import { portfolioApi } from "@/lib/services/portfolio.api";
 import { terminalApi } from "@/lib/services/terminal.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
+import {
+    buildPortfolioAllocationItems,
+    buildPortfolioExposureItems,
+    buildPortfolioMetricCards,
+} from "@/lib/utils/portfolio";
 import { mapPortfolioPositionToPortfolioRow } from "@/lib/utils/trader-data";
+import { mergeStablePositions } from "@/lib/utils/stable-positions";
 import type { UserPortfolioResponse } from "@/types/dashboard";
+import type { PortfolioOverviewResponse } from "@/types/portfolio-overview";
+import { usePriceStream } from "@/hooks/use-price-stream";
+import type { PriceSocketPortfolioMessage } from "@/types";
 
 export default function PortfolioPage() {
     const [snapshot, setSnapshot] = React.useState<UserPortfolioResponse | null>(null);
+    const [overview, setOverview] = React.useState<PortfolioOverviewResponse | null>(null);
     const token = useAuthStore((state) => state.session?.token ?? null);
     const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
+    const positionOrderRef = React.useRef(new Map<string, number>());
+    const positionOrderCounterRef = React.useRef(0);
+    const positionMissingCountsRef = React.useRef(new Map<string, number>());
+    const refreshOverview = React.useCallback(async () => {
+        if (!token) return;
+
+        try {
+            const nextOverview = await portfolioApi.getOverview(selectedAccountId ?? undefined);
+            setOverview(nextOverview);
+        } catch {
+            setOverview(null);
+        }
+    }, [selectedAccountId, token]);
 
     const refreshSnapshot = React.useCallback(async () => {
         if (!token) return;
         const nextSnapshot = await terminalApi.getOpenPositions(token, selectedAccountId ?? undefined);
-        setSnapshot(nextSnapshot);
+        setSnapshot((current) => {
+            if (!current) {
+                return nextSnapshot;
+            }
+
+            return {
+                ...nextSnapshot,
+                positions: mergeStablePositions(
+                    current.positions,
+                    nextSnapshot.positions,
+                    positionMissingCountsRef.current,
+                ),
+            };
+        });
     }, [selectedAccountId, token]);
 
     React.useEffect(() => {
@@ -33,14 +70,97 @@ export default function PortfolioPage() {
     }, [refreshSnapshot]);
 
     React.useEffect(() => {
-        window.addEventListener("trade-mate:positions-changed", refreshSnapshot);
-        return () => window.removeEventListener("trade-mate:positions-changed", refreshSnapshot);
-    }, [refreshSnapshot]);
+        void refreshOverview();
+    }, [refreshOverview]);
 
-    const positions = React.useMemo(
-        () => snapshot?.positions.map(mapPortfolioPositionToPortfolioRow) ?? [],
-        [snapshot?.positions],
-    );
+    React.useEffect(() => {
+        window.addEventListener("trade-mate:positions-changed", refreshSnapshot);
+        window.addEventListener("trade-mate:positions-changed", refreshOverview);
+        return () => {
+            window.removeEventListener("trade-mate:positions-changed", refreshSnapshot);
+            window.removeEventListener("trade-mate:positions-changed", refreshOverview);
+        };
+    }, [refreshOverview, refreshSnapshot]);
+
+    const positions = React.useMemo(() => {
+        const nextPositions = snapshot?.positions.map((position) => mapPortfolioPositionToPortfolioRow(position)) ?? [];
+
+        for (const position of nextPositions) {
+            if (!positionOrderRef.current.has(position.id)) {
+                positionOrderRef.current.set(position.id, positionOrderCounterRef.current += 1);
+            }
+        }
+
+        return [...nextPositions].sort((left, right) => {
+            const leftOrder = positionOrderRef.current.get(left.id) ?? Number.MAX_SAFE_INTEGER;
+            const rightOrder = positionOrderRef.current.get(right.id) ?? Number.MAX_SAFE_INTEGER;
+            return leftOrder - rightOrder;
+        });
+    }, [snapshot?.positions]);
+
+    const metricCards = React.useMemo(() => {
+        if (!snapshot?.account || !overview) {
+            return [];
+        }
+
+        return buildPortfolioMetricCards(snapshot.account, overview);
+    }, [overview, snapshot?.account]);
+
+    const allocationItems = React.useMemo(() => {
+        if (!snapshot?.account) {
+            return overview?.allocation.items ?? [];
+        }
+
+        return buildPortfolioAllocationItems(snapshot.account, snapshot.positions);
+    }, [overview?.allocation.items, snapshot?.account, snapshot?.positions]);
+
+    const exposureItems = React.useMemo(() => {
+        if (!snapshot?.positions) {
+            return [];
+        }
+
+        return buildPortfolioExposureItems(snapshot.positions);
+    }, [snapshot?.positions]);
+
+    const accountId = snapshot?.account.id ?? selectedAccountId ?? null;
+
+    usePriceStream({
+        enabled: !!token && !!accountId,
+        accountIds: accountId ? [accountId] : [],
+        onPortfolio: (payload: PriceSocketPortfolioMessage) => {
+          const account = payload.accounts[0];
+
+            if (!account) {
+                return;
+            }
+
+            const closedIds = new Set(
+                payload.trades
+                    .filter((trade) => trade.status === "CLOSED" && trade.positionId)
+                    .map((trade) => trade.positionId as string),
+            );
+
+            setSnapshot((current) => {
+                if (!current) {
+                    return {
+                        account,
+                        positions: payload.positions,
+                    };
+                }
+
+                return {
+                    ...current,
+                    account,
+                    positions: mergeStablePositions(
+                        current.positions,
+                        payload.positions,
+                        positionMissingCountsRef.current,
+                        { closedIds },
+                    ),
+                };
+            });
+        },
+    });
 
     const handleClosePosition = React.useCallback(
         async (positionId: string) => {
@@ -96,21 +216,31 @@ export default function PortfolioPage() {
                     title="Portfolio"
                     description="Portfolio overview, equity curve, and trading performance."
                 />
-                <PortfolioMetricCards />
+                <PortfolioMetricCards cards={metricCards} />
 
                 {/* 2 grid card  */}
                 <div className="grid grid-cols-1 items-stretch gap-5 md:gap-6 xl:grid-cols-10">
                     <div className="flex xl:min-h-0 xl:col-span-6">
-                        <PortfolioValueChart className="w-full h-[400px] xl:h-auto" />
+                        <PortfolioValueChart
+                            className="w-full h-[400px] xl:h-auto"
+                            dataByTimeframe={overview?.chart.dataByTimeframe ?? {}}
+                            defaultTimeframe={overview?.chart.defaultTimeframe ?? "4H"}
+                        />
                     </div>
                     <div className="flex xl:min-h-0 xl:col-span-4">
-                        <PortfolioAllocationCard className="w-full " />
+                        <PortfolioAllocationCard
+                            className="w-full "
+                            items={allocationItems}
+                        />
                     </div>
                 </div>
                 {/* 2 grid card  */}
                 <div className="grid grid-cols-1 gap-5 md:gap-6  xl:grid-cols-2">
-                    <PortfolioExposureBreakdownCard />
-                    <PortfolioTopMoversCard />
+                    <PortfolioExposureBreakdownCard
+                        badgeLabel={overview?.exposure.badgeLabel}
+                        items={exposureItems}
+                    />
+                    <PortfolioTopMoversCard items={overview?.topMovers.items ?? []} />
                 </div>
 
                 {/* Open Positions Table */}

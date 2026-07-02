@@ -6,9 +6,9 @@ export const mockTotalPortfolioChartValues = [
 
 export const mockPortfolioMetricCards: PortfolioMetricCard[] = [
   {
-    id: "total-portfolio",
+    id: "balance",
     variant: "icon-stats",
-    title: "Total Portfolio",
+    title: "Balance",
     value: "$50,842.12",
     subtitle: "+$2,315.76 +4.83%",
     valueTone: "default",
@@ -21,9 +21,9 @@ export const mockPortfolioMetricCards: PortfolioMetricCard[] = [
     ],
   },
   {
-    id: "unrealized-pnl",
+    id: "pnl",
     variant: "icon-stats",
-    title: "Unrealized P&L",
+    title: "P&L",
     value: "$1,695.49",
     valueTone: "positive",
     subtitle: "Across open positions",

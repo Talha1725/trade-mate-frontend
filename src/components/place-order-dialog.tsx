@@ -19,19 +19,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MARKET_WATCH_ICON_IMAGES } from "@/lib/mock-data/market-watch-card";
-import { SIDEBAR_ICONS } from "@/lib/mock-data/sidebar-icons";
 import { cn } from "@/lib/utils";
 import { terminalApi } from "@/lib/services/terminal.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
-
-const ORDER_SYMBOLS = ["EURUSD", "GBPUSD", "BTCUSD", "AAPL", "SPX500"];
-
-function getSymbolIcon(symbol: string) {
-  if (symbol === "BTCUSD") return MARKET_WATCH_ICON_IMAGES.bitcoin;
-  return MARKET_WATCH_ICON_IMAGES.cardano;
-}
+import { useSyncedTradingAssets } from "@/hooks/use-synced-trading-assets";
+import { AssetIcon } from "@/components/shared/asset-icon";
+import { SIDEBAR_ICONS } from "@/lib/mock-data/sidebar-icons";
 
 export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = React.useState(false);
@@ -43,6 +37,19 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const token = useAuthStore((state) => state.session?.token ?? null);
   const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
+  const { data: tradingAssets = [], isLoading: isAssetsLoading } = useSyncedTradingAssets();
+
+  React.useEffect(() => {
+    if (tradingAssets.length === 0) {
+      return;
+    }
+
+    const selectedAsset = tradingAssets.find((asset) => asset.symbol === symbol);
+
+    if (!selectedAsset) {
+      setSymbol(tradingAssets[0].symbol);
+    }
+  }, [symbol, tradingAssets]);
 
   const submitOrder = async () => {
     if (!token) {
@@ -132,14 +139,10 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Info Cards */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="mb-4">
           <div className="rounded-xl border border-white/20 gradient-btn-tradebox p-3">
             <div className="text-xs text-white/50 mb-1">Buying Power</div>
             <div className="text-sm font-semibold text-white">$18.2K</div>
-          </div>
-          <div className="rounded-xl border border-white/20 gradient-btn-tradebox p-3">
-            <div className="text-xs text-white/50 mb-1">Mode</div>
-            <div className="text-sm font-semibold text-white">Cross Margin</div>
           </div>
         </div>
 
@@ -166,52 +169,40 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="space-y-4">
-          {/* Symbol & Order Type Row */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Symbol Row */}
+          <div>
             {/* Symbol */}
-            <div>
-              <label className="text-xs text-white/50 mb-1.5 block">Symbol</label>
+          <div>
+            <label className="text-xs text-white/50 mb-1.5 block">Symbol</label>
               <Select value={symbol} onValueChange={(val) => val && setSymbol(val)}>
                 <SelectTrigger className="flex w-full items-center justify-between rounded-lg border border-white/20 gradient-btn-trade px-3 h-9 text-sm font-medium text-white shadow-none">
                   <div className="flex items-center gap-2">
-                    <Image
-                      src={getSymbolIcon(symbol)}
-                      alt={symbol}
-                      width={16}
-                      height={16}
-                    />
+                    <AssetIcon symbol={symbol} label={symbol} size={16} />
                     <span>{symbol.replace("USD", "/USD")}</span>
                   </div>
                 </SelectTrigger>
                 <SelectContent className="bg-[#141414] border-[#222] text-white">
-                  {ORDER_SYMBOLS.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      <div className="flex items-center gap-2">
-                        <Image src={getSymbolIcon(option)} alt={option} width={16} height={16} />
-                        <span>{option.replace("USD", "/USD")}</span>
-                      </div>
+                  {isAssetsLoading ? (
+                    <SelectItem value={symbol} disabled>
+                      Loading assets...
                     </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Order Type */}
-            <div>
-              <label className="text-xs text-white/50 mb-1.5 block">Order Type</label>
-              <Select value="Market" disabled>
-                <SelectTrigger className="flex w-full items-center justify-between rounded-lg border border-[#222] bg-[#141414] px-3 h-9 text-sm font-medium text-white shadow-none">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-[#141414] border border-white/20 text-white">
-                  <SelectItem value="Market">Market</SelectItem>
+                  ) : (
+                    tradingAssets.map((asset) => (
+                      <SelectItem key={asset.id} value={asset.symbol}>
+                        <div className="flex w-full min-w-0 items-center gap-2 pr-2">
+                          <AssetIcon symbol={asset.symbol} label={asset.label} size={16} />
+                          <span className="min-w-0 flex-1 truncate text-white">{asset.label}</span>
+                        </div>
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          {/* Other 6 fields in 2 rows of 3 */}
-          <div className="grid grid-cols-3 gap-3">
+          {/* Other 4 fields in 2x2 grid */}
+          <div className="grid grid-cols-2 gap-3">
             {/* Quantity */}
             <div>
               <label className="text-xs text-white/50 mb-1.5 block">Quantity</label>
@@ -240,32 +231,6 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
                   <SelectItem value="20x">20x</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            {/* Limit Price */}
-            <div>
-              <label className="text-xs text-white/50 mb-1.5 block">Limit Price</label>
-              <div className="rounded-lg border border-white/20 gradient-btn-trade px-3 py-2">
-                <input
-                  type="text"
-                  value="Market"
-                  disabled
-                  className="w-full bg-transparent text-sm text-white outline-none"
-                />
-              </div>
-            </div>
-
-            {/* Trailing Stop */}
-            <div>
-              <label className="text-xs text-white/50 mb-1.5 block">Trailing Stop</label>
-              <div className="rounded-lg border border-white/20 gradient-btn-trade px-3 py-2">
-                <input
-                  type="text"
-                  value="Off"
-                  disabled
-                  className="w-full bg-transparent text-sm text-white outline-none"
-                />
-              </div>
             </div>
 
             {/* Stop Loss */}

@@ -10,6 +10,7 @@ export const ROUTES = {
     QUOTES:         `/api/market/quotes`,
     HISTORY:        `/api/market/history`,
     SYMBOLS:        `/api/market/symbols`,
+    SNAPSHOT:       `/api/market/snapshot`,
     BY_SYMBOL: (s: string) => `/api/market/${s}`,
     CHART:    (s: string) => `/api/market/${s}/chart`,
   },
@@ -50,6 +51,16 @@ export const ROUTES = {
     BREAKDOWN:      `/api/dashboard/breakdown`,
     RECENT_ACTIVITY:`/api/dashboard/recent-activity`,
     STAT_CARDS:     `/api/dashboard/stat-cards`,
+  },
+
+  /** Portfolio Module */
+  PORTFOLIO: {
+    OVERVIEW:       `/api/portfolio/overview`,
+    SUMMARY:        `/api/portfolio/summary`,
+    CHART:          `/api/portfolio/chart`,
+    ALLOCATION:     `/api/portfolio/allocation`,
+    EXPOSURE:       `/api/portfolio/exposure`,
+    TOP_MOVERS:     `/api/portfolio/top-movers`,
   },
 
   /** Assets Module */
