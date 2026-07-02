@@ -15,12 +15,12 @@ import type {
 } from "@/types/portfolio-allocation";
 
 function formatAllocationValue(value: number) {
-  return value.toLocaleString("en-US", {
+  return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-    minimumFractionDigits: 2,
+    notation: "compact",
     maximumFractionDigits: 2,
-  });
+  }).format(value);
 }
 
 function AllocationLegendDot({ color }: { color: string }) {
@@ -37,17 +37,17 @@ function AllocationLegendDot({ color }: { color: string }) {
 
 function AllocationLegendRow({ item }: { item: PortfolioAllocationItem }) {
   return (
-    <div className="flex justify-between items-center gap-x-3 gap-y-1 text-sm">
-      <div className="flex items-center gap-x-2 ">
+    <>
+      <div className="flex items-center gap-x-2 min-w-0">
         <AllocationLegendDot color={item.color} />
-        <span className="font-medium text-start  truncate">{item.label}</span>
+        <span className="font-medium text-start truncate" title={item.label}>{item.label}</span>
       </div>
 
-      <div className="text-white/80 text-center">{item.percent}%</div>
-      <div className="text-right text-white">
+      <div className="text-white/80 text-right pl-2">{item.percent}%</div>
+      <div className="text-right text-white tabular-nums pl-3">
         {formatAllocationValue(item.value)}
       </div>
-    </div>
+    </>
   );
 }
 
@@ -112,7 +112,7 @@ export function PortfolioAllocationCard({
         </ChartContainer>
 
         <div className="flex-1 rounded-[10px] border border-white/20 bg-black/10 p-5 backdrop-blur-[2px]">
-          <div className="space-y-4.5">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-y-4.5 text-sm">
             {items.map((item) => (
               <AllocationLegendRow key={item.id} item={item} />
             ))}

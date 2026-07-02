@@ -8,7 +8,7 @@ import { Loader2Icon } from "lucide-react";
 import { IoCloseCircle } from "react-icons/io5";
 import { TradingTableCard } from "@/components/shared/trading-table-card";
 import { SortableColumnHeader } from "@/components/sortable-column-header";
-import { MARKET_WATCH_ICON_IMAGES } from "@/lib/mock-data/market-watch-card";
+import { AssetIcon } from "@/components/shared/asset-icon";
 import { cn } from "@/lib/utils";
 import type {
   PortfolioOpenPositionRisk,
@@ -55,14 +55,7 @@ function formatSignedPercent(value: number) {
 function SymbolCell({ icon, symbol }: { icon: MarketWatchIcon; symbol: string }) {
   return (
     <div className="flex items-center gap-2.5">
-      <Image
-        src={MARKET_WATCH_ICON_IMAGES[icon]}
-        alt={symbol}
-        width={24}
-        height={24}
-        unoptimized
-        className="shrink-0 object-contain"
-      />
+      <AssetIcon symbol={symbol} size={24} className="shrink-0 object-contain" />
       <span className="font-medium text-white">{symbol}</span>
     </div>
   );
