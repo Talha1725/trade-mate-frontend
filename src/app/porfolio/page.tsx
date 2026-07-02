@@ -35,6 +35,19 @@ export default function PortfolioPage() {
     const positionOrderRef = React.useRef(new Map<string, number>());
     const positionOrderCounterRef = React.useRef(0);
     const positionMissingCountsRef = React.useRef(new Map<string, number>());
+
+    const normalizeOpenPositions = React.useCallback((positions: UserPortfolioResponse["positions"]) => {
+        const seen = new Set<string>();
+
+        return positions.filter((position) => {
+            if (position.status !== "OPEN" || seen.has(position.id)) {
+                return false;
+            }
+
+            seen.add(position.id);
+            return true;
+        });
+    }, []);
     const refreshOverview = React.useCallback(async () => {
         if (!token) return;
 
@@ -49,21 +62,11 @@ export default function PortfolioPage() {
     const refreshSnapshot = React.useCallback(async () => {
         if (!token) return;
         const nextSnapshot = await terminalApi.getOpenPositions(token, selectedAccountId ?? undefined);
-        setSnapshot((current) => {
-            if (!current) {
-                return nextSnapshot;
-            }
-
-            return {
-                ...nextSnapshot,
-                positions: mergeStablePositions(
-                    current.positions,
-                    nextSnapshot.positions,
-                    positionMissingCountsRef.current,
-                ),
-            };
+        setSnapshot({
+            ...nextSnapshot,
+            positions: normalizeOpenPositions(nextSnapshot.positions),
         });
-    }, [selectedAccountId, token]);
+    }, [normalizeOpenPositions, selectedAccountId, token]);
 
     React.useEffect(() => {
         void refreshSnapshot();
@@ -128,7 +131,7 @@ export default function PortfolioPage() {
         enabled: !!token && !!accountId,
         accountIds: accountId ? [accountId] : [],
         onPortfolio: (payload: PriceSocketPortfolioMessage) => {
-          const account = payload.accounts[0];
+            const account = payload.accounts[0];
 
             if (!account) {
                 return;
@@ -144,18 +147,20 @@ export default function PortfolioPage() {
                 if (!current) {
                     return {
                         account,
-                        positions: payload.positions,
+                        positions: normalizeOpenPositions(payload.positions),
                     };
                 }
 
                 return {
                     ...current,
                     account,
-                    positions: mergeStablePositions(
-                        current.positions,
-                        payload.positions,
-                        positionMissingCountsRef.current,
-                        { closedIds },
+                    positions: normalizeOpenPositions(
+                        mergeStablePositions(
+                            current.positions,
+                            payload.positions,
+                            positionMissingCountsRef.current,
+                            { closedIds },
+                        ),
                     ),
                 };
             });
