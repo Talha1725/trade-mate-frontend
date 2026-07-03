@@ -1,5 +1,5 @@
 import axios from "axios"
-import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios"
+import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios"
 import { useAuthStore } from "@/lib/stores/auth-store"
 
 const api: AxiosInstance = axios.create({
@@ -10,6 +10,29 @@ const api: AxiosInstance = axios.create({
     "Content-Type": "application/json",
   },
 })
+
+function extractErrorMessage(error: AxiosError): string {
+  const responseData = error.response?.data as
+    | { message?: unknown; error?: unknown }
+    | string
+    | undefined
+
+  if (typeof responseData === "string") {
+    return responseData
+  }
+
+  const message = responseData?.message
+  if (typeof message === "string" && message.trim().length > 0) {
+    return message
+  }
+
+  const responseError = responseData?.error
+  if (typeof responseError === "string" && responseError.trim().length > 0) {
+    return responseError
+  }
+
+  return error.message || "Request failed."
+}
 
 api.interceptors.request.use(
   (config) => {
@@ -28,18 +51,23 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Only force a sign-out when we currently believe we're authenticated.
-      // A 401 from the login request itself has no session yet, so it falls
-      // through to the form's error handling instead of redirecting.
-      const { session, signOut } = useAuthStore.getState()
-      if (session) {
-        void signOut()
-        if (typeof window !== "undefined") {
-          window.location.href = "/login"
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status === 401) {
+        // Only force a sign-out when we currently believe we're authenticated.
+        // A 401 from the login request itself has no session yet, so it falls
+        // through to the form's error handling instead of redirecting.
+        const { session, signOut } = useAuthStore.getState()
+        if (session) {
+          void signOut()
+          if (typeof window !== "undefined") {
+            window.location.href = "/login"
+          }
         }
       }
+
+      error.message = extractErrorMessage(error)
     }
+
     return Promise.reject(error)
   },
 )

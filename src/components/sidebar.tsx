@@ -121,7 +121,7 @@ export function Sidebar({ className }: { className?: string }) {
         className,
       )}
     >
-    <div className="flex min-h-0 flex-1 flex-col py-1">
+    <div className="flex min-h-0 flex-1 flex-col py-1 overflow-y-auto no-scrollbar">
       {/* Brand Header */}
       <div className="flex items-center gap-3 select-none">
         <Image src="/images/logo.svg" alt="logo" height={40} width={213} loading="eager" />

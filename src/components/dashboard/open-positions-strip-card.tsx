@@ -1,10 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import { IoIosTrendingDown } from "react-icons/io";
 import { IoIosTrendingUp } from "react-icons/io";
 import { MiniAreaLineChart } from "@/components/dashboard/mini-area-line-chart";
-import { MARKET_WATCH_ICON_IMAGES } from "@/lib/mock-data/market-watch-card";
+import { AssetIcon } from "@/components/shared/asset-icon";
 import { cn } from "@/lib/utils";
 import type {
   OpenPositionStripItem,
@@ -53,14 +52,7 @@ function PositionCard({ item }: { item: OpenPositionStripItem }) {
     <div className="flex-1 flex flex-col">
       <div className="flex gap-2">
         <div className="flex min-w-0 items-center gap-2.5">
-          <Image
-            src={MARKET_WATCH_ICON_IMAGES[item.icon]}
-            alt={item.symbol}
-            width={24}
-            height={24}
-            className="shrink-0 object-contain"
-            unoptimized
-          />
+          <AssetIcon symbol={item.symbol} size={24} className="shrink-0 object-contain" />
           <span className="truncate text-base md:text-lg font-semibold text-white">{item.symbol}</span>
         </div>
         <SideBadge side={item.side} />
@@ -111,11 +103,17 @@ export function OpenPositionsStripCard({
         </Link>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-4">
-        {items.map((item) => (
-          <PositionCard key={item.id} item={item} />
-        ))}
-      </div>
+      {items.length > 0 ? (
+        <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-4">
+          {items.map((item) => (
+            <PositionCard key={item.id} item={item} />
+          ))}
+        </div>
+      ) : (
+        <div className="flex min-h-[150px] items-center justify-center rounded-[16px] border border-dashed border-white/10 bg-white/5 px-6 text-center">
+          <p className="text-sm text-white/50">No open positions available.</p>
+        </div>
+      )}
     </section>
   );
 }
