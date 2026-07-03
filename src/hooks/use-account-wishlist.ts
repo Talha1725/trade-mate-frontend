@@ -19,15 +19,16 @@ function toWishlistAssetRecord(
 ): AssetRecord {
   const timestamp = new Date().toISOString();
 
-  return {
-    id: asset.id,
-    label: asset.label,
-    symbol: asset.symbol,
-    isActive: true,
-    sortOrder,
-    createdAt: timestamp,
-    updatedAt: timestamp,
-  };
+    return {
+      id: asset.id,
+      label: asset.label,
+      symbol: asset.symbol,
+      category: asset.category,
+      isActive: true,
+      sortOrder,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
 }
 
 export function useAccountWishlist(

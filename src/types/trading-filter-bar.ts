@@ -1,3 +1,5 @@
+import type { AssetCategory } from "@/types/asset";
+
 export type TradingTimeframe = "1m" | "5m" | "15m" | "1H" | "4H" | "D" | "W";
 
 export type TradingFilterBarActionId = "indicators" | "compare" | "replay";
@@ -6,6 +8,7 @@ export type TradingFilterBarAsset = {
   id: string;
   label: string;
   symbol: string;
+  category: AssetCategory;
 };
 
 export type TradingFilterBarQuote = {

@@ -20,13 +20,12 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { terminalApi } from "@/lib/services/terminal.api";
-import { urfxPricingApi } from "@/lib/services/urfx-pricing.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
 import { useSyncedTradingAssets } from "@/hooks/use-synced-trading-assets";
 import { AssetIcon } from "@/components/shared/asset-icon";
 import { SIDEBAR_ICONS } from "@/lib/mock-data/sidebar-icons";
-import { DEFAULT_URFX_LEVERAGE, resolveUrfxPlanKey } from "@/lib/utils/urfx-pricing";
+import { getAssetLeverageLabel } from "@/lib/utils/asset-leverage";
 
 export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = React.useState(false);
@@ -35,13 +34,20 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
   const [loadSize, setLoadSize] = React.useState("0.75");
   const [stopLoss, setStopLoss] = React.useState("");
   const [takeProfit, setTakeProfit] = React.useState("");
-  const [accountBalance, setAccountBalance] = React.useState<string | null>(null);
-  const [fixedLeverage, setFixedLeverage] = React.useState(DEFAULT_URFX_LEVERAGE);
+  const [buyingPower, setBuyingPower] = React.useState<number | null>(null);
   const [isAccountContextLoading, setIsAccountContextLoading] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const token = useAuthStore((state) => state.session?.token ?? null);
   const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
   const { data: tradingAssets = [], isLoading: isAssetsLoading } = useSyncedTradingAssets();
+  const selectedAsset = React.useMemo(
+    () => tradingAssets.find((asset) => asset.symbol === symbol) ?? null,
+    [symbol, tradingAssets],
+  );
+  const leverageLabel = React.useMemo(
+    () => getAssetLeverageLabel(selectedAsset?.category),
+    [selectedAsset?.category],
+  );
 
   const loadAccountContext = React.useCallback(
     async (options?: { silent?: boolean }) => {
@@ -53,27 +59,14 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
 
       try {
         const snapshot = await terminalApi.getOpenPositions(token, selectedAccountId ?? undefined);
-        const planKey = resolveUrfxPlanKey(snapshot.account.fundingType);
-        let leverageLabel = DEFAULT_URFX_LEVERAGE;
 
-        if (planKey) {
-          try {
-            const pricingPlan = await urfxPricingApi.getPricingPlan(planKey);
-            leverageLabel = pricingPlan.leverage || DEFAULT_URFX_LEVERAGE;
-          } catch (error) {
-            if (!options?.silent) {
-              console.error("Unable to load URFX pricing plan leverage.", error);
-            }
-          }
-        }
-
-        setAccountBalance(snapshot.account.balance);
-        setFixedLeverage(leverageLabel);
+        const availableBalance =
+          Number(snapshot.account.balance ?? 0) - Number(snapshot.account.marginUsed ?? 0);
+        setBuyingPower(Math.max(0, availableBalance));
 
         return {
           accountId: snapshot.account.id,
-          balance: snapshot.account.balance,
-          leverageLabel,
+          balance: availableBalance.toFixed(2),
         };
       } catch (error) {
         if (!options?.silent) {
@@ -93,12 +86,10 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const selectedAsset = tradingAssets.find((asset) => asset.symbol === symbol);
-
     if (!selectedAsset) {
       setSymbol(tradingAssets[0].symbol);
     }
-  }, [symbol, tradingAssets]);
+  }, [selectedAsset, tradingAssets]);
 
   React.useEffect(() => {
     if (!open) {
@@ -204,11 +195,11 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
           <div className="rounded-xl border border-white/20 gradient-btn-tradebox p-3">
             <div className="text-xs text-white/50 mb-1">Buying Power</div>
             <div className="text-sm font-semibold text-white">
-              {accountBalance == null
+              {buyingPower == null
                 ? isAccountContextLoading
                   ? "Loading..."
                   : "—"
-                : `$${Number(accountBalance).toLocaleString("en-US", {
+                : `$${buyingPower.toLocaleString("en-US", {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}`}
@@ -290,10 +281,10 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
             <div>
               <label className="text-xs text-white/50 mb-1.5 block">Leverage</label>
               <div
-                title={fixedLeverage}
+                title={leverageLabel}
                 className="flex h-9 w-full items-center rounded-lg border border-[#222] bg-[#141414] px-3 text-sm font-medium text-white/80"
               >
-                <span className="truncate">{fixedLeverage}</span>
+                <span className="truncate">{leverageLabel}</span>
               </div>
             </div>
 
