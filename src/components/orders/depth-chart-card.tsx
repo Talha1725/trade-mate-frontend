@@ -76,10 +76,18 @@ export function DepthChartCard({
   const askGradientId = useId().replace(/:/g, "");
   const [depthLevel, setDepthLevel] = useState<DepthChartLevel>(defaultLevel);
   const chartData = useMemo(() => dataByLevel[depthLevel] ?? [], [dataByLevel, depthLevel]);
-  const centerPoint = useMemo(
-    () => chartData.find((point) => point.price === centerPrice),
-    [chartData, centerPrice],
-  );
+  const bidPoint = useMemo(() => {
+    let latestBidPoint = null as (typeof chartData)[number] | null;
+
+    for (const point of chartData) {
+      if (point.bids != null) {
+        latestBidPoint = point;
+      }
+    }
+
+    return latestBidPoint;
+  }, [chartData]);
+  const askPoint = useMemo(() => chartData.find((point) => point.asks != null) ?? null, [chartData]);
 
   return (
     <section
@@ -192,22 +200,27 @@ export function DepthChartCard({
               activeDot={false}
             />
 
-            {centerPoint?.bids != null ? (
+            {bidPoint != null || askPoint != null ? (
               <>
-                <ReferenceDot
-                  x={centerPrice}
-                  y={(centerPoint.bids ?? 0) + 3.5}
-                  r={4}
-                  fill={BID_COLOR}
-                  stroke="none"
-                />
-                <ReferenceDot
-                  x={centerPrice}
-                  y={centerPoint.asks ?? centerPoint.bids}
-                  r={4}
-                  fill={ASK_COLOR}
-                  stroke="none"
-                />
+                {bidPoint != null ? (
+                  <ReferenceDot
+                    x={bidPoint.price}
+                    y={bidPoint.bids ?? 0}
+                    r={4}
+                    fill={BID_COLOR}
+                    stroke="none"
+                  />
+                ) : null}
+                {askPoint != null ? (
+                  <ReferenceDot
+                    x={askPoint.price}
+                    y={Math.max(askPoint.asks ?? 0, 3)}
+                    r={5}
+                    fill={ASK_COLOR}
+                    stroke="#0C0C0C"
+                    strokeWidth={2}
+                  />
+                ) : null}
               </>
             ) : null}
           </AreaChart>

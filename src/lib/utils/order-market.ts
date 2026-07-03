@@ -146,20 +146,22 @@ function buildDepthStepSize({
   const progress = index / Math.max(levels - 1, 1);
   const seed = `${symbol}:${side}:${index}:${Math.round(price / Math.max(getTickSize(price), 0.0001))}`;
   const noise = seededNoise(seed);
-  const block = Math.floor(index / 3);
-  const blockPulse = 0.55 + Math.abs(Math.sin((block + 1) * 1.41 + noise * 8.3)) * 1.45;
-  const clusterPattern = block % 4 === 0 ? 1.34 : block % 4 === 1 ? 0.8 : block % 4 === 2 ? 1.12 : 0.92;
-  const alternator = index % 2 === 0 ? 1.16 : 0.84;
-  const skew = index % 3 === 0 ? 1.18 : index % 3 === 1 ? 0.88 : 1.03;
+  const block = Math.floor(index / 2);
+  const rhythm =
+    [2.2, 0.56, 1.68, 0.84, 1.42, 0.48, 1.92, 0.72][(index + (side === "bid" ? 1 : 3)) % 8];
+  const blockPulse = 0.68 + Math.abs(Math.sin((block + 1) * 1.55 + noise * 7.7)) * 1.18;
+  const clusterPattern = 0.72 + Math.abs(Math.sin((Math.floor(index / 4) + 1) * 2.1 + noise * 5.3)) * 1.28;
+  const alternator = index % 2 === 0 ? 1.24 : 0.78;
+  const skew = index % 3 === 0 ? 1.28 : index % 3 === 1 ? 0.72 : 1.1;
   const zigzag =
-    Math.sin(index * (side === "bid" ? 2.45 : 2.18) + noise * 10.2) * (side === "bid" ? 0.95 : 1.02) +
-    Math.cos(index * (side === "bid" ? 4.9 : 4.5) + noise * 6.6) * 0.42;
+    Math.sin(index * (side === "bid" ? 2.95 : 2.72) + noise * 12.4) * (side === "bid" ? 1.08 : 1.14) +
+    Math.cos(index * (side === "bid" ? 5.8 : 5.1) + noise * 8.1) * 0.58;
   const burst =
-    index % 5 === 0 ? 1.42 : index % 7 === 0 ? 0.72 : index % 4 === 0 ? 1.16 : index % 3 === 0 ? 1.06 : 0.92;
-  const taper = side === "bid" ? 1.08 - progress * 0.18 : 0.96 + progress * 0.2;
+    index % 5 === 0 ? 1.62 : index % 7 === 0 ? 0.58 : index % 4 === 0 ? 1.28 : index % 3 === 0 ? 1.18 : 0.9;
+  const taper = side === "bid" ? 1.16 - progress * 0.32 : 0.88 + progress * 0.46;
   const waveLift =
-    Math.abs(wave(progress, side === "bid" ? 9.1 : 9.6, side === "bid" ? 0.72 : 0.78, noise * 4.1)) +
-    Math.abs(wave(progress, side === "bid" ? 17.4 : 16.8, side === "bid" ? 0.38 : 0.42, noise * 7.2));
+    Math.abs(wave(progress, side === "bid" ? 10.2 : 10.8, side === "bid" ? 0.88 : 0.94, noise * 4.9)) +
+    Math.abs(wave(progress, side === "bid" ? 21.4 : 20.2, side === "bid" ? 0.42 : 0.48, noise * 7.9));
 
   return round(
     Math.max(
@@ -168,9 +170,10 @@ function buildDepthStepSize({
         clusterPattern *
         alternator *
         skew *
+        rhythm *
         burst *
         taper *
-        (0.24 + noise * 0.88 + waveLift * 0.48 + Math.abs(zigzag) * 0.24) *
+        (0.18 + noise * 0.84 + waveLift * 0.52 + Math.abs(zigzag) * 0.28) *
         multiplier,
     ),
     4,
@@ -246,7 +249,7 @@ function buildDepthSeries(
     const total = bidTotals[index] ?? 0;
     return {
       price,
-      bids: roundDepth(clamp(100 - (total / maxBidTotal) * 100, 0, 100)),
+      bids: roundDepth(clamp((total / maxBidTotal) * 100, 0, 100)),
       asks: null,
     };
   });
@@ -307,7 +310,7 @@ export function buildOrderMetrics(
     {
       id: "pending-orders",
       variant: "icon",
-      title: "Pending Orders",
+      title: "Total Orders",
       value: String(positions.filter((position) => position.status === "OPEN").length),
       subtitle: "Awaiting fill",
       iconSrc: "/images/orders/pending.svg",
