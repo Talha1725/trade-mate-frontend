@@ -288,9 +288,6 @@ export function OrderBookCard({
         <p className="text-sm text-white/60">
           Spread {snapshot.spread.toFixed(2)} ({formatSpreadPercent(snapshot.spreadPercent)})
         </p>
-        <p className="text-xs text-white/40">
-          Market depth simulated from EODHD live price data.
-        </p>
       </div>
     </section>
   );
