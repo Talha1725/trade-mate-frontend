@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: "trade-mate-frontend",
-      cwd: "/home/ec2-user/projects/trade-mate-frontend",
+      cwd: __dirname,
       script: "npm",
       args: "run start -- --hostname 0.0.0.0 --port 3100",
       interpreter: "none",
