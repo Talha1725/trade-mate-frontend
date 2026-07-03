@@ -5,6 +5,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 import { loginApi } from "@/lib/services/auth.api";
+import { useSelectedAccountStore } from "@/lib/stores/account-store";
 import type { AuthStore } from "@/types";
 
 export const useAuthStore = create<AuthStore>()(
@@ -25,6 +26,7 @@ export const useAuthStore = create<AuthStore>()(
             const status = error.response?.status;
 
             if (status === 401 || status === 403 || status === 404) {
+              useSelectedAccountStore.getState().setSelectedAccountId(null);
               set({ session: null, status: "unauthenticated" });
               return null;
             }
@@ -37,6 +39,7 @@ export const useAuthStore = create<AuthStore>()(
       },
       signIn: async (credentials) => {
         const session = await loginApi.login(credentials);
+        useSelectedAccountStore.getState().setSelectedAccountId(null);
         set({ session, status: "authenticated" });
         return session;
       },
@@ -46,6 +49,7 @@ export const useAuthStore = create<AuthStore>()(
         } catch {
           // Clear local auth state even if the server session is already expired.
         } finally {
+          useSelectedAccountStore.getState().setSelectedAccountId(null);
           set({ session: null, status: "unauthenticated" });
         }
       },
