@@ -221,7 +221,7 @@ export default function OrdersPage() {
     if (liveQuoteForSymbol) {
       return generateEodhdOrderBook({
         symbol: selectedSymbol,
-        assetCategory: selectedAsset?.assetClass ?? "CRYPTO",
+        assetCategory: selectedAsset?.category ?? "CRYPTO",
         latestPrice: liveQuoteForSymbol.price,
         bid: liveQuoteForSymbol.bid ?? null,
         ask: liveQuoteForSymbol.ask ?? null,
@@ -230,7 +230,7 @@ export default function OrdersPage() {
     }
 
     return liveOverview.orderBook;
-  }, [liveOverview, liveQuoteForSymbol, selectedAsset?.assetClass, selectedSymbol]);
+  }, [liveOverview, liveQuoteForSymbol, selectedAsset?.category, selectedSymbol]);
 
   const handleClosePosition = React.useCallback(
     async (positionId: string) => {
@@ -295,7 +295,11 @@ export default function OrdersPage() {
 
             <Select
               value={selectedAsset?.id ?? ""}
-              onValueChange={(value) => setSelectedMarketId(value)}
+              onValueChange={(value) => {
+                if (value) {
+                  setSelectedMarketId(value);
+                }
+              }}
               disabled={isAssetsLoading || tradingAssets.length === 0}
             >
               <SelectTrigger className="h-auto min-w-[220px] cursor-pointer border-white/20 bg-[#0C0C0C] px-3 py-2 text-left text-sm text-white shadow-none hover:bg-white/10 focus-visible:border-primary focus-visible:ring-primary/20">
