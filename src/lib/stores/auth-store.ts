@@ -49,9 +49,12 @@ export const useAuthStore = create<AuthStore>()(
         } catch {
           // Clear local auth state even if the server session is already expired.
         } finally {
-          useSelectedAccountStore.getState().setSelectedAccountId(null);
-          set({ session: null, status: "unauthenticated" });
+          get().expireSession();
         }
+      },
+      expireSession: () => {
+        useSelectedAccountStore.getState().setSelectedAccountId(null);
+        set({ session: null, status: "unauthenticated" });
       },
       clearToken: () => {
         set((state) => {

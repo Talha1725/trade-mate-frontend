@@ -58,10 +58,10 @@ export function PageHeader({
           </button>
         </PlaceOrderDialog>
 
-        <button className="flex items-center justify-center gap-2 px-4 py-2 rounded-full border border-border/20 text-medium-500 text-sm">
+        {/* <button className="flex items-center justify-center gap-2 px-4 py-2 rounded-full border border-border/20 text-medium-500 text-sm">
           <span className="size-2.5 animate-pulse rounded-full bg-primary shadow-[0_0_10px_var(--primary)]" />
           Live Market
-        </button>
+        </button> */}
         {/* Account Switcher Dropdown */}
         <AccountSwitcherDropdown />
 

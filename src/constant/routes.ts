@@ -63,6 +63,11 @@ export const ROUTES = {
     TOP_MOVERS:     `/api/portfolio/top-movers`,
   },
 
+  /** Orders Module */
+  ORDERS: {
+    OVERVIEW:       `/api/orders/overview`,
+  },
+
   /** Assets Module */
   ASSETS: {
     LIST:           `/api/assets`,

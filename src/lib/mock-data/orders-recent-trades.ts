@@ -3,6 +3,7 @@ import type { RecentTradeRow } from "@/types/orders-recent-trades";
 export const mockRecentTrades: RecentTradeRow[] = [
   {
     id: "trade-1",
+    symbol: "BTCUSDT",
     price: 69102,
     direction: "up",
     sizeBtc: 0.2394,
@@ -10,6 +11,7 @@ export const mockRecentTrades: RecentTradeRow[] = [
   },
   {
     id: "trade-2",
+    symbol: "BTCUSDT",
     price: 69098.5,
     direction: "down",
     sizeBtc: 0.1821,
@@ -17,6 +19,7 @@ export const mockRecentTrades: RecentTradeRow[] = [
   },
   {
     id: "trade-3",
+    symbol: "ETHUSDT",
     price: 69101.25,
     direction: "up",
     sizeBtc: 0.4156,
@@ -24,6 +27,7 @@ export const mockRecentTrades: RecentTradeRow[] = [
   },
   {
     id: "trade-4",
+    symbol: "SOLUSDT",
     price: 69095.75,
     direction: "down",
     sizeBtc: 0.0942,
@@ -31,6 +35,7 @@ export const mockRecentTrades: RecentTradeRow[] = [
   },
   {
     id: "trade-5",
+    symbol: "BTCUSDT",
     price: 69103.1,
     direction: "up",
     sizeBtc: 0.3278,
@@ -38,6 +43,7 @@ export const mockRecentTrades: RecentTradeRow[] = [
   },
   {
     id: "trade-6",
+    symbol: "BNBUSDT",
     price: 69099.8,
     direction: "down",
     sizeBtc: 0.1567,
@@ -45,6 +51,7 @@ export const mockRecentTrades: RecentTradeRow[] = [
   },
   {
     id: "trade-7",
+    symbol: "XRPUSDT",
     price: 69100.45,
     direction: "up",
     sizeBtc: 0.2789,
@@ -52,6 +59,7 @@ export const mockRecentTrades: RecentTradeRow[] = [
   },
   {
     id: "trade-8",
+    symbol: "ETHUSDT",
     price: 69097.2,
     direction: "down",
     sizeBtc: 0.0634,
