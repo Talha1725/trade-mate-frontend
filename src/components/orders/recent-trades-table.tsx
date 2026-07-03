@@ -3,6 +3,7 @@
 import { IoArrowDownSharp, IoArrowUpSharp } from "react-icons/io5";
 
 import { ResponsiveTableScroll } from "@/components/shared/responsive-table-scroll";
+import { TradingSymbolCell } from "@/components/shared/trading-symbol-cell";
 import {
   Table,
   TableBody,
@@ -85,16 +86,25 @@ function StrategyPerformanceRowCells({ row }: { row: StrategyPerformanceRow }) {
   );
 }
 
-function RecentTradesTableContent({ trades }: { trades: RecentTradeRow[] }) {
+function RecentTradesTableContent({
+  trades,
+  sizeLabel,
+}: {
+  trades: RecentTradeRow[];
+  sizeLabel: string;
+}) {
   return (
-    <Table className="min-w-[480px]">
+    <Table className="min-w-[640px]">
       <TableHeader variant="gradient">
         <TableRow className="hover:bg-transparent">
+          <TableHead className="h-11 px-4 text-sm font-medium text-white/60">
+            Symbol
+          </TableHead>
           <TableHead className="h-11 px-4 text-sm font-medium text-white/60">
             Price (USD)
           </TableHead>
           <TableHead className="h-11 px-4 text-center text-sm font-medium text-white/60">
-            Size (BTC)
+            Size ({sizeLabel})
           </TableHead>
           <TableHead className="h-11 px-4 text-right text-sm font-medium text-white/60">
             Time
@@ -103,22 +113,33 @@ function RecentTradesTableContent({ trades }: { trades: RecentTradeRow[] }) {
       </TableHeader>
 
       <TableBody>
-        {trades.map((trade) => (
-          <TableRow
-            key={trade.id}
-            className="border-0 hover:bg-white/5 data-[state=selected]:bg-white/5"
-          >
-            <TableCell className="px-4 py-3">
-              <PriceCell trade={trade} />
-            </TableCell>
-            <TableCell className="px-4 py-3 text-center text-sm text-white/60">
-              {formatTradeSize(trade.sizeBtc)}
-            </TableCell>
-            <TableCell className="px-4 py-3 text-right text-sm text-white/60">
-              {trade.time}
+        {trades.length > 0 ? (
+          trades.map((trade) => (
+            <TableRow
+              key={trade.id}
+              className="border-0 hover:bg-white/5 data-[state=selected]:bg-white/5"
+            >
+              <TableCell className="px-4 py-3">
+                <TradingSymbolCell symbol={trade.symbol} />
+              </TableCell>
+              <TableCell className="px-4 py-3">
+                <PriceCell trade={trade} />
+              </TableCell>
+              <TableCell className="px-4 py-3 text-center text-sm text-white/60">
+                {formatTradeSize(trade.sizeBtc)}
+              </TableCell>
+              <TableCell className="px-4 py-3 text-right text-sm text-white/60">
+                {trade.time}
+              </TableCell>
+            </TableRow>
+          ))
+        ) : (
+          <TableRow className="border-0 hover:bg-transparent">
+            <TableCell colSpan={4} className="px-4 py-10 text-center text-sm text-white/50">
+              Recent trades are not available.
             </TableCell>
           </TableRow>
-        ))}
+        )}
       </TableBody>
     </Table>
   );
@@ -162,6 +183,7 @@ export function RecentTradesTable({
   title,
   liveTapeLabel = "Live Tape",
   showHeaderBadge,
+  sizeLabel = "BTC",
   trades = mockRecentTrades,
   strategies = mockStrategyPerformanceRows,
   className,
@@ -194,7 +216,7 @@ export function RecentTradesTable({
         {isStrategyPerformance ? (
           <StrategyPerformanceTableContent strategies={strategies} />
         ) : (
-          <RecentTradesTableContent trades={trades} />
+          <RecentTradesTableContent trades={trades} sizeLabel={sizeLabel} />
         )}
       </ResponsiveTableScroll>
     </section>

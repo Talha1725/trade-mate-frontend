@@ -4,6 +4,7 @@ export type RecentTradeDirection = "up" | "down";
 
 export type RecentTradeRow = {
   id: string;
+  symbol: string;
   price: number;
   direction: RecentTradeDirection;
   sizeBtc: number;
@@ -17,6 +18,7 @@ export type RecentTradesTableProps = {
   title?: string;
   liveTapeLabel?: string;
   showHeaderBadge?: boolean;
+  sizeLabel?: string;
   trades?: RecentTradeRow[];
   strategies?: StrategyPerformanceRow[];
   className?: string;

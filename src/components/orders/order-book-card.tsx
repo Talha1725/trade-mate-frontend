@@ -17,7 +17,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { mockOrderBookSnapshot } from "@/lib/mock-data/order-book";
 import { cn } from "@/lib/utils";
 import type {
   OrderBookCardProps,
@@ -41,8 +40,8 @@ function formatUsdPrice(value: number) {
 
 function formatBtcAmount(value: number) {
   return value.toLocaleString("en-US", {
-    minimumFractionDigits: 4,
-    maximumFractionDigits: 4,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   });
 }
 
@@ -62,65 +61,81 @@ function sortOrderBookRows(
   const sorted = [...rows];
 
   if (sortBy === "price") {
-    sorted.sort((left, right) =>
-      side === "ask" ? right.price - left.price : right.price - left.price,
-    );
+    sorted.sort((left, right) => (side === "ask" ? left.price - right.price : right.price - left.price));
     return sorted;
   }
 
-  sorted.sort((left, right) => right.sizeBtc - left.sizeBtc);
+  sorted.sort((left, right) => right.size - left.size);
   return sorted;
 }
 
+function withCumulativeTotals(rows: OrderBookRow[]) {
+  let cumulative = 0;
+  const cumulativeTotals = rows.map((row) => {
+    cumulative += row.size;
+    return cumulative;
+  });
+  const maxTotal = cumulativeTotals[cumulativeTotals.length - 1] ?? 0;
+
+  return rows.map((row, index) => {
+    const total = cumulativeTotals[index] ?? 0;
+    return {
+      ...row,
+      total,
+      barPercent: maxTotal > 0 ? (total / maxTotal) * 100 : 0,
+    };
+  });
+}
+
 function AskDepthCell({
-  sizeBtc,
+  size,
   depthPercent,
 }: {
-  sizeBtc: number;
+  size: number;
   depthPercent: number;
 }) {
   return (
     <TableCell className="relative px-3 py-2.5">
       <div
-        className="absolute inset-y-1 right-1/2 translate-x-1/2 rounded-none"
+        className="absolute inset-y-1 right-1/2 translate-x-1/2 rounded-none transition-[width,background-color,opacity] duration-200 ease-out will-change-[width]"
         style={{
           width: `${depthPercent}%`,
           background: ASK_DEPTH_GRADIENT,
         }}
       />
       <span className="relative z-10 block text-center text-sm text-white">
-        {formatBtcAmount(sizeBtc)}
+        {formatBtcAmount(size)}
       </span>
     </TableCell>
   );
 }
 
 function BidDepthCell({
-  sizeBtc,
+  size,
   depthPercent,
   reverseGradient,
 }: {
-  sizeBtc: number;
+  size: number;
   depthPercent: number;
   reverseGradient?: boolean;
 }) {
   return (
     <TableCell className="relative px-3 py-2.5">
       <div
-        className="absolute inset-y-1 left-0 rounded-none"
+        className="absolute inset-y-1 left-0 rounded-none transition-[width,background-color,opacity] duration-200 ease-out will-change-[width]"
         style={{
           width: `${depthPercent}%`,
           background: reverseGradient ? BID_DEPTH_GRADIENT_REVERSE : BID_DEPTH_GRADIENT,
         }}
       />
       <span className="relative z-10 block text-center text-sm text-white">
-        {formatBtcAmount(sizeBtc)}
+        {formatBtcAmount(size)}
       </span>
     </TableCell>
   );
 }
 
-function OrderBookTableHeader() {
+function OrderBookTableHeader({ sizeLabel }: { sizeLabel: string }) {
   return (
     <TableHeader variant="gradient">
       <TableRow className="hover:bg-transparent">
@@ -128,10 +143,10 @@ function OrderBookTableHeader() {
           Price (USD)
         </TableHead>
         <TableHead className="h-11 px-3 text-center text-sm font-medium text-white/60">
-          Size (BTC)
+          Size ({sizeLabel})
         </TableHead>
         <TableHead className="h-11 px-3 text-right text-sm font-medium text-white/60">
-          Total (BTC)
+          Total ({sizeLabel})
         </TableHead>
       </TableRow>
     </TableHeader>
@@ -140,28 +155,36 @@ function OrderBookTableHeader() {
 
 export function OrderBookCard({
   title = "Order Book",
-  snapshot = mockOrderBookSnapshot,
+  snapshot,
+  sizeLabel = "BTC",
   className,
 }: OrderBookCardProps) {
   const [sortBy, setSortBy] = useState<OrderBookSortOption>("default");
-
-  const maxAskTotal = useMemo(
-    () => Math.max(...snapshot.asks.map((row) => row.totalBtc)),
-    [snapshot.asks],
-  );
-  const maxBidTotal = useMemo(
-    () => Math.max(...snapshot.bids.map((row) => row.totalBtc)),
-    [snapshot.bids],
-  );
-
   const asks = useMemo(
-    () => sortOrderBookRows(snapshot.asks, sortBy, "ask"),
-    [snapshot.asks, sortBy],
+    () => withCumulativeTotals(sortOrderBookRows(snapshot?.asks ?? [], sortBy, "ask")),
+    [snapshot?.asks, sortBy],
   );
   const bids = useMemo(
-    () => sortOrderBookRows(snapshot.bids, sortBy, "bid"),
-    [snapshot.bids, sortBy],
+    () => withCumulativeTotals(sortOrderBookRows(snapshot?.bids ?? [], sortBy, "bid")),
+    [snapshot?.bids, sortBy],
   );
+  if (!snapshot) {
+    return (
+      <section
+        className={cn(
+          "overflow-hidden rounded-[20px] border border-white/20 bg-white/5 p-4 md:p-6",
+          className,
+        )}
+      >
+        <div className="mb-5 flex items-center justify-between gap-3">
+          <h3 className="text-base font-semibold text-white md:text-lg">{title}</h3>
+        </div>
+        <div className="flex min-h-[260px] items-center justify-center rounded-[18px] border border-dashed border-white/15 bg-white/5 px-4 text-center text-sm text-white/45">
+          Market depth simulated from EODHD live price data will appear here.
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section
@@ -205,11 +228,9 @@ export function OrderBookCard({
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2 xl:gap-5">
         <Table>
-          <OrderBookTableHeader />
+          <OrderBookTableHeader sizeLabel={sizeLabel} />
           <TableBody>
             {asks.map((row) => {
-              const depthPercent = (row.totalBtc / maxAskTotal) * 100;
-
               return (
                 <TableRow
                   key={row.id}
@@ -218,9 +239,9 @@ export function OrderBookCard({
                   <TableCell className="px-3 py-2.5 text-sm font-medium text-[#EF4444]">
                     {formatUsdPrice(row.price)}
                   </TableCell>
-                  <AskDepthCell sizeBtc={row.sizeBtc} depthPercent={depthPercent} />
+                  <AskDepthCell size={row.size} depthPercent={row.barPercent} />
                   <TableCell className="px-3 py-2.5 text-right text-sm text-white/60">
-                    {formatBtcAmount(row.totalBtc)}
+                    {formatBtcAmount(row.total)}
                   </TableCell>
                 </TableRow>
               );
@@ -229,10 +250,9 @@ export function OrderBookCard({
         </Table>
 
         <Table>
-          <OrderBookTableHeader />
+          <OrderBookTableHeader sizeLabel={sizeLabel} />
           <TableBody>
             {bids.map((row, index) => {
-              const depthPercent = (row.totalBtc / maxBidTotal) * 100;
               const isLastRow = index === bids.length - 1;
 
               return (
@@ -244,12 +264,12 @@ export function OrderBookCard({
                     {formatUsdPrice(row.price)}
                   </TableCell>
                   <BidDepthCell
-                    sizeBtc={row.sizeBtc}
-                    depthPercent={depthPercent}
+                    size={row.size}
+                    depthPercent={row.barPercent}
                     reverseGradient={isLastRow}
                   />
                   <TableCell className="px-3 py-2.5 w-[140px]! text-right text-sm text-white/60">
-                    {formatBtcAmount(row.totalBtc)}
+                    {formatBtcAmount(row.total)}
                   </TableCell>
                 </TableRow>
               );
@@ -267,6 +287,9 @@ export function OrderBookCard({
         </div>
         <p className="text-sm text-white/60">
           Spread {snapshot.spread.toFixed(2)} ({formatSpreadPercent(snapshot.spreadPercent)})
+        </p>
+        <p className="text-xs text-white/40">
+          Market depth simulated from EODHD live price data.
         </p>
       </div>
     </section>

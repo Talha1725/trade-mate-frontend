@@ -16,7 +16,7 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 function roundDepth(value: number): number {
-  return Math.round(value * 10) / 10;
+  return Math.round(value * 100) / 100;
 }
 
 function wave(progress: number, frequency: number, amplitude: number, phase = 0): number {
@@ -101,12 +101,7 @@ export const mockDepthChartData: Record<DepthChartLevel, DepthChartPoint[]> = {
 };
 
 export function formatDepthPriceTick(price: number): string {
-  const whole = Math.round(price);
-  const digits = whole.toString();
-
-  if (digits.length <= 3) {
-    return digits;
-  }
-
-  return `${digits.slice(0, -3)},${digits.slice(-3)}`;
+  return new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: price < 1 ? 4 : 2,
+  }).format(price);
 }

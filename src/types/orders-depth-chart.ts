@@ -10,5 +10,9 @@ export type DepthChartCardProps = {
   title?: string;
   dataByLevel?: Record<DepthChartLevel, DepthChartPoint[]>;
   defaultLevel?: DepthChartLevel;
+  priceMin?: number;
+  priceMax?: number;
+  centerPrice?: number;
+  axisTicks?: number[];
   className?: string;
 };

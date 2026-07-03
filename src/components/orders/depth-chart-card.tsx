@@ -66,16 +66,19 @@ export function DepthChartCard({
   title = "Depth Chart",
   dataByLevel = mockDepthChartData,
   defaultLevel = "100",
+  priceMin = DEPTH_CHART_PRICE_MIN,
+  priceMax = DEPTH_CHART_PRICE_MAX,
+  centerPrice = DEPTH_CHART_CENTER_PRICE,
+  axisTicks = DEPTH_CHART_AXIS_TICKS,
   className,
 }: DepthChartCardProps) {
   const bidGradientId = useId().replace(/:/g, "");
   const askGradientId = useId().replace(/:/g, "");
   const [depthLevel, setDepthLevel] = useState<DepthChartLevel>(defaultLevel);
-
-  const chartData = dataByLevel[depthLevel] ?? [];
+  const chartData = useMemo(() => dataByLevel[depthLevel] ?? [], [dataByLevel, depthLevel]);
   const centerPoint = useMemo(
-    () => chartData.find((point) => point.price === DEPTH_CHART_CENTER_PRICE),
-    [chartData],
+    () => chartData.find((point) => point.price === centerPrice),
+    [chartData, centerPrice],
   );
 
   return (
@@ -146,8 +149,8 @@ export function DepthChartCard({
             <XAxis
               dataKey="price"
               type="number"
-              domain={[DEPTH_CHART_PRICE_MIN, DEPTH_CHART_PRICE_MAX]}
-              ticks={DEPTH_CHART_AXIS_TICKS}
+              domain={[priceMin, priceMax]}
+              ticks={axisTicks}
               tickFormatter={formatDepthPriceTick}
               tickLine={false}
               axisLine={false}
@@ -192,14 +195,14 @@ export function DepthChartCard({
             {centerPoint?.bids != null ? (
               <>
                 <ReferenceDot
-                  x={DEPTH_CHART_CENTER_PRICE}
+                  x={centerPrice}
                   y={(centerPoint.bids ?? 0) + 3.5}
                   r={4}
                   fill={BID_COLOR}
                   stroke="none"
                 />
                 <ReferenceDot
-                  x={DEPTH_CHART_CENTER_PRICE}
+                  x={centerPrice}
                   y={centerPoint.asks ?? centerPoint.bids}
                   r={4}
                   fill={ASK_COLOR}
