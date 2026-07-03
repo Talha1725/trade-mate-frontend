@@ -1,6 +1,7 @@
 import type { MarketCandle, MarketSymbolRecord } from "@/types/market";
 import type { MarketSnapshotChartSummary, MarketSnapshotData } from "@/types/market-snapshot";
 import type { PortfolioAccount, PortfolioPosition, PortfolioTrade } from "@/types/dashboard";
+import type { OrderBookSnapshot } from "@/types/order-book";
 
 export type OrderDepthChartLevel = "100" | "250" | "500";
 
@@ -17,27 +18,6 @@ export type OrderDepthChartResponse = {
   priceMax: number;
   centerPrice: number;
   axisTicks: number[];
-};
-
-export type OrderBookRow = {
-  id: string;
-  price: number;
-  size: number;
-  total: number;
-  barPercent: number;
-};
-
-export type OrderBookSnapshot = {
-  midPrice: number;
-  bestBid: number;
-  bestAsk: number;
-  midDirection: "up" | "down";
-  spread: number;
-  spreadPercent: number;
-  asks: OrderBookRow[];
-  bids: OrderBookRow[];
-  isSimulated: true;
-  source: "EODHD";
 };
 
 export type OrderOverviewResponse = {
