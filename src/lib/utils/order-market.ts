@@ -128,19 +128,53 @@ function buildDepthWindow(centerPrice: number) {
   };
 }
 
-function buildDepthEnvelope(progress: number, direction: "bid" | "ask") {
-  const bidEnvelope = 99.2 - progress * 94.8;
-  const askEnvelope = 3.1 + progress * 95.4;
-  const noise =
-    wave(progress, direction === "bid" ? 47.3 : 52.8, direction === "bid" ? 7.8 : 7.4) +
-    wave(progress, direction === "bid" ? 112.7 : 121.3, direction === "bid" ? 5.4 : 5.8, 1.2) +
-    wave(progress, direction === "bid" ? 73.1 : 68.4, direction === "bid" ? 6.1 : 6.3, 2.4) +
-    wave(progress, direction === "bid" ? 203.5 : 198.6, direction === "bid" ? 3.7 : 3.9, 0.8) +
-    wave(progress, direction === "bid" ? 31.9 : 37.5, direction === "bid" ? 4.9 : 4.4, 3.1) +
-    wave(progress, direction === "bid" ? 168.2 : 155.9, direction === "bid" ? 2.6 : 2.8, 4.5);
+function buildDepthStepSize({
+  symbol,
+  side,
+  index,
+  levels,
+  price,
+  multiplier,
+}: {
+  symbol: string;
+  side: "bid" | "ask";
+  index: number;
+  levels: number;
+  price: number;
+  multiplier: number;
+}) {
+  const progress = index / Math.max(levels - 1, 1);
+  const seed = `${symbol}:${side}:${index}:${Math.round(price / Math.max(getTickSize(price), 0.0001))}`;
+  const noise = seededNoise(seed);
+  const block = Math.floor(index / 3);
+  const blockPulse = 0.55 + Math.abs(Math.sin((block + 1) * 1.41 + noise * 8.3)) * 1.45;
+  const clusterPattern = block % 4 === 0 ? 1.34 : block % 4 === 1 ? 0.8 : block % 4 === 2 ? 1.12 : 0.92;
+  const alternator = index % 2 === 0 ? 1.16 : 0.84;
+  const skew = index % 3 === 0 ? 1.18 : index % 3 === 1 ? 0.88 : 1.03;
+  const zigzag =
+    Math.sin(index * (side === "bid" ? 2.45 : 2.18) + noise * 10.2) * (side === "bid" ? 0.95 : 1.02) +
+    Math.cos(index * (side === "bid" ? 4.9 : 4.5) + noise * 6.6) * 0.42;
+  const burst =
+    index % 5 === 0 ? 1.42 : index % 7 === 0 ? 0.72 : index % 4 === 0 ? 1.16 : index % 3 === 0 ? 1.06 : 0.92;
+  const taper = side === "bid" ? 1.08 - progress * 0.18 : 0.96 + progress * 0.2;
+  const waveLift =
+    Math.abs(wave(progress, side === "bid" ? 9.1 : 9.6, side === "bid" ? 0.72 : 0.78, noise * 4.1)) +
+    Math.abs(wave(progress, side === "bid" ? 17.4 : 16.8, side === "bid" ? 0.38 : 0.42, noise * 7.2));
 
-  const base = direction === "bid" ? bidEnvelope : askEnvelope;
-  return roundDepth(clamp(base + noise, 2.4, 100));
+  return round(
+    Math.max(
+      0.02,
+      blockPulse *
+        clusterPattern *
+        alternator *
+        skew *
+        burst *
+        taper *
+        (0.24 + noise * 0.88 + waveLift * 0.48 + Math.abs(zigzag) * 0.24) *
+        multiplier,
+    ),
+    4,
+  );
 }
 
 function buildAxisTicks(min: number, max: number, count = 7) {
@@ -163,41 +197,79 @@ function buildDepthSeries(
   priceMax: number,
   multiplier: number,
 ): DepthChartPoint[] {
-  const bidSteps = 24;
-  const askSteps = 24;
+  const bidSteps = 30;
+  const askSteps = 30;
   const bidSpan = Math.max(centerPrice - priceMin, 0.01);
   const askSpan = Math.max(priceMax - centerPrice, 0.01);
-  const points: DepthChartPoint[] = [];
-
-  for (let index = 0; index < bidSteps; index += 1) {
-    const progress = index / bidSteps;
+  const bidSizes = Array.from({ length: bidSteps }, (_, index) => {
+    const progress = index / Math.max(bidSteps - 1, 1);
     const price = roundDepth(priceMin + bidSpan * progress);
-    points.push({
+    return buildDepthStepSize({
+      symbol: String(centerPrice),
+      side: "bid",
+      index,
+      levels: bidSteps,
       price,
-      bids: roundDepth(clamp(buildDepthEnvelope(progress, "bid") * multiplier, 2.4, 100)),
-      asks: null,
+      multiplier,
     });
-  }
+  });
+  const askSizes = Array.from({ length: askSteps }, (_, index) => {
+    const progress = index / Math.max(askSteps - 1, 1);
+    const price = roundDepth(centerPrice + askSpan * progress);
+    return buildDepthStepSize({
+      symbol: String(centerPrice),
+      side: "ask",
+      index,
+      levels: askSteps,
+      price,
+      multiplier,
+    });
+  });
 
-  const centerDepth = roundDepth(
-    clamp((buildDepthEnvelope(1, "bid") + buildDepthEnvelope(0, "ask")) / 2 * multiplier, 2.4, 100),
-  );
+  let runningBid = 0;
+  const bidTotals = bidSizes.map((size) => {
+    runningBid = roundDepth(runningBid + size);
+    return runningBid;
+  });
+  let runningAsk = 0;
+  const askTotals = askSizes.map((size) => {
+    runningAsk = roundDepth(runningAsk + size);
+    return runningAsk;
+  });
+
+  const maxBidTotal = bidTotals[bidTotals.length - 1] ?? 1;
+  const maxAskTotal = askTotals[askTotals.length - 1] ?? 1;
+
+  const points: DepthChartPoint[] = bidSizes.map((size, index) => {
+    const progress = index / Math.max(bidSteps - 1, 1);
+    const price = roundDepth(priceMin + bidSpan * progress);
+    const total = bidTotals[index] ?? 0;
+    return {
+      price,
+      bids: roundDepth(clamp(100 - (total / maxBidTotal) * 100, 0, 100)),
+      asks: null,
+    };
+  });
+
+  const centerBidDepth = points[points.length - 1]?.bids ?? 0;
+  const centerAskDepth = roundDepth(clamp((askTotals[0] ?? 0) / maxAskTotal * 100, 0, 100));
 
   points.push({
     price: centerPrice,
-    bids: centerDepth,
-    asks: centerDepth,
+    bids: centerBidDepth,
+    asks: centerAskDepth,
   });
 
-  for (let index = 1; index <= askSteps; index += 1) {
-    const progress = index / askSteps;
+  askSizes.forEach((_, index) => {
+    const progress = (index + 1) / askSteps;
     const price = roundDepth(centerPrice + askSpan * progress);
+    const total = askTotals[index] ?? 0;
     points.push({
       price,
       bids: null,
-      asks: roundDepth(clamp(buildDepthEnvelope(progress, "ask") * multiplier, 2.4, 100)),
+      asks: roundDepth(clamp((total / maxAskTotal) * 100, 0, 100)),
     });
-  }
+  });
 
   return points;
 }
