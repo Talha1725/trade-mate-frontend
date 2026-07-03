@@ -34,6 +34,19 @@ function extractErrorMessage(error: AxiosError): string {
   return error.message || "Request failed."
 }
 
+function isAuthenticationFailure(error: AxiosError) {
+  const status = error.response?.status
+  if (status === 401) {
+    return true
+  }
+
+  if (status !== 403) {
+    return false
+  }
+
+  return /(auth|token|jwt|unauthori[sz]ed|session)/i.test(extractErrorMessage(error))
+}
+
 api.interceptors.request.use(
   (config) => {
     const state = useAuthStore.getState()
@@ -52,15 +65,20 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (axios.isAxiosError(error)) {
-      if (error.response?.status === 401) {
+      if (isAuthenticationFailure(error)) {
         // Only force a sign-out when we currently believe we're authenticated.
         // A 401 from the login request itself has no session yet, so it falls
         // through to the form's error handling instead of redirecting.
-        const { session, signOut } = useAuthStore.getState()
+        const { session, expireSession } = useAuthStore.getState()
         if (session) {
-          void signOut()
+          const message = "Authentication issue. Please sign in again."
+          expireSession()
           if (typeof window !== "undefined") {
-            window.location.href = "/login"
+            window.dispatchEvent(
+              new CustomEvent("trade-mate:authentication-failed", {
+                detail: { message },
+              }),
+            )
           }
         }
       }

@@ -54,6 +54,7 @@ export type AuthStoreActions = {
   loadSession: () => Promise<AuthSession | null>;
   signIn: (credentials: LoginCredentials) => Promise<AuthSession>;
   signOut: () => Promise<void>;
+  expireSession: () => void;
   clearToken: () => void;
   setHasHydrated: (value: boolean) => void;
 };
