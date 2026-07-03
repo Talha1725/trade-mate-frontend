@@ -391,13 +391,30 @@ export default function DashboardPage() {
     [liveWatchlistItems],
   );
 
+  const resolvePortfolioAccount = React.useCallback(
+    (payload: PriceSocketPortfolioMessage) => {
+      if (accountId) {
+        const matchedAccount = payload.accounts.find((item) => item.id === accountId);
+
+        if (matchedAccount) {
+          return matchedAccount;
+        }
+
+        return null;
+      }
+
+      return payload.accounts[0] ?? null;
+    },
+    [accountId],
+  );
+
   usePriceStream({
     enabled: !!token && (subscriptionMarketSymbols.length > 0 || watchlistMarketSymbols.length > 0),
     symbols: Array.from(new Set([...subscriptionMarketSymbols, ...watchlistMarketSymbols])),
     accountIds: accountId ? [accountId] : [],
     onQuotes: handleMarketQuotes,
     onPortfolio: (payload: PriceSocketPortfolioMessage) => {
-      const account = payload.accounts[0];
+      const account = resolvePortfolioAccount(payload);
 
       if (!account) {
         return;
