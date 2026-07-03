@@ -3,9 +3,9 @@ module.exports = {
     {
       name: "trade-mate-frontend",
       cwd: __dirname,
-      script: "npm",
-      args: "run start -- --hostname 0.0.0.0 --port 3100",
-      interpreter: "none",
+      script: "./node_modules/next/dist/bin/next",
+      args: "start --hostname 0.0.0.0 --port 3100",
+      interpreter: "node",
       env: {
         NODE_ENV: "production",
         PORT: "3100",

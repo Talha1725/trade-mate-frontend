@@ -14,7 +14,8 @@ echo "[frontend] building production bundle"
 npm run build
 
 echo "[frontend] restarting PM2 app"
-pm2 startOrRestart ecosystem.config.cjs --update-env
+pm2 delete trade-mate-frontend >/dev/null 2>&1 || true
+pm2 start ecosystem.config.cjs --update-env
 
 echo "[frontend] verifying PM2 app"
 sleep 2
