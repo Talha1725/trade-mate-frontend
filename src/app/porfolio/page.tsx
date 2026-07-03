@@ -141,11 +141,28 @@ export default function PortfolioPage() {
 
     const accountId = snapshot?.account.id ?? selectedAccountId ?? null;
 
+    const resolvePortfolioAccount = React.useCallback(
+        (payload: PriceSocketPortfolioMessage) => {
+            if (accountId) {
+                const matchedAccount = payload.accounts.find((item) => item.id === accountId);
+
+                if (matchedAccount) {
+                    return matchedAccount;
+                }
+
+                return null;
+            }
+
+            return payload.accounts[0] ?? null;
+        },
+        [accountId],
+    );
+
     usePriceStream({
         enabled: !!token && !!accountId,
         accountIds: accountId ? [accountId] : [],
         onPortfolio: (payload: PriceSocketPortfolioMessage) => {
-            const account = payload.accounts[0];
+            const account = resolvePortfolioAccount(payload);
 
             if (!account) {
                 return;
