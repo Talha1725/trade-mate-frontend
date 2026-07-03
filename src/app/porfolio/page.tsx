@@ -15,6 +15,7 @@ import { portfolioApi } from "@/lib/services/portfolio.api";
 import { terminalApi } from "@/lib/services/terminal.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
+import { useUserAccounts } from "@/hooks/use-user-accounts";
 import {
     buildPortfolioAllocationItems,
     buildPortfolioExposureItems,
@@ -32,9 +33,43 @@ export default function PortfolioPage() {
     const [overview, setOverview] = React.useState<PortfolioOverviewResponse | null>(null);
     const token = useAuthStore((state) => state.session?.token ?? null);
     const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
+    const setSelectedAccountId = useSelectedAccountStore((state) => state.setSelectedAccountId);
+    const { data: userAccounts } = useUserAccounts();
     const positionOrderRef = React.useRef(new Map<string, number>());
     const positionOrderCounterRef = React.useRef(0);
     const positionMissingCountsRef = React.useRef(new Map<string, number>());
+    const accountListLoaded = userAccounts !== undefined;
+    const availableAccounts = userAccounts?.accounts ?? [];
+
+    const resolvedAccountId = React.useMemo(() => {
+        if (!accountListLoaded) {
+            return null;
+        }
+
+        if (selectedAccountId && availableAccounts.some((account) => account.id === selectedAccountId)) {
+            return selectedAccountId;
+        }
+
+        return availableAccounts[0]?.id ?? null;
+    }, [accountListLoaded, availableAccounts, selectedAccountId]);
+
+    React.useEffect(() => {
+        if (!accountListLoaded) {
+            return;
+        }
+
+        if (resolvedAccountId !== selectedAccountId) {
+            setSelectedAccountId(resolvedAccountId);
+        }
+    }, [accountListLoaded, resolvedAccountId, selectedAccountId, setSelectedAccountId]);
+
+    React.useEffect(() => {
+        setSnapshot(null);
+        setOverview(null);
+        positionOrderRef.current.clear();
+        positionOrderCounterRef.current = 0;
+        positionMissingCountsRef.current.clear();
+    }, [resolvedAccountId, token]);
 
     const normalizeOpenPositions = React.useCallback(
         (positions: UserPortfolioResponse["positions"]) => {
@@ -45,7 +80,7 @@ export default function PortfolioPage() {
                     return false;
                 }
 
-                if (selectedAccountId && position.accountId !== selectedAccountId) {
+                if (resolvedAccountId && position.accountId !== resolvedAccountId) {
                     return false;
                 }
 
@@ -53,24 +88,24 @@ export default function PortfolioPage() {
                 return true;
             });
         },
-        [selectedAccountId],
+        [resolvedAccountId],
     );
     const refreshOverview = React.useCallback(async () => {
-        if (!token) return;
+        if (!token || !accountListLoaded || !resolvedAccountId) return;
 
         try {
-            const nextOverview = await portfolioApi.getOverview(selectedAccountId ?? undefined);
+            const nextOverview = await portfolioApi.getOverview(resolvedAccountId);
             setOverview(nextOverview);
         } catch {
             setOverview(null);
         }
-    }, [selectedAccountId, token]);
+    }, [accountListLoaded, resolvedAccountId, token]);
 
     const refreshSnapshot = React.useCallback(async () => {
-        if (!token) return;
+        if (!token || !accountListLoaded || !resolvedAccountId) return;
 
         try {
-            const nextSnapshot = await terminalApi.getOpenPositions(token, selectedAccountId ?? undefined);
+            const nextSnapshot = await terminalApi.getOpenPositions(token, resolvedAccountId);
             setSnapshot({
                 ...nextSnapshot,
                 positions: normalizeOpenPositions(nextSnapshot.positions),
@@ -80,7 +115,7 @@ export default function PortfolioPage() {
             toast.error(message);
             console.error("Unable to load portfolio snapshot.", error);
         }
-    }, [normalizeOpenPositions, selectedAccountId, token]);
+    }, [accountListLoaded, normalizeOpenPositions, resolvedAccountId, token]);
 
     React.useEffect(() => {
         void refreshSnapshot();
@@ -139,7 +174,7 @@ export default function PortfolioPage() {
         return buildPortfolioExposureItems(snapshot.positions);
     }, [snapshot?.positions]);
 
-    const accountId = snapshot?.account.id ?? selectedAccountId ?? null;
+    const accountId = resolvedAccountId;
 
     const resolvePortfolioAccount = React.useCallback(
         (payload: PriceSocketPortfolioMessage) => {

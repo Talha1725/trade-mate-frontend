@@ -1,6 +1,6 @@
 import type { UserAccountSummary } from "@/types/account";
 
-export type AccountSwitcherItem = Pick<UserAccountSummary, "id" | "accountNumber"> & {
+export type AccountSwitcherItem = Pick<UserAccountSummary, "id" | "accountNumber" | "status"> & {
   name?: string | null;
 };
 

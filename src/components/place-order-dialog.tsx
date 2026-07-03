@@ -34,7 +34,7 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
   const [loadSize, setLoadSize] = React.useState("0.75");
   const [stopLoss, setStopLoss] = React.useState("");
   const [takeProfit, setTakeProfit] = React.useState("");
-  const [accountBalance, setAccountBalance] = React.useState<string | null>(null);
+  const [buyingPower, setBuyingPower] = React.useState<number | null>(null);
   const [isAccountContextLoading, setIsAccountContextLoading] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const token = useAuthStore((state) => state.session?.token ?? null);
@@ -60,11 +60,13 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
       try {
         const snapshot = await terminalApi.getOpenPositions(token, selectedAccountId ?? undefined);
 
-        setAccountBalance(snapshot.account.balance);
+        const availableBalance =
+          Number(snapshot.account.balance ?? 0) - Number(snapshot.account.marginUsed ?? 0);
+        setBuyingPower(Math.max(0, availableBalance));
 
         return {
           accountId: snapshot.account.id,
-          balance: snapshot.account.balance,
+          balance: availableBalance.toFixed(2),
         };
       } catch (error) {
         if (!options?.silent) {
@@ -193,11 +195,11 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
           <div className="rounded-xl border border-white/20 gradient-btn-tradebox p-3">
             <div className="text-xs text-white/50 mb-1">Buying Power</div>
             <div className="text-sm font-semibold text-white">
-              {accountBalance == null
+              {buyingPower == null
                 ? isAccountContextLoading
                   ? "Loading..."
                   : "—"
-                : `$${Number(accountBalance).toLocaleString("en-US", {
+                : `$${buyingPower.toLocaleString("en-US", {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}`}
