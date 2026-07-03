@@ -11,5 +11,6 @@ export function mapAssetRecordsToTradingFilterAssets(
       id: asset.id,
       label: asset.label,
       symbol: asset.symbol,
+      category: asset.category,
     }));
 }
