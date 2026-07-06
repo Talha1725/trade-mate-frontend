@@ -54,9 +54,9 @@ export default function AnalyticsPage() {
                         />
                     </div>
 
-                    <div className=" xl:col-span-3 2xl:col-span-3 min-[1800px]:col-span-1!">
+                    {/* <div className=" xl:col-span-3 2xl:col-span-3 min-[1800px]:col-span-1!">
                         <PerformanceInsightsCard className="h-full" />
-                    </div>
+                    </div> */}
                 </div>
             </div>
         </AppShell>

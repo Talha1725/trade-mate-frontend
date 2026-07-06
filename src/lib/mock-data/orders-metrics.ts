@@ -9,8 +9,8 @@ export const mockOrdersMetricCards: OrdersMetricCard[] = [
     id: "pending-orders",
     variant: "icon",
     title: "Total Orders",
-    value: "2",
-    subtitle: "Awaiting fill",
+    value: "0",
+    subtitle: "",
     iconSrc: "/images/orders/pending.svg",
   },
   {
