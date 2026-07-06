@@ -36,11 +36,22 @@ function StatToneDot({ tone }: { tone: ChallengeProgressStatRow["tone"] }) {
 }
 
 function formatCompactNumber(value: string | number) {
-  const num = typeof value === "string" ? parseFloat(value.replace(/,/g, "")) : value;
+  const isString = typeof value === "string";
+  const hasDollar = isString && value.startsWith("$");
+  
+  const rawStr = isString ? value.replace(/[^0-9.-]+/g, "") : value.toString();
+  const num = parseFloat(rawStr);
+  
   if (isNaN(num)) return value;
-  if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
-  if (num >= 1000) return (num / 1000).toFixed(0) + "K";
-  return num.toString();
+  
+  let formattedNum = num.toString();
+  if (num >= 1000000) {
+    formattedNum = (num / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
+  } else if (num >= 1000) {
+    formattedNum = (num / 1000).toFixed(1).replace(/\.0$/, "") + "K";
+  }
+  
+  return hasDollar ? `$${formattedNum}` : formattedNum;
 }
 
 function StatRow({ row }: { row: ChallengeProgressStatRow }) {
@@ -50,7 +61,7 @@ function StatRow({ row }: { row: ChallengeProgressStatRow }) {
       <StatToneDot tone={row.tone} />
       <span className="font-medium text-white">{row.label}</span>
       </div>
-      <div className="text-right text-white/80">{row.valuePrimary}</div>
+      <div className="text-right text-white/80">{formatCompactNumber(row.valuePrimary)}</div>
       <div className="text-right text-white">{formatCompactNumber(row.valueSecondary)}</div>
     </div>
   );
