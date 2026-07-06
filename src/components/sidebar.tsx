@@ -14,7 +14,7 @@ import { HiMiniChartBar } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import type { SidebarItemProps, CardRowProps } from "@/types/components";
-import { useAccountSummary } from "@/hooks/use-trades";
+import { useAccountSummary, usePositions } from "@/hooks/use-trades";
 import { SIDEBAR_ICONS } from "@/lib/mock-data/sidebar-icons";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
 
@@ -103,6 +103,8 @@ export function Sidebar({ className }: { className?: string }) {
   const [showBalance, setShowBalance] = React.useState(true);
   const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
   const { data: accountSummary } = useAccountSummary(selectedAccountId);
+  const { data: openPositions } = usePositions(selectedAccountId);
+  const openOrdersCount = openPositions?.positions?.length ?? 0;
 
   // Map routes to determine active state
   const isTabActive = (href: string) => {
@@ -152,7 +154,7 @@ export function Sidebar({ className }: { className?: string }) {
           iconSrc={SIDEBAR_ICONS.reorder}
           label="Orders"
           href="/orders"
-          badge="2"
+          badge={openOrdersCount}
           active={isTabActive("/orders")}
         />
         <SidebarItem
