@@ -50,9 +50,10 @@ export default function HistoryPage() {
       } finally {
         if (isMounted) {
           setIsLoading(false);
+          // Slow fallback only — live updates arrive via the price-stream socket.
           timeoutId = setTimeout(() => {
             void refreshLedger();
-          }, 2500);
+          }, 30_000);
         }
       }
     };

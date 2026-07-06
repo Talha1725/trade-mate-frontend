@@ -72,15 +72,16 @@ export const mockAnalyticsMetricCards: PortfolioMetricCard[] = [
   {
     id: "payout",
     variant: "icon-stats",
-    title: "Payout",
-    value: "Eligible",
+    title: "Rule Breaches",
+    value: "0",
     valueTone: "positive",
-    subtitle: "Rules Passed",
-    iconKind: "trophy",
-    iconTone: "orange",
+    subtitle: "Clear risk signals",
+    subtitleTone: "positive",
+    iconKind: "trend-down",
+    iconTone: "red",
     subStats: [
-      { label: "Next Payout", value: "Jun 28" },
-      { label: "Score", value: "A+", tone: "positive" },
+      { label: "Drawdown", value: "-0.00%" },
+      { label: "Account Status", value: "Active", tone: "positive" },
     ],
   },
 ];

@@ -53,6 +53,11 @@ export const ROUTES = {
     STAT_CARDS:     `/api/dashboard/stat-cards`,
   },
 
+  /** Analytics Module */
+  ANALYTICS: {
+    OVERVIEW:       `/api/analytics/overview`,
+  },
+
   /** Portfolio Module */
   PORTFOLIO: {
     OVERVIEW:       `/api/portfolio/overview`,

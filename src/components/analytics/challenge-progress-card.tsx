@@ -45,13 +45,12 @@ function formatCompactNumber(value: string | number) {
 
 function StatRow({ row }: { row: ChallengeProgressStatRow }) {
   return (
-    <div className="grid grid-cols-2 items-center gap-x-4 gap-y-1 text-sm">
+    <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-3 gap-y-1 text-sm">
       <div className="flex items-center gap-2">
       <StatToneDot tone={row.tone} />
       <span className="font-medium text-white">{row.label}</span>
       </div>
-      
-      {/* <span className="text-center text-white/80">{row.valuePrimary}</span> */}
+      <div className="text-right text-white/80">{row.valuePrimary}</div>
       <div className="text-right text-white">{formatCompactNumber(row.valueSecondary)}</div>
     </div>
   );

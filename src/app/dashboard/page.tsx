@@ -113,9 +113,10 @@ export default function DashboardPage() {
         // Keep the last successful snapshot/ledger visible if a refresh fails.
       } finally {
         if (isMounted) {
+          // Slow fallback only — live updates arrive via the price-stream socket.
           timeoutId = setTimeout(() => {
             void refreshDashboard();
-          }, 2500);
+          }, 30_000);
         }
       }
     };
