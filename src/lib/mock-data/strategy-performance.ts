@@ -3,7 +3,7 @@ import type { StrategyPerformanceRow } from "@/types/strategy-performance";
 export const mockStrategyPerformanceRows: StrategyPerformanceRow[] = [
   {
     id: "strategy-1",
-    symbol: "$69,102.00",
+    symbol: "BTCUSDT",
     pnl: "+$6,842",
     pnlTone: "positive",
     winRate: "0.2394",
@@ -11,7 +11,7 @@ export const mockStrategyPerformanceRows: StrategyPerformanceRow[] = [
   },
   {
     id: "strategy-2",
-    symbol: "$69,101.75",
+    symbol: "ETHUSDT",
     pnl: "0.2430",
     pnlTone: "muted",
     winRate: "0.2430",
@@ -19,7 +19,7 @@ export const mockStrategyPerformanceRows: StrategyPerformanceRow[] = [
   },
   {
     id: "strategy-3",
-    symbol: "$69,101.25",
+    symbol: "SOLUSDT",
     pnl: "0.2175",
     pnlTone: "muted",
     winRate: "0.2175",
@@ -27,7 +27,7 @@ export const mockStrategyPerformanceRows: StrategyPerformanceRow[] = [
   },
   {
     id: "strategy-4",
-    symbol: "$69,100.50",
+    symbol: "BNBUSDT",
     pnl: "0.1984",
     pnlTone: "muted",
     winRate: "0.1984",
@@ -35,7 +35,7 @@ export const mockStrategyPerformanceRows: StrategyPerformanceRow[] = [
   },
   {
     id: "strategy-5",
-    symbol: "$69,099.80",
+    symbol: "XRPUSDT",
     pnl: "0.1821",
     pnlTone: "muted",
     winRate: "0.1821",

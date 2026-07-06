@@ -1,70 +1,32 @@
 "use client";
 
-import { RiVerifiedBadgeFill } from "react-icons/ri";
-
-import { mockSecurityOverviewRows } from "@/lib/mock-data/security-overview";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
-import type {
-  SecurityOverviewCardProps,
-  SecurityOverviewRow,
-} from "@/types/security-overview-card";
-
-function SecurityOverviewRowItem({
-  row,
-  onAction,
-}: {
-  row: SecurityOverviewRow;
-  onAction?: () => void;
-}) {
-  return (
-    <div className="flex items-center gap-4 py-1.75 first:pt-0 last:pb-0">
-      <p className="w-[140px] shrink-0 text-sm font-medium text-white/50 md:w-[244px]">
-        {row.label}
-      </p>
-
-      <div className="flex min-w-0 flex-1 items-center gap-1.5">
-        <p
-          className={cn(
-            "text-sm font-medium",
-            row.valueTone === "positive" && "text-primary",
-            row.valueTone === "masked" && "tracking-widest text-white/60",
-            (!row.valueTone || row.valueTone === "default") && "text-white",
-          )}
-        >
-          {row.value}
-        </p>
-        {row.showVerifiedIcon ? (
-          <RiVerifiedBadgeFill className="size-4 shrink-0 text-primary" />
-        ) : null}
-      </div>
-
-      {row.actionLabel ? (
-        <button
-          type="button"
-          onClick={onAction}
-          className="inline-flex shrink-0 cursor-pointer items-center rounded-[10px] border border-white/5 bg-linear-to-b from-white/7 to-white/3 px-3.5 py-1.25 text-sm font-medium text-white transition-colors hover:bg-white/10"
-        >
-          {row.actionLabel}
-        </button>
-      ) : (
-        <span className="hidden w-[88px] shrink-0 sm:block" aria-hidden />
-      )}
-    </div>
-  );
-}
+import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
+import type { SecurityOverviewCardProps } from "@/types/security-overview-card";
 
 export function SecurityOverviewCard({
-  title = "Security Overview",
-  rows = mockSecurityOverviewRows,
-  onChangePassword,
-  onManageEmailVerification,
-  onManageLoginAlerts,
   className,
 }: SecurityOverviewCardProps) {
-  const actionHandlers: Record<string, (() => void) | undefined> = {
-    password: onChangePassword,
-    "email-verification": onManageEmailVerification,
-    "login-alerts": onManageLoginAlerts,
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+    toast.success("Password changed successfully!");
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
   };
 
   return (
@@ -74,16 +36,72 @@ export function SecurityOverviewCard({
         className,
       )}
     >
-      <h3 className="text-base font-semibold text-white md:text-lg">{title}</h3>
-      <div className="mt-6 flex flex-col">
-        {rows.map((row) => (
-          <SecurityOverviewRowItem
-            key={row.id}
-            row={row}
-            onAction={actionHandlers[row.id]}
-          />
-        ))}
-      </div>
+      <h3 className="text-base font-semibold text-white md:text-lg">Change Password</h3>
+      <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4 max-w-md">
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-white/50">Current Password</label>
+          <div className="relative">
+            <input 
+              type={showCurrent ? "text" : "password"}
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              className="w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 pr-10 text-sm text-white outline-none focus:border-primary" 
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowCurrent(!showCurrent)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors cursor-pointer"
+            >
+              {showCurrent ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            </button>
+          </div>
+        </div>
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-white/50">New Password</label>
+          <div className="relative">
+            <input 
+              type={showNew ? "text" : "password"}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 pr-10 text-sm text-white outline-none focus:border-primary" 
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowNew(!showNew)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors cursor-pointer"
+            >
+              {showNew ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            </button>
+          </div>
+        </div>
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-white/50">Confirm Password</label>
+          <div className="relative">
+            <input 
+              type={showConfirm ? "text" : "password"}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 pr-10 text-sm text-white outline-none focus:border-primary" 
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirm(!showConfirm)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors cursor-pointer"
+            >
+              {showConfirm ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            </button>
+          </div>
+        </div>
+        <button
+          type="submit"
+          className="mt-2 inline-flex w-fit cursor-pointer items-center rounded-xl btn-green px-6 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+        >
+          Apply Changes
+        </button>
+      </form>
     </article>
   );
 }

@@ -14,14 +14,14 @@ export const mockChallengeProgressStats: ChallengeProgressStatRow[] = [
     id: "completed",
     label: "Completed",
     valuePrimary: "72%",
-    valueSecondary: "72%",
+    valueSecondary: "654,456",
     tone: "completed",
   },
   {
     id: "remaining",
     label: "Remaining",
     valuePrimary: "28%",
-    valueSecondary: "28.0%",
+    valueSecondary: "254,456",
     tone: "remaining",
   },
 ];

@@ -129,13 +129,7 @@ export function CurrencySearch({ className }: CurrencySearchProps) {
     return () => document.removeEventListener("mousedown", handlePointerDown);
   }, []);
 
-  React.useEffect(() => {
-    if (!hasHydrated || !selectedAsset || document.activeElement === inputRef.current) {
-      return;
-    }
-
-    setQuery(selectedAsset.label);
-  }, [hasHydrated, selectedAsset]);
+  // Removed automatic setting of search query to selected asset
 
   const dropdown =
     showResults && dropdownPosition
@@ -199,7 +193,7 @@ export function CurrencySearch({ className }: CurrencySearchProps) {
             ref={inputRef}
             type="text"
             value={query}
-            placeholder={isAssetsLoading ? "Loading assets..." : "Search Currencies"}
+            placeholder={isAssetsLoading ? "Loading assets..." : "search"}
             disabled={isAssetsLoading && tradingAssets.length === 0}
             className="w-full bg-transparent text-sm text-white outline-none placeholder:text-white/60 disabled:cursor-wait disabled:opacity-70"
             onFocus={(event) => {

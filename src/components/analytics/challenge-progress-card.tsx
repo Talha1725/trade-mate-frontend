@@ -35,6 +35,14 @@ function StatToneDot({ tone }: { tone: ChallengeProgressStatRow["tone"] }) {
   );
 }
 
+function formatCompactNumber(value: string | number) {
+  const num = typeof value === "string" ? parseFloat(value.replace(/,/g, "")) : value;
+  if (isNaN(num)) return value;
+  if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
+  if (num >= 1000) return (num / 1000).toFixed(0) + "K";
+  return num.toString();
+}
+
 function StatRow({ row }: { row: ChallengeProgressStatRow }) {
   return (
     <div className="grid grid-cols-2 items-center gap-x-4 gap-y-1 text-sm">
@@ -44,7 +52,7 @@ function StatRow({ row }: { row: ChallengeProgressStatRow }) {
       </div>
       
       {/* <span className="text-center text-white/80">{row.valuePrimary}</span> */}
-      <div className="text-right text-white">{row.valueSecondary}</div>
+      <div className="text-right text-white">{formatCompactNumber(row.valueSecondary)}</div>
     </div>
   );
 }

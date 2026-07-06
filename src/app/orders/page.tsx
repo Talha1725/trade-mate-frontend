@@ -303,7 +303,14 @@ export default function OrdersPage() {
               disabled={isAssetsLoading || tradingAssets.length === 0}
             >
               <SelectTrigger className="h-auto min-w-[220px] cursor-pointer border-white/20 bg-[#0C0C0C] px-3 py-2 text-left text-sm text-white shadow-none hover:bg-white/10 focus-visible:border-primary focus-visible:ring-primary/20">
-                <SelectValue placeholder="Select asset" />
+                {selectedAsset ? (
+                  <span className="flex items-center gap-2">
+                    <AssetIcon symbol={selectedAsset.symbol} label={selectedAsset.label} size={18} />
+                    <span>{selectedAsset.label}</span>
+                  </span>
+                ) : (
+                  <span className="text-white/50">Select asset</span>
+                )}
               </SelectTrigger>
               <SelectContent className="max-h-[280px] border-white/20 bg-[#0C0C0C] text-white">
                 {tradingAssets.map((asset) => (
