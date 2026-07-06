@@ -9,7 +9,7 @@ import { MarketWatchCard } from "@/components/dashboard/market-watch-card";
 import { OpenPositionsStripCard } from "@/components/dashboard/open-positions-strip-card";
 import { TradingFilterBar } from "@/components/dashboard/trading-filter-bar";
 import { PageHeader } from "@/components/page-header";
-import { mockTradingFilterOhlcv, mockTradingFilterQuote } from "@/lib/mock-data/trading-filter-bar";
+
 import { dashboardApi } from "@/lib/services/dashboard.api";
 import { marketApi } from "@/lib/services/market.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
@@ -246,7 +246,7 @@ export default function DashboardPage() {
                 : marketChart.change,
             changePercent: marketSnapshot?.changePercent ?? marketChart.changePercent,
           }
-        : mockTradingFilterQuote,
+        : { price: 0, change: 0, changePercent: 0 },
     [marketChart, marketSnapshot?.changePercent, marketSnapshot?.price],
   );
   const filterBarOhlcv = React.useMemo(
@@ -258,7 +258,7 @@ export default function DashboardPage() {
             low: marketChart.low,
             volume: marketChart.volume,
           }
-        : mockTradingFilterOhlcv,
+        : { open: 0, high: 0, low: 0, volume: 0 },
     [marketChart],
   );
 

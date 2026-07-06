@@ -1,4 +1,4 @@
-export type TradingCalendarDayTone = "win" | "loss";
+export type TradingCalendarDayTone = "win" | "loss" | "neutral";
 
 export type TradingCalendarDayIntensity = "dark" | "light";
 

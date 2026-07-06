@@ -25,6 +25,10 @@ export const TRADING_CALENDAR_TILE_BACKGROUNDS: Record<
     "linear-gradient(180deg, rgba(239, 68, 68, 0.3) 0%, rgba(152, 0, 0, 0.3) 100%), radial-gradient(52.13% 193.91% at 47.87% 100%, rgba(239, 68, 68, 0.15) 0%, rgba(15, 23, 42, 0.06) 100%)",
   "loss-light":
     "linear-gradient(180deg, rgba(239, 68, 68, 0.6) 0%, rgba(152, 0, 0, 0.6) 100%), radial-gradient(52.13% 193.91% at 47.87% 100%, rgba(239, 68, 68, 0.3) 0%, rgba(15, 23, 42, 0.12) 100%)",
+  "neutral-dark":
+    "linear-gradient(180deg, rgba(82, 82, 91, 0.42) 0%, rgba(39, 39, 42, 0.52) 100%), radial-gradient(52.13% 193.91% at 47.87% 100%, rgba(63, 63, 70, 0.24) 0%, rgba(15, 23, 42, 0.08) 100%)",
+  "neutral-light":
+    "linear-gradient(180deg, rgba(113, 113, 122, 0.5) 0%, rgba(63, 63, 70, 0.62) 100%), radial-gradient(52.13% 193.91% at 47.87% 100%, rgba(82, 82, 91, 0.3) 0%, rgba(15, 23, 42, 0.1) 100%)",
 };
 
 export const mockTradingCalendarDays: TradingCalendarDay[] = [

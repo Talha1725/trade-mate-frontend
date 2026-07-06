@@ -65,11 +65,11 @@ export function PageHeader({
         {/* Account Switcher Dropdown */}
         <AccountSwitcherDropdown />
 
-        <HeaderNotificationsDropdown
+        {/* <HeaderNotificationsDropdown
           onNotificationClick={() =>
             toast.info("Notification details are not available yet.")
           }
-        />
+        /> */}
 
         <DropdownMenu>
           <DropdownMenuTrigger className="flex cursor-pointer items-center justify-center gap-0 md:gap-2 px-3 py-0.5 rounded-lg border border-border/20 text-white outline-none">
