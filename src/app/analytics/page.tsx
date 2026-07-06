@@ -45,7 +45,6 @@ function buildEmptyAnalyticsOverview(accountId: string | null): AnalyticsOvervie
         { label: "Best Day", value: "$0.00" },
         { label: "Avg Day", value: "$0.00" },
       ],
-      chartValues: zeroSeries.map((point) => point.value),
     },
     {
       id: "win-rate",
@@ -233,7 +232,7 @@ export default function AnalyticsPage() {
         />
 
         <PortfolioMetricCards
-          cards={analytics.statsCards}
+          cards={analytics.statsCards.map(card => card.id === "net-pnl" ? { ...card, chartValues: undefined } : card)}
           className="md:grid-cols-2 xl:grid-cols-3 min-[1700px]:grid-cols-6!"
         />
 
