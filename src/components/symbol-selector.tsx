@@ -4,7 +4,6 @@ import * as React from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 
 import { AssetIcon } from "@/components/shared/asset-icon";
-import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -66,26 +65,23 @@ export function SymbolSelector({ className }: { className?: string }) {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className={cn(
-            "h-9 cursor-pointer justify-between rounded-lg border border-white/20 bg-neutral-900 bg-linear-to-b from-[#6E6E6E1A] to-[#13131505] px-3 text-sm font-medium text-white shadow-none hover:border-primary hover:bg-white/15 hover:text-white",
-            className,
-          )}
-        >
-          <span className="flex min-w-0 items-center gap-2">
-            {selectedAsset ? (
-              <AssetIcon symbol={selectedAsset.symbol} label={selectedAsset.label} size={20} />
-            ) : null}
-            <span className="truncate">
-              {selectedAsset?.label ?? selectedSymbol ?? "Select symbol"}
-            </span>
+      <PopoverTrigger
+        role="combobox"
+        aria-expanded={open}
+        className={cn(
+          "flex h-9 cursor-pointer items-center justify-between gap-2 rounded-lg border border-white/20 bg-neutral-900 bg-linear-to-b from-[#6E6E6E1A] to-[#13131505] px-3 text-sm font-medium text-white shadow-none hover:border-primary hover:bg-white/15 hover:text-white",
+          className,
+        )}
+      >
+        <span className="flex min-w-0 items-center gap-2">
+          {selectedAsset ? (
+            <AssetIcon symbol={selectedAsset.symbol} label={selectedAsset.label} size={20} />
+          ) : null}
+          <span className="truncate">
+            {selectedAsset?.label ?? selectedSymbol ?? "Select symbol"}
           </span>
-          <ChevronsUpDown className="size-4 shrink-0 opacity-60" />
-        </Button>
+        </span>
+        <ChevronsUpDown className="size-4 shrink-0 opacity-60" />
       </PopoverTrigger>
       <PopoverContent
         align="start"
