@@ -8,7 +8,7 @@ import { LuChartSpline } from "react-icons/lu";
 import { MiniAreaLineChart } from "@/components/dashboard/mini-area-line-chart";
 import { GradientHorizontalProgress } from "@/components/portfolio/gradient-horizontal-progress";
 import { SemiCircleDonutGauge } from "@/components/portfolio/semi-circle-donut-gauge";
-import { mockPortfolioMetricCards } from "@/lib/mock-data/portfolio-metrics";
+
 import { cn } from "@/lib/utils";
 import type {
   PortfolioMetricCard,
@@ -173,7 +173,7 @@ function PortfolioMetricCardItem({ card }: { card: PortfolioMetricCard }) {
 }
 
 export function PortfolioMetricCards({
-  cards = mockPortfolioMetricCards,
+  cards = [],
   className,
 }: PortfolioMetricCardsProps) {
   return (

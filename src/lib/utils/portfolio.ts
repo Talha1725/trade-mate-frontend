@@ -1,9 +1,10 @@
 import type { PortfolioMetricCard } from "@/types/portfolio-metric-card";
-import type { PortfolioOverviewResponse } from "@/types/portfolio-overview";
+import type { PortfolioChartResponse, PortfolioOverviewResponse } from "@/types/portfolio-overview";
 import type { PortfolioExposureItem, PortfolioAllocationItem } from "@/types/portfolio-overview";
 import type { PortfolioAccount, PortfolioPosition } from "@/types/dashboard";
 import { resolveCryptoIconCode } from "@/lib/utils/resolve-crypto-icon";
 import { resolveForexPairIcon } from "@/lib/utils/forex-flag";
+
 
 const COMMODITY_SYMBOL_PREFIXES = new Set(["XAU"]);
 
@@ -172,19 +173,24 @@ export function buildPortfolioExposureItems(positions: PortfolioPosition[]): Por
     .filter((item) => item.percent > 0);
 }
 
+const ZERO_ACCOUNT = { balance: "0", equity: "0", floatingPnl: "0", marginUsed: "0" };
+const ZERO_OVERVIEW = { summary: undefined, chart: { defaultTimeframe: "4H" as const, dataByTimeframe: {} as PortfolioChartResponse["dataByTimeframe"] } };
+
 export function buildPortfolioMetricCards(
-  account: Pick<PortfolioAccount, "balance" | "equity" | "floatingPnl" | "marginUsed">,
-  overview: Pick<PortfolioOverviewResponse, "summary" | "chart">,
+  account: Pick<PortfolioAccount, "balance" | "equity" | "floatingPnl" | "marginUsed"> | null,
+  overview: Pick<PortfolioOverviewResponse, "summary" | "chart"> | null,
 ): PortfolioMetricCard[] {
-  const availableMargin = Number(account.equity) - Number(account.marginUsed);
-  const marginUsagePercent = Number(account.equity) > 0 ? (Number(account.marginUsed) / Number(account.equity)) * 100 : 0;
+  const acc = account ?? ZERO_ACCOUNT;
+  const ov = overview ?? ZERO_OVERVIEW;
+  const availableMargin = Number(acc.equity) - Number(acc.marginUsed);
+  const marginUsagePercent = Number(acc.equity) > 0 ? (Number(acc.marginUsed) / Number(acc.equity)) * 100 : 0;
   const riskLabel = getRiskLabel(marginUsagePercent);
   const summary =
-    overview.summary ?? {
-      walletBalance: Number(account.balance),
-      equity: Number(account.equity),
-      floatingPnl: Number(account.floatingPnl),
-      availableMargin: Math.max(0, Number(account.equity) - Number(account.marginUsed)),
+    ov.summary ?? {
+      walletBalance: Number(acc.balance),
+      equity: Number(acc.equity),
+      floatingPnl: Number(acc.floatingPnl),
+      availableMargin: Math.max(0, Number(acc.equity) - Number(acc.marginUsed)),
       marginUsagePercent: Number(marginUsagePercent.toFixed(1)),
       openPositionsCount: 0,
       winningPositionsCount: 0,
@@ -193,28 +199,28 @@ export function buildPortfolioMetricCards(
       riskLabel,
       riskTone: getRiskTone(riskLabel),
       profitTarget: {
-        baseBalance: Number(account.balance),
-        targetAmount: Math.max(1, Number(account.balance) * 0.1),
-        currentProfit: Number(account.equity) - Number(account.balance),
-        remaining: Math.max(0, Math.max(1, Number(account.balance) * 0.1) - (Number(account.equity) - Number(account.balance))),
+        baseBalance: Number(acc.balance),
+        targetAmount: Math.max(1, Number(acc.balance) * 0.1),
+        currentProfit: Number(acc.equity) - Number(acc.balance),
+        remaining: Math.max(0, Math.max(1, Number(acc.balance) * 0.1) - (Number(acc.equity) - Number(acc.balance))),
         progressPercent: 0,
       },
     };
-  const currentProfit = Number(account.equity) - summary.profitTarget.baseBalance;
+  const currentProfit = Number(acc.equity) - summary.profitTarget.baseBalance;
   const profitTargetPercent =
     summary.profitTarget.targetAmount > 0 ? Math.min(100, (currentProfit / summary.profitTarget.targetAmount) * 100) : 0;
   const remaining = Math.max(0, summary.profitTarget.targetAmount - currentProfit);
   const thirtyDayHigh =
-    overview.chart.dataByTimeframe["D"]?.reduce((max, point) => Math.max(max, Number(point.value)), 0) ??
-    Number(account.equity);
+    ov.chart.dataByTimeframe["D"]?.reduce((max, point) => Math.max(max, Number(point.value)), 0) ??
+    Number(acc.equity);
 
   return [
     {
       id: "wallet",
       variant: "icon-stats",
       title: "Wallet",
-      value: `$${formatCurrency(Number(account.balance))}`,
-      subtitle: `Equity ${formatCurrency(Number(account.equity))}`,
+      value: `$${formatCurrency(Number(acc.balance))}`,
+      subtitle: `Equity ${formatCurrency(Number(acc.equity))}`,
       subtitleTone: "default",
       iconSrc: "/images/portfolio/wallet.svg",
       iconTone: "green",
@@ -229,16 +235,16 @@ export function buildPortfolioMetricCards(
       id: "pnl",
       variant: "icon-stats",
       title: "P&L",
-      value: formatSignedCurrency(Number(account.floatingPnl)),
+      value: formatSignedCurrency(Number(acc.floatingPnl)),
       subtitle: "Across open positions",
-      subtitleTone: Number(account.floatingPnl) >= 0 ? "positive" : "negative",
+      subtitleTone: Number(acc.floatingPnl) >= 0 ? "positive" : "negative",
       iconSrc: "/images/portfolio/graph.svg",
-      iconTone: Number(account.floatingPnl) >= 0 ? "green" : "red",
+      iconTone: Number(acc.floatingPnl) >= 0 ? "green" : "red",
       subStats: [
         { label: "Winning", value: `${summary.winningPositionsCount} positions`, tone: "positive" },
         { label: "Losing", value: `${summary.losingPositionsCount} positions`, tone: "negative" },
       ],
-      valueTone: Number(account.floatingPnl) >= 0 ? "positive" : "negative",
+      valueTone: Number(acc.floatingPnl) >= 0 ? "positive" : "negative",
     },
     {
       id: "available-margin",

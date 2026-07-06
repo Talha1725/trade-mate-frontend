@@ -65,22 +65,31 @@ function StrategyPerformanceRowCells({ row }: { row: StrategyPerformanceRow }) {
 
   return (
     <TableRow className="border-0 hover:bg-white/5 data-[state=selected]:bg-white/5">
-      <TableCell className="w-[36%] px-2 py-3 text-xs font-medium whitespace-normal text-white sm:px-2.5 sm:text-sm">
+      <TableCell className="w-[22%] px-2 py-3 text-xs font-medium whitespace-normal text-white sm:px-2.5 sm:text-sm">
         {row.symbol}
       </TableCell>
       <TableCell
         className={cn(
-          "w-[24%] px-2 py-3 text-center text-xs whitespace-normal sm:px-2.5 sm:text-sm",
-          pnlTone === "positive" ? "font-medium text-white" : "text-white",
+          "w-[18%] px-2 py-3 text-center text-xs whitespace-normal text-white sm:px-2.5 sm:text-sm",
+          pnlTone === "positive" ? "font-medium text-primary" : pnlTone === "negative" ? "font-medium text-destructive" : "text-white",
         )}
       >
-        {row.pnl}
+        {formatUsdPrice(row.price)}
       </TableCell>
-      <TableCell className="w-[22%] px-2 py-3 text-center text-xs whitespace-normal text-white sm:px-2.5 sm:text-sm">
-        {row.winRate}
+      <TableCell
+        className={cn(
+          "w-[20%] px-2 py-3 text-center text-xs whitespace-normal sm:px-2.5 sm:text-sm",
+          pnlTone === "positive" ? "font-medium text-primary" : pnlTone === "negative" ? "font-medium text-destructive" : "text-white",
+        )}
+      >
+        {row.pnl >= 0 ? "+" : "-"}
+        {formatUsdPrice(Math.abs(row.pnl))}
       </TableCell>
-      <TableCell className="w-[18%] px-2 py-3 text-right text-xs font-medium whitespace-normal text-white/60 sm:px-2.5 sm:text-sm">
-        {row.profitFactor}
+      <TableCell className="w-[20%] px-2 py-3 text-center text-xs whitespace-normal text-white sm:px-2.5 sm:text-sm">
+        {`${row.winRate.toFixed(2)}%`}
+      </TableCell>
+      <TableCell className="w-[20%] px-2 py-3 text-right text-xs font-medium whitespace-normal text-white/60 sm:px-2.5 sm:text-sm">
+        {row.profitFactor.toFixed(2)}
       </TableCell>
     </TableRow>
   );
@@ -154,16 +163,19 @@ function StrategyPerformanceTableContent({
     <Table className="w-full table-fixed">
       <TableHeader variant="gradient">
         <TableRow className="hover:bg-transparent">
-          <TableHead className="h-11 w-[36%] px-2 text-xs font-medium whitespace-normal text-white/60 sm:px-2.5 sm:text-sm">
+          <TableHead className="h-11 w-[22%] px-2 text-xs font-medium whitespace-normal text-white/60 sm:px-2.5 sm:text-sm">
             Symbol
           </TableHead>
-          <TableHead className="h-11 w-[24%] px-2 text-center text-xs font-medium whitespace-normal text-white/60 sm:px-2.5 sm:text-sm">
+          <TableHead className="h-11 w-[18%] px-2 text-center text-xs font-medium whitespace-normal text-white/60 sm:px-2.5 sm:text-sm">
+            Price
+          </TableHead>
+          <TableHead className="h-11 w-[20%] px-2 text-center text-xs font-medium whitespace-normal text-white/60 sm:px-2.5 sm:text-sm">
             P&L
           </TableHead>
-          <TableHead className="h-11 w-[22%] px-2 text-center text-xs font-medium whitespace-normal text-white/60 sm:px-2.5 sm:text-sm">
+          <TableHead className="h-11 w-[20%] px-2 text-center text-xs font-medium whitespace-normal text-white/60 sm:px-2.5 sm:text-sm">
             Win Rate
           </TableHead>
-          <TableHead className="h-11 w-[18%] px-2 text-right text-xs font-medium whitespace-normal text-white/60 sm:px-2.5 sm:text-sm">
+          <TableHead className="h-11 w-[20%] px-2 text-right text-xs font-medium whitespace-normal text-white/60 sm:px-2.5 sm:text-sm">
             PF
           </TableHead>
         </TableRow>

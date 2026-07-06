@@ -335,6 +335,7 @@ export default function OrdersPage() {
             priceMax={depthChart.priceMax}
             centerPrice={depthChart.centerPrice}
             axisTicks={depthChart.axisTicks}
+            isLoading={overview === null}
           />
         </div>
 

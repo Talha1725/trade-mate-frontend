@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useMemo, useState } from "react";
+import { Loader2Icon } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, ReferenceDot, XAxis, YAxis } from "recharts";
 
 import {
@@ -70,6 +71,7 @@ export function DepthChartCard({
   priceMax = DEPTH_CHART_PRICE_MAX,
   centerPrice = DEPTH_CHART_CENTER_PRICE,
   axisTicks = DEPTH_CHART_AXIS_TICKS,
+  isLoading = false,
   className,
 }: DepthChartCardProps) {
   const bidGradientId = useId().replace(/:/g, "");
@@ -126,7 +128,7 @@ export function DepthChartCard({
         </Select>
       </div>
 
-      <div className="">
+      <div className="relative">
         <ChartContainer
           config={CHART_CONFIG}
           className="aspect-auto h-[330px] w-full"
@@ -225,6 +227,13 @@ export function DepthChartCard({
             ) : null}
           </AreaChart>
         </ChartContainer>
+
+        {isLoading ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-2xl bg-black/30 backdrop-blur-[2px] text-white/60">
+            <Loader2Icon className="size-5 animate-spin text-primary" />
+            <span className="text-sm font-medium">Loading depth chart</span>
+          </div>
+        ) : null}
       </div>
     </section>
   );
