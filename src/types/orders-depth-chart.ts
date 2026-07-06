@@ -14,5 +14,6 @@ export type DepthChartCardProps = {
   priceMax?: number;
   centerPrice?: number;
   axisTicks?: number[];
+  isLoading?: boolean;
   className?: string;
 };
