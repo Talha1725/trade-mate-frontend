@@ -1,7 +1,6 @@
 import {
   HistoryIcon,
   LayoutDashboardIcon,
-  TerminalIcon,
   type LucideIcon,
 } from "lucide-react";
 
@@ -13,12 +12,6 @@ export const PRIMARY_NAV_ITEMS: NavItem[] = [
     label: "Dashboard",
     href: "/dashboard",
     description: "Account overview and equity curve",
-  },
-  {
-    id: "terminal",
-    label: "Terminal",
-    href: "/terminal",
-    description: "Chart, order ticket, and positions",
   },
   {
     id: "history",
@@ -57,7 +50,6 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
 
 export const PRIMARY_NAV_ICON_MAP: Record<string, LucideIcon> = {
   dashboard: LayoutDashboardIcon,
-  terminal: TerminalIcon,
   history: HistoryIcon,
 };
 

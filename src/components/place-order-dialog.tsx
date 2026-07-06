@@ -26,17 +26,23 @@ import { useSyncedTradingAssets } from "@/hooks/use-synced-trading-assets";
 import { AssetIcon } from "@/components/shared/asset-icon";
 import { SIDEBAR_ICONS } from "@/lib/mock-data/sidebar-icons";
 import { getAssetLeverageLabel } from "@/lib/utils/asset-leverage";
+import { usePriceStream } from "@/hooks/use-price-stream";
+import { useSelectedSymbol, useSetSelectedSymbol } from "@/hooks/use-selected-symbol";
+import { formatMarketPrice } from "@/lib/utils/market-price";
+import type { PriceSocketQuote } from "@/types/price";
 
 export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = React.useState(false);
   const [side, setSide] = React.useState<"Buy" | "Sell">("Buy");
-  const [symbol, setSymbol] = React.useState("BTCUSD");
-  const [loadSize, setLoadSize] = React.useState("0.75");
+  const symbol = useSelectedSymbol() ?? "BTCUSD";
+  const setSymbol = useSetSelectedSymbol();
+  const [loadSize, setLoadSize] = React.useState("0.01");
   const [stopLoss, setStopLoss] = React.useState("");
   const [takeProfit, setTakeProfit] = React.useState("");
   const [buyingPower, setBuyingPower] = React.useState<number | null>(null);
   const [isAccountContextLoading, setIsAccountContextLoading] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [quote, setQuote] = React.useState<PriceSocketQuote | null>(null);
   const token = useAuthStore((state) => state.session?.token ?? null);
   const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
   const { data: tradingAssets = [], isLoading: isAssetsLoading } = useSyncedTradingAssets();
@@ -48,6 +54,30 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
     () => getAssetLeverageLabel(selectedAsset?.category),
     [selectedAsset?.category],
   );
+
+  // Live bid/ask for the selected symbol — streams only while the modal is open.
+  React.useEffect(() => {
+    setQuote(null);
+  }, [symbol]);
+
+  usePriceStream({
+    enabled: open && !!symbol,
+    symbols: symbol ? [symbol] : [],
+    accountIds: [],
+    onQuotes: (incoming) => {
+      if (incoming[0]) {
+        setQuote(incoming[0]);
+      }
+    },
+  });
+
+  const bidPrice = quote?.bid ?? quote?.price ?? null;
+  const askPrice = quote?.ask ?? quote?.price ?? null;
+  const fillPrice = side === "Buy" ? askPrice : bidPrice;
+  const lotsNum = Number(loadSize);
+  const estimatedCost =
+    fillPrice != null && Number.isFinite(lotsNum) ? fillPrice * lotsNum : null;
+  const marginRequired = estimatedCost != null ? estimatedCost * 0.05 : null;
 
   const loadAccountContext = React.useCallback(
     async (options?: { silent?: boolean }) => {
@@ -207,6 +237,32 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
+        {/* Live Bid / Ask */}
+        <div className="mb-4 grid grid-cols-2 gap-3">
+          <div
+            className={cn(
+              "rounded-xl border p-3",
+              side === "Sell" ? "border-[#ff5b5b]/60 card-red" : "border-white/20 gradient-btn-tradebox",
+            )}
+          >
+            <div className="text-xs text-white/50 mb-1">Sell / Bid</div>
+            <div className="text-sm font-semibold text-[#ff7a7a]">
+              {bidPrice != null ? formatMarketPrice(bidPrice, symbol) : "—"}
+            </div>
+          </div>
+          <div
+            className={cn(
+              "rounded-xl border p-3",
+              side === "Buy" ? "border-[#0CE9A0]/60 card-green" : "border-white/20 gradient-btn-tradebox",
+            )}
+          >
+            <div className="text-xs text-white/50 mb-1">Buy / Ask</div>
+            <div className="text-sm font-semibold text-[#0CE9A0]">
+              {askPrice != null ? formatMarketPrice(askPrice, symbol) : "—"}
+            </div>
+          </div>
+        </div>
+
         {/* Buy/Sell Toggle */}
         <div className="flex rounded-xl border border-white/20 gradient-btn-trade p-1 mb-5">
           <button
@@ -321,11 +377,19 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
           <div className="space-y-2">
             <div className="flex justify-between text-xs">
               <span className="text-white/50">Estimated Cost</span>
-              <span className="font-semibold text-white">$51,825</span>
+              <span className="font-semibold text-white">
+                {estimatedCost != null
+                  ? `$${estimatedCost.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                  : "—"}
+              </span>
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-white/50">Margin Required</span>
-              <span className="font-semibold text-white">$10,365</span>
+              <span className="font-semibold text-white">
+                {marginRequired != null
+                  ? `$${marginRequired.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                  : "—"}
+              </span>
             </div>
             <div className="flex justify-between text-xs">
               <span className="text-white/50">Risk / Reward</span>
