@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 import { AppShell } from "@/components/app-shell";
 import { ActiveOrdersTable } from "@/components/orders/active-orders-table";
@@ -278,6 +279,16 @@ export default function OrdersPage() {
     anchor.click();
     URL.revokeObjectURL(url);
   }, [activeOrders]);
+
+  if (!overview) {
+    return (
+      <AppShell>
+        <div className="flex h-[80vh] w-full items-center justify-center">
+          <Loader2 className="size-8 animate-spin text-primary" />
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>
