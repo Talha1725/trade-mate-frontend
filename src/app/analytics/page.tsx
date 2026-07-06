@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 
 import { AppShell } from "@/components/app-shell";
 import { ChallengeProgressCard } from "@/components/analytics/challenge-progress-card";
@@ -218,10 +219,19 @@ export default function AnalyticsPage() {
     queryKey: ["analytics", resolvedAccountId, token],
     enabled: !!token && !!resolvedAccountId,
     queryFn: () => analyticsApi.getOverview(resolvedAccountId ?? "", token ?? undefined),
-    placeholderData: placeholderOverview,
   });
 
-  const analytics = analyticsQuery.data ?? placeholderOverview;
+  const analytics = analyticsQuery.data;
+
+  if (analyticsQuery.isLoading || !analytics) {
+    return (
+      <AppShell>
+        <div className="flex h-[80vh] w-full items-center justify-center">
+          <Loader2 className="size-8 animate-spin text-primary" />
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>

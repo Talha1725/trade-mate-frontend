@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { Loader2 } from "lucide-react";
 
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
@@ -117,7 +118,13 @@ export default function HistoryPage() {
           title="Trade History"
           description="Review past trades and account performance."
         />
-        <TradeHistoryTable trades={trades} isLoading={isLoading && !ledger} />
+        {isLoading && !ledger ? (
+          <div className="flex h-[80vh] w-full items-center justify-center">
+            <Loader2 className="size-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <TradeHistoryTable trades={trades} isLoading={isLoading && !ledger} />
+        )}
       </div>
     </AppShell>
   );

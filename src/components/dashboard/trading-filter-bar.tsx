@@ -178,40 +178,9 @@ export function TradingFilterBar({
         className,
       )}
     >
-      <Select
-        value={selectedAssetId}
-        onValueChange={(value) => {
-          if (value) {
-            onAssetChange?.(value);
-          }
-        }}
-      >
-        <SelectTrigger
-          className="h-auto cursor-pointer border-white/20 bg-linear-to-b from-[#6E6E6E1A] to-[#13131505] px-3 py-2 text-left text-sm! text-white shadow-none hover:border-primary hover:bg-white/15 focus-visible:border-primary focus-visible:ring-primary/20 data-placeholder:text-white/60 w-full md:w-auto md:min-w-[240px]!"
-        >
-          <SelectValue className="font-medium">
-            {selectedAsset ? <AssetOptionLabel asset={selectedAsset} /> : null}
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent className="border-white/20 border rounded-lg bg-[#0d0d0d] text-white max-h-[250px]">
-          {assets.map((asset) => (
-            <SelectItem
-              key={asset.id}
-              value={asset.id}
-              className="text-white focus:bg-white/10 focus:text-white py-1.5! [&_button]:pointer-events-auto"
-            >
-              <AssetDropdownOption
-                asset={asset}
-                isInWatchlist={wishlistAssetIds.includes(asset.id)}
-                isDisabled={isWishlistDisabled}
-                onWatchlistToggle={toggleWishlistAsset}
-              />
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
 
-      <div className="flex items-center gap-2">
+
+      <div className="flex items-center gap-2 min-w-[200px] shrink-0">
         <span className="text-base md:text-lg font-medium text-white">
           {formatPrice(quote.price)}
         </span>
@@ -248,14 +217,14 @@ export function TradingFilterBar({
       </div>
 
       <div className="flex flex-wrap items-center gap-2 ">
-        <IndicatorsDropdown />
+        {/* <IndicatorsDropdown /> */}
         <CompareAssetsDropdown
           primaryAssetId={selectedAssetId}
           compareAssetId={compareAssetId}
           onCompareChange={onCompareChange}
         />
 
-        {FILTER_BAR_ACTIONS.map((action) => {
+        {/* {FILTER_BAR_ACTIONS.map((action) => {
           const Icon = ACTION_ICON_MAP[action.id];
 
           return (
@@ -269,7 +238,7 @@ export function TradingFilterBar({
               {action.label}
             </button>
           );
-        })}
+        })} */}
       </div>
 
       <div className=" flex flex-wrap items-center gap-2.5 text-xs">
