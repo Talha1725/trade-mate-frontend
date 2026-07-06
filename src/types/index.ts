@@ -30,7 +30,6 @@ export type * from "@/types/wishlist";
 export type * from "@/types/price";
 export type * from "@/types/trading-view";
 export type * from "@/types/asset-icon";
-export type * from "@/types/currency-search";
 export type * from "@/types/market-selection-store";
 export type * from "@/types/trading-filter-bar";
 export type * from "@/types/market-watch-card";

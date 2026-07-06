@@ -132,6 +132,8 @@ export type OrderTicketProps = {
   accountId?: string;
   symbol?: string;
   price?: number;
+  bid?: number | null;
+  ask?: number | null;
   onSubmit?: (payload: OrderTicketSubmitPayload) => Promise<void> | void;
   isSubmitting?: boolean;
 };
