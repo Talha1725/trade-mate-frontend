@@ -1,9 +1,17 @@
 "use client";
 
-import { useCallback, useMemo, type ReactNode } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import Image from "next/image";
 import { ClockIcon } from "lucide-react";
 import { PiDownloadFill } from "react-icons/pi";
+import {
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  type ColumnDef,
+  type SortingState,
+  useReactTable,
+} from "@tanstack/react-table";
 
 import { TradingSymbolCell } from "@/components/shared/trading-symbol-cell";
 import { ResponsiveTableScroll } from "@/components/shared/responsive-table-scroll";
@@ -23,6 +31,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { SortableColumnHeader } from "@/components/sortable-column-header";
 import { Spinner } from "@/components/ui/spinner";
 import { mockTrades } from "@/lib/mock-data/trades";
 import { SIDEBAR_ICONS } from "@/lib/mock-data/sidebar-icons";
@@ -97,6 +106,62 @@ function TradeHistoryRowCells({ trade }: { trade: Trade }) {
   );
 }
 
+const tradeHistoryColumns: ColumnDef<Trade>[] = [
+  {
+    accessorKey: "time",
+    header: ({ column }) => <SortableColumnHeader column={column} label="Date/Time" />,
+    cell: ({ row }) => <span>{formatTradeDateTime(row.original)}</span>,
+  },
+  {
+    accessorKey: "symbol",
+    header: ({ column }) => <SortableColumnHeader column={column} label="Symbol" />,
+    cell: ({ row }) => <TradingSymbolCell symbol={row.original.symbol} />,
+  },
+  {
+    accessorKey: "type",
+    header: ({ column }) => <SortableColumnHeader column={column} label="Side" />,
+    cell: ({ row }) => <TradingSideBadge side={row.original.type} />,
+  },
+  {
+    accessorKey: "executionType",
+    header: ({ column }) => <SortableColumnHeader column={column} label="Type" />,
+    cell: ({ row }) => <span>{row.original.executionType ?? "Market"}</span>,
+  },
+  {
+    accessorKey: "vol",
+    header: ({ column }) => <SortableColumnHeader column={column} label="Qty" />,
+    cell: ({ row }) => <span>{formatTradingQty(row.original.vol)}</span>,
+  },
+  {
+    accessorKey: "openP",
+    header: ({ column }) => <SortableColumnHeader column={column} label="Entry" />,
+    cell: ({ row }) => <span>{formatTradingPrice(row.original.openP)}</span>,
+  },
+  {
+    accessorKey: "closeP",
+    header: ({ column }) => <SortableColumnHeader column={column} label="Exit" />,
+    cell: ({ row }) => <span>{formatTradingPrice(row.original.closeP)}</span>,
+  },
+  {
+    accessorKey: "profit",
+    header: ({ column }) => <SortableColumnHeader column={column} label="P&L" />,
+    cell: ({ row }) => <TradingPnlValue value={row.original.profit} />,
+  },
+  {
+    accessorKey: "status",
+    header: ({ column }) => <SortableColumnHeader column={column} label="Status" />,
+    cell: ({ row }) => {
+      const isClosed = !row.original.status || row.original.status === "Closed";
+      return (
+        <TradingOrderStatusBadge
+          label={isClosed ? "Closed" : "Open"}
+          tone={isClosed ? "primary" : "orange"}
+        />
+      );
+    },
+  },
+];
+
 export function TradeHistoryTable({
   trades = mockTrades,
   isLoading = false,
@@ -109,6 +174,16 @@ export function TradeHistoryTable({
 
     return { total, winRate };
   }, [trades]);
+
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const table = useReactTable({
+    data: trades,
+    columns: tradeHistoryColumns,
+    state: { sorting },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  });
 
   const handleExport = useCallback(() => {
     if (trades.length === 0) {
@@ -201,23 +276,19 @@ export function TradeHistoryTable({
           <Table className="min-w-[980px]">
             <TableHeader variant="gradient">
               <TableRow className="hover:bg-transparent">
-                <TableHead className="h-11 px-4 text-sm font-medium text-white/60">
-                  Date/Time
-                </TableHead>
-                <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Symbol</TableHead>
-                <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Side</TableHead>
-                <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Type</TableHead>
-                <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Qty</TableHead>
-                <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Entry</TableHead>
-                <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Exit</TableHead>
-                <TableHead className="h-11 px-4 text-sm font-medium text-white/60">P&amp;L</TableHead>
-                <TableHead className="h-11 px-4 text-sm font-medium text-white/60">Status</TableHead>
+                {table.getHeaderGroups()[0]?.headers.map((header) => (
+                  <TableHead key={header.id} className="h-11 px-4 text-sm font-medium text-white/60">
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
               </TableRow>
             </TableHeader>
 
             <TableBody>
-              {trades.map((trade) => (
-                <TradeHistoryRowCells key={trade.id} trade={trade} />
+              {table.getRowModel().rows.map((row) => (
+                <TradeHistoryRowCells key={row.original.id} trade={row.original} />
               ))}
             </TableBody>
           </Table>

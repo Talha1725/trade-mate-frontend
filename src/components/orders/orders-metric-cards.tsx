@@ -38,6 +38,7 @@ function OrdersMetricCardItem({ card }: { card: OrdersMetricCard }) {
   const isPositiveSubtitle =
     card.variant === "icon" && card.subtitleTone === "positive";
   const isPositiveValue = card.variant === "icon" && card.valueTone === "positive";
+  const hasSubtitle = Boolean(card.subtitle?.trim());
 
   return (
     <article className="flex min-h-[120px] items-start justify-between gap-4 rounded-[20px] border border-white/20 bg-white/5 p-4 md:p-6">
@@ -51,14 +52,16 @@ function OrdersMetricCardItem({ card }: { card: OrdersMetricCard }) {
         >
           {card.value}
         </p>
-        <p
-          className={cn(
-            "text-xs text-white/60 md:text-sm",
-            isPositiveSubtitle && "text-primary",
-          )}
-        >
-          {card.subtitle}
-        </p>
+        {hasSubtitle ? (
+          <p
+            className={cn(
+              "text-xs text-white/60 md:text-sm",
+              isPositiveSubtitle && "text-primary",
+            )}
+          >
+            {card.subtitle}
+          </p>
+        ) : null}
       </div>
 
       {card.variant === "chart" ? (

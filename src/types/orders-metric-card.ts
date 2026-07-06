@@ -7,7 +7,7 @@ export type OrdersMetricIconCard = {
   variant: "icon";
   title: string;
   value: string;
-  subtitle: string;
+  subtitle?: string;
   subtitleTone?: OrdersMetricSubtitleTone;
   valueTone?: OrdersMetricValueTone;
   iconSrc: string;
@@ -18,7 +18,7 @@ export type OrdersMetricChartCard = {
   variant: "chart";
   title: string;
   value: string;
-  subtitle: string;
+  subtitle?: string;
   chartValues: number[];
 };
 
