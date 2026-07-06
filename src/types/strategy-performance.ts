@@ -1,10 +1,11 @@
-export type StrategyPerformancePnlTone = "positive" | "muted";
+export type StrategyPerformancePnlTone = "positive" | "negative" | "muted";
 
 export type StrategyPerformanceRow = {
   id: string;
   symbol: string;
-  pnl: string;
+  price: number;
+  pnl: number;
   pnlTone?: StrategyPerformancePnlTone;
-  winRate: string;
-  profitFactor: string;
+  winRate: number;
+  profitFactor: number;
 };

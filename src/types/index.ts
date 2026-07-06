@@ -65,6 +65,7 @@ export type * from "@/types/account-activity-card";
 export type * from "@/types/account-information-card";
 export type * from "@/types/security-overview-card";
 export type * from "@/types/challenge-progress-card";
+export type * from "@/types/analytics";
 export type * from "@/types/performance-insights-card";
 export type * from "@/types/trading-calendar-card";
 export type * from "@/types/trading-table-card";
