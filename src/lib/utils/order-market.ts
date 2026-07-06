@@ -288,6 +288,7 @@ export function buildOrderMetrics(
   trades: PortfolioTrade[] = [],
 ): OrdersMetricCard[] {
   const closedTrades = trades.filter((trade) => trade.status === "CLOSED");
+  const totalOrders = positions.length + closedTrades.length;
   const todayKey = new Date().toISOString().slice(0, 10);
   const todayClosedTrades = closedTrades.filter((trade) => (trade.closedAt ?? trade.openedAt).slice(0, 10) === todayKey);
   const averageSlippage =
@@ -311,8 +312,8 @@ export function buildOrderMetrics(
       id: "pending-orders",
       variant: "icon",
       title: "Total Orders",
-      value: String(positions.filter((position) => position.status === "OPEN").length),
-      subtitle: "Awaiting fill",
+      value: String(totalOrders),
+      subtitle: "",
       iconSrc: "/images/orders/pending.svg",
     },
     {
