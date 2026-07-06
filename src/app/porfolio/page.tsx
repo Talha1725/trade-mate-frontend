@@ -150,13 +150,10 @@ export default function PortfolioPage() {
         });
     }, [snapshot?.positions]);
 
-    const metricCards = React.useMemo(() => {
-        if (!snapshot?.account || !overview) {
-            return [];
-        }
-
-        return buildPortfolioMetricCards(snapshot.account, overview);
-    }, [overview, snapshot?.account]);
+    const metricCards = React.useMemo(
+        () => buildPortfolioMetricCards(snapshot?.account ?? null, overview ?? null),
+        [overview, snapshot?.account],
+    );
 
     const allocationItems = React.useMemo(() => {
         if (!snapshot?.account) {
