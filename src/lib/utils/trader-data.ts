@@ -162,6 +162,7 @@ export function mapPortfolioTradeToRecentTrade(trade: PortfolioTrade): RecentTra
 
   return {
     id: trade.id,
+    symbol: trade.symbol,
     price: exitPrice,
     direction: exitPrice >= entryPrice ? "up" : "down",
     sizeBtc: toNumber(trade.lots),

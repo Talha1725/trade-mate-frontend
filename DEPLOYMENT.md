@@ -2,9 +2,8 @@
 
 ## EC2 path
 
-Expected checkout path on the server:
-
-`/home/ec2-user/projects/trade-mate-frontend`
+The ecosystem file resolves the checkout path dynamically from its own
+directory, so the repository can be deployed from any server path.
 
 ## Required env
 

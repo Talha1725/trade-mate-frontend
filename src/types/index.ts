@@ -50,6 +50,7 @@ export type * from "@/types/portfolio-top-movers";
 export type * from "@/types/portfolio-open-positions";
 export type * from "@/types/orders-metric-card";
 export type * from "@/types/orders-recent-trades";
+export type * from "@/types/orders";
 export type * from "@/types/strategy-performance";
 export type * from "@/types/orders-depth-chart";
 export type * from "@/types/order-book";
