@@ -7,7 +7,7 @@ import { ChevronDown, LogOutIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { AccountSwitcherDropdown } from "@/components/account-switcher-dropdown";
-import { CurrencySearch } from "@/components/currency-search";
+import { SymbolSelector } from "@/components/symbol-selector";
 import { HeaderNotificationsDropdown } from "@/components/header-notifications-dropdown";
 
 import { cn } from "@/lib/utils";
@@ -44,9 +44,9 @@ export function PageHeader({
         className,
       )}
     >
-      {/* Search Bar — full width on mobile, constrained on desktop */}
-      <div className="w-full min-w-0 lg:flex-1 lg:min-w-[160px] lg:max-w-[520px]">
-        <CurrencySearch className="w-full" />
+      {/* Global symbol selector — one shared selection across the whole app */}
+      <div className="w-full min-w-0 lg:w-auto">
+        <SymbolSelector className="w-full lg:w-[220px]" />
       </div>
 
       {/* Actions — 2-col grid on mobile/tablet, flex row on desktop */}
