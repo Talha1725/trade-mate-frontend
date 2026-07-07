@@ -66,7 +66,7 @@ function StrategyPerformanceRowCells({ row }: { row: StrategyPerformanceRow }) {
   return (
     <TableRow className="border-0 hover:bg-white/5 data-[state=selected]:bg-white/5">
       <TableCell className="w-[22%] px-2 py-3 text-xs font-medium whitespace-normal text-white sm:px-2.5 sm:text-sm">
-        {row.symbol}
+        <TradingSymbolCell symbol={row.symbol} />
       </TableCell>
       <TableCell
         className={cn(

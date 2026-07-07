@@ -35,6 +35,25 @@ function StatToneDot({ tone }: { tone: ChallengeProgressStatRow["tone"] }) {
   );
 }
 
+function formatCompactNumber(value: string | number) {
+  const isString = typeof value === "string";
+  const hasDollar = isString && value.startsWith("$");
+  
+  const rawStr = isString ? value.replace(/[^0-9.-]+/g, "") : value.toString();
+  const num = parseFloat(rawStr);
+  
+  if (isNaN(num)) return value;
+  
+  let formattedNum = num.toString();
+  if (num >= 1000000) {
+    formattedNum = (num / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
+  } else if (num >= 1000) {
+    formattedNum = (num / 1000).toFixed(1).replace(/\.0$/, "") + "K";
+  }
+  
+  return hasDollar ? `$${formattedNum}` : formattedNum;
+}
+
 function StatRow({ row }: { row: ChallengeProgressStatRow }) {
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-3 gap-y-1 text-sm">
@@ -42,8 +61,8 @@ function StatRow({ row }: { row: ChallengeProgressStatRow }) {
       <StatToneDot tone={row.tone} />
       <span className="font-medium text-white">{row.label}</span>
       </div>
-      <div className="text-right text-white/80">{row.valuePrimary}</div>
-      <div className="text-right text-white">{row.valueSecondary}</div>
+      <div className="text-right text-white/80">{formatCompactNumber(row.valuePrimary)}</div>
+      <div className="text-right text-white">{formatCompactNumber(row.valueSecondary)}</div>
     </div>
   );
 }

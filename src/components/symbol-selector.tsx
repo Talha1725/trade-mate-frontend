@@ -1,10 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Star } from "lucide-react";
 
 import { AssetIcon } from "@/components/shared/asset-icon";
-import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -17,6 +16,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useAssets } from "@/hooks/use-assets";
 import { useSelectedSymbol, useSetSelectedSymbol } from "@/hooks/use-selected-symbol";
 import { useSyncedTradingAssets } from "@/hooks/use-synced-trading-assets";
+import { useAccountWishlist } from "@/hooks/use-account-wishlist";
+import { useResolvedAccountNumber } from "@/hooks/use-resolved-account-number";
 import { cn } from "@/lib/utils";
 import type { AssetCategory } from "@/types/asset";
 import type { TradingFilterBarAsset } from "@/types/trading-filter-bar";
@@ -43,6 +44,10 @@ export function SymbolSelector({ className }: { className?: string }) {
   const setSelectedSymbol = useSetSelectedSymbol();
   const [open, setOpen] = React.useState(false);
 
+  // Wishlist integration
+  const resolvedAccountNumber = useResolvedAccountNumber(undefined);
+  const { wishlistAssetIds, toggleWishlistAsset } = useAccountWishlist(resolvedAccountNumber, assets);
+
   const selectedAsset = assets.find((asset) => asset.symbol === selectedSymbol);
 
   const groups = React.useMemo(() => {
@@ -66,33 +71,32 @@ export function SymbolSelector({ className }: { className?: string }) {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className={cn(
-            "h-9 cursor-pointer justify-between rounded-lg border border-white/20 bg-neutral-900 bg-linear-to-b from-[#6E6E6E1A] to-[#13131505] px-3 text-sm font-medium text-white shadow-none hover:border-primary hover:bg-white/15 hover:text-white",
-            className,
-          )}
-        >
-          <span className="flex min-w-0 items-center gap-2">
-            {selectedAsset ? (
-              <AssetIcon symbol={selectedAsset.symbol} label={selectedAsset.label} size={20} />
-            ) : null}
-            <span className="truncate">
-              {selectedAsset?.label ?? selectedSymbol ?? "Select symbol"}
-            </span>
+      <PopoverTrigger
+        role="combobox"
+        aria-expanded={open}
+        className={cn(
+          "flex h-9 cursor-pointer items-center justify-between gap-2 rounded-lg border border-white/20 bg-neutral-900 bg-linear-to-b from-[#6E6E6E1A] to-[#13131505] px-3 text-sm font-medium text-white shadow-none hover:border-primary hover:bg-white/15 hover:text-white",
+          className,
+        )}
+      >
+        <span className="flex min-w-0 items-center gap-2">
+          {selectedAsset ? (
+            <AssetIcon symbol={selectedAsset.symbol} label={selectedAsset.label} size={20} />
+          ) : null}
+          <span className="truncate">
+            {selectedAsset?.label ?? selectedSymbol ?? "Select symbol"}
           </span>
-          <ChevronsUpDown className="size-4 shrink-0 opacity-60" />
-        </Button>
+        </span>
+        <ChevronsUpDown className="size-4 shrink-0 opacity-60" />
       </PopoverTrigger>
       <PopoverContent
         align="start"
         className="w-[260px] rounded-lg border border-white/20 bg-[#0d0d0d] p-0 text-white"
       >
         <Command className="bg-transparent">
-          <CommandInput placeholder="Search symbol..." className="text-white" />
+          <div className="sticky top-0 z-10 bg-[#0d0d0d] border-b border-white/10 pb-2.5 pt-1 px-1">
+            <CommandInput placeholder="Search symbol..." className="text-white" />
+          </div>
           <CommandList className="max-h-[250px]">
             <CommandEmpty>No symbol found.</CommandEmpty>
             {groups.map(({ category, items }) => (
@@ -110,6 +114,31 @@ export function SymbolSelector({ className }: { className?: string }) {
                     <AssetIcon symbol={asset.symbol} label={asset.label} size={20} />
                     <span className="min-w-0 flex-1 truncate">{asset.label}</span>
                     <span className="shrink-0 text-xs text-white/50">{asset.symbol}</span>
+                    
+                    <button
+                      type="button"
+                      aria-label={wishlistAssetIds.includes(asset.id) ? `Remove ${asset.label} from watchlist` : `Add ${asset.label} to watchlist`}
+                      className={cn(
+                        "pointer-events-auto shrink-0 rounded-md p-1 transition-colors ml-2 cursor-pointer text-white/60 hover:bg-white/10 hover:text-primary",
+                      )}
+                      onPointerDown={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                      }}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        toggleWishlistAsset?.(asset.id);
+                      }}
+                    >
+                      <Star
+                        className={cn(
+                          "size-4",
+                          wishlistAssetIds.includes(asset.id) ? "fill-primary text-primary" : "text-white/60",
+                        )}
+                      />
+                    </button>
+
                     <Check
                       className={cn(
                         "ml-1 size-4 text-primary",

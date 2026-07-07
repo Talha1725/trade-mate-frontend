@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 
 import { AppShell } from "@/components/app-shell";
 import { ChallengeProgressCard } from "@/components/analytics/challenge-progress-card";
@@ -45,7 +46,6 @@ function buildEmptyAnalyticsOverview(accountId: string | null): AnalyticsOvervie
         { label: "Best Day", value: "$0.00" },
         { label: "Avg Day", value: "$0.00" },
       ],
-      chartValues: zeroSeries.map((point) => point.value),
     },
     {
       id: "win-rate",
@@ -219,10 +219,19 @@ export default function AnalyticsPage() {
     queryKey: ["analytics", resolvedAccountId, token],
     enabled: !!token && !!resolvedAccountId,
     queryFn: () => analyticsApi.getOverview(resolvedAccountId ?? "", token ?? undefined),
-    placeholderData: placeholderOverview,
   });
 
-  const analytics = analyticsQuery.data ?? placeholderOverview;
+  const analytics = analyticsQuery.data;
+
+  if (analyticsQuery.isLoading || !analytics) {
+    return (
+      <AppShell>
+        <div className="flex h-[80vh] w-full items-center justify-center">
+          <Loader2 className="size-8 animate-spin text-primary" />
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>
@@ -233,7 +242,7 @@ export default function AnalyticsPage() {
         />
 
         <PortfolioMetricCards
-          cards={analytics.statsCards}
+          cards={analytics.statsCards.map(card => card.id === "net-pnl" ? { ...card, chartValues: undefined } : card)}
           className="md:grid-cols-2 xl:grid-cols-3 min-[1700px]:grid-cols-6!"
         />
 

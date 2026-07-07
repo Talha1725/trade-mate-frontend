@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 import { AppShell } from "@/components/app-shell";
 import { ActiveOrdersTable } from "@/components/orders/active-orders-table";
@@ -279,6 +280,16 @@ export default function OrdersPage() {
     URL.revokeObjectURL(url);
   }, [activeOrders]);
 
+  if (!overview) {
+    return (
+      <AppShell>
+        <div className="flex h-[80vh] w-full items-center justify-center">
+          <Loader2 className="size-8 animate-spin text-primary" />
+        </div>
+      </AppShell>
+    );
+  }
+
   return (
     <AppShell>
       <div className="flex w-full min-w-0 flex-col gap-6">
@@ -303,7 +314,14 @@ export default function OrdersPage() {
               disabled={isAssetsLoading || tradingAssets.length === 0}
             >
               <SelectTrigger className="h-auto min-w-[220px] cursor-pointer border-white/20 bg-[#0C0C0C] px-3 py-2 text-left text-sm text-white shadow-none hover:bg-white/10 focus-visible:border-primary focus-visible:ring-primary/20">
-                <SelectValue placeholder="Select asset" />
+                {selectedAsset ? (
+                  <span className="flex items-center gap-2">
+                    <AssetIcon symbol={selectedAsset.symbol} label={selectedAsset.label} size={18} />
+                    <span>{selectedAsset.label}</span>
+                  </span>
+                ) : (
+                  <span className="text-white/50">Select asset</span>
+                )}
               </SelectTrigger>
               <SelectContent className="max-h-[280px] border-white/20 bg-[#0C0C0C] text-white">
                 {tradingAssets.map((asset) => (

@@ -183,7 +183,8 @@ export function Sidebar({ className }: { className?: string }) {
     </div>
 
       {/* Account Widget Card */}
-      {pathname === "/porfolio" ? (
+      {/* Diamond Widget (Hidden)
+      {pathname === "/porfolio" && (
         <div className="mt-4 shrink-0 p-4 rounded-[20px] card-green border border-white/20 flex flex-col w-full">
           <div className="absolute -bottom-12 -left-12 size-24 blur-[30px] rounded-full pointer-events-none" />
 
@@ -210,8 +211,9 @@ export function Sidebar({ className }: { className?: string }) {
             <Image src={SIDEBAR_ICONS.upload} alt="upload" width={14} height={14} className="size-3.5" />
           </Link>
         </div>
-      ) : (
-        <div className="mt-4 shrink-0 p-4 rounded-[20px] card-green from-neutral-900/80 to-[#0C0C0E]/90 border border-white/20 flex flex-col gap-3.5 relative overflow-hidden">
+      )}
+      */}
+      <div className="mt-4 shrink-0 p-4 rounded-[20px] card-green from-neutral-900/80 to-[#0C0C0E]/90 border border-white/20 flex flex-col gap-3.5 relative overflow-hidden">
           {/* Decorative Green Glow Spot */}
           <div className="absolute -bottom-12 -left-12 size-24 bg-[#22E0A2]/10 blur-[30px] rounded-full pointer-events-none" />
 
@@ -286,7 +288,6 @@ export function Sidebar({ className }: { className?: string }) {
             <ChevronRight className="size-3.5 text-primary" />
           </Link>
         </div>
-      )}
     </aside>
   );
 }
