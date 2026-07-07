@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { Loader2 } from "lucide-react";
 
 import { AppShell } from "@/components/app-shell";
 import { LiveTradingView } from "@/components/common/live-trading-view";
@@ -492,16 +491,6 @@ export default function DashboardPage() {
       });
     },
   });
-
-  if (!snapshot || !marketSnapshot) {
-    return (
-      <AppShell>
-        <div className="flex h-[80vh] w-full items-center justify-center">
-          <Loader2 className="size-8 animate-spin text-primary" />
-        </div>
-      </AppShell>
-    );
-  }
 
   return (
     <AppShell>
