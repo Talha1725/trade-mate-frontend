@@ -1,6 +1,15 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { IoArrowDownSharp, IoArrowUpSharp } from "react-icons/io5";
+import {
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  type ColumnDef,
+  type SortingState,
+  useReactTable,
+} from "@tanstack/react-table";
 
 import { ResponsiveTableScroll } from "@/components/shared/responsive-table-scroll";
 import { TradingSymbolCell } from "@/components/shared/trading-symbol-cell";
@@ -21,6 +30,7 @@ import type {
   RecentTradesTableProps,
 } from "@/types/orders-recent-trades";
 import type { StrategyPerformanceRow } from "@/types/strategy-performance";
+import { SortableColumnHeader } from "@/components/sortable-column-header";
 
 function formatUsdPrice(value: number, symbol?: string) {
   return `$${formatTradingPrice(value, symbol)}`;
@@ -66,37 +76,156 @@ function PriceCell({ trade }: { trade: RecentTradeRow }) {
   );
 }
 
-function StrategyPerformanceRowCells({ row }: { row: StrategyPerformanceRow }) {
-  const pnlTone = row.pnlTone ?? "muted";
+const strategyPerformanceColumns: ColumnDef<StrategyPerformanceRow>[] = [
+  {
+    accessorKey: "symbol",
+    header: ({ column }) => (
+      <SortableColumnHeader column={column} label="Symbol" className="justify-start" />
+    ),
+    cell: ({ row }) => <TradingSymbolCell symbol={row.original.symbol} />,
+  },
+  {
+    accessorKey: "price",
+    header: ({ column }) => (
+      <SortableColumnHeader column={column} label="Price" className="justify-center" />
+    ),
+    cell: ({ row }) => {
+      const pnlTone = row.original.pnlTone ?? "muted";
+      return (
+        <span
+          className={cn(
+            "text-sm whitespace-normal",
+            pnlTone === "positive"
+              ? "font-medium text-primary"
+              : pnlTone === "negative"
+                ? "font-medium text-destructive"
+                : "text-white",
+          )}
+        >
+          {formatUsdPrice(row.original.price, row.original.symbol)}
+        </span>
+      );
+    },
+  },
+  {
+    accessorKey: "pnl",
+    header: ({ column }) => (
+      <SortableColumnHeader column={column} label="P&L" className="justify-center" />
+    ),
+    cell: ({ row }) => {
+      const pnlTone = row.original.pnlTone ?? "muted";
+      return (
+        <span
+          className={cn(
+            "text-sm whitespace-normal",
+            pnlTone === "positive"
+              ? "font-medium text-primary"
+              : pnlTone === "negative"
+                ? "font-medium text-destructive"
+                : "text-white",
+          )}
+        >
+          {formatSignedCurrency(row.original.pnl)}
+        </span>
+      );
+    },
+  },
+  {
+    accessorKey: "winRate",
+    header: ({ column }) => (
+      <SortableColumnHeader column={column} label="Win Rate" className="justify-center" />
+    ),
+    cell: ({ row }) => (
+      <span className="text-sm whitespace-normal text-white">
+        {`${row.original.winRate.toFixed(2)}%`}
+      </span>
+    ),
+  },
+  {
+    accessorKey: "profitFactor",
+    header: ({ column }) => (
+      <SortableColumnHeader column={column} label="PF" className="justify-end" />
+    ),
+    cell: ({ row }) => (
+      <span className="text-right text-sm font-medium whitespace-normal text-white/60">
+        {row.original.profitFactor.toFixed(2)}
+      </span>
+    ),
+  },
+];
+
+function StrategyPerformanceTableContent({
+  strategies,
+}: {
+  strategies: StrategyPerformanceRow[];
+}) {
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const table = useReactTable({
+    data: strategies,
+    columns: strategyPerformanceColumns,
+    state: { sorting },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  });
 
   return (
-    <TableRow className="border-0 hover:bg-white/5 data-[state=selected]:bg-white/5">
-      <TableCell className="w-[22%] px-2 py-3 text-xs font-medium whitespace-normal text-white sm:px-2.5 sm:text-sm">
-        <TradingSymbolCell symbol={row.symbol} />
-      </TableCell>
-      <TableCell
-        className={cn(
-          "w-[18%] px-2 py-3 text-center text-xs whitespace-normal text-white sm:px-2.5 sm:text-sm",
-          pnlTone === "positive" ? "font-medium text-primary" : pnlTone === "negative" ? "font-medium text-destructive" : "text-white",
+    <Table className="w-full min-w-[760px] table-fixed">
+      <TableHeader variant="gradient">
+        <TableRow className="hover:bg-transparent">
+          {table.getHeaderGroups()[0].headers.map((header) => (
+            <TableHead
+              key={header.id}
+              className={cn(
+                "h-11 px-2 text-xs font-medium whitespace-normal text-white/60 sm:px-2.5 sm:text-sm",
+                header.column.id === "symbol"
+                  ? "text-left"
+                  : header.column.id === "pf"
+                    ? "text-right"
+                    : "text-center",
+              )}
+            >
+              {header.isPlaceholder
+                ? null
+                : flexRender(header.column.columnDef.header, header.getContext())}
+            </TableHead>
+          ))}
+        </TableRow>
+      </TableHeader>
+
+      <TableBody>
+        {table.getRowModel().rows.length > 0 ? (
+          table.getRowModel().rows.map((row) => (
+            <TableRow
+              key={row.id}
+              className="border-0 hover:bg-white/5 data-[state=selected]:bg-white/5"
+            >
+              {row.getVisibleCells().map((cell) => (
+                <TableCell
+                  key={cell.id}
+                  className={cn(
+                    "px-2 py-3 text-xs whitespace-normal sm:px-2.5 sm:text-sm",
+                    cell.column.id === "symbol"
+                      ? "text-left"
+                      : cell.column.id === "pf"
+                        ? "text-right"
+                        : "text-center",
+                  )}
+                >
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))
+        ) : (
+          <TableRow className="border-0 hover:bg-transparent">
+            <TableCell colSpan={5} className="px-4 py-10 text-center text-sm text-white/50">
+              Strategy performance is not available.
+            </TableCell>
+          </TableRow>
         )}
-      >
-        {formatUsdPrice(row.price, row.symbol)}
-      </TableCell>
-      <TableCell
-        className={cn(
-          "w-[20%] px-2 py-3 text-center text-xs whitespace-normal sm:px-2.5 sm:text-sm",
-          pnlTone === "positive" ? "font-medium text-primary" : pnlTone === "negative" ? "font-medium text-destructive" : "text-white",
-        )}
-      >
-        {formatSignedCurrency(row.pnl)}
-      </TableCell>
-      <TableCell className="w-[20%] px-2 py-3 text-center text-xs whitespace-normal text-white sm:px-2.5 sm:text-sm">
-        {`${row.winRate.toFixed(2)}%`}
-      </TableCell>
-      <TableCell className="w-[20%] px-2 py-3 text-right text-xs font-medium whitespace-normal text-white/60 sm:px-2.5 sm:text-sm">
-        {row.profitFactor.toFixed(2)}
-      </TableCell>
-    </TableRow>
+      </TableBody>
+    </Table>
   );
 }
 
@@ -159,42 +288,6 @@ function RecentTradesTableContent({
   );
 }
 
-function StrategyPerformanceTableContent({
-  strategies,
-}: {
-  strategies: StrategyPerformanceRow[];
-}) {
-  return (
-    <Table className="w-full table-fixed">
-      <TableHeader variant="gradient">
-        <TableRow className="hover:bg-transparent">
-          <TableHead className="h-11 w-[22%] px-2 text-xs font-medium whitespace-normal text-white/60 sm:px-2.5 sm:text-sm">
-            Symbol
-          </TableHead>
-          <TableHead className="h-11 w-[18%] px-2 text-center text-xs font-medium whitespace-normal text-white/60 sm:px-2.5 sm:text-sm">
-            Price
-          </TableHead>
-          <TableHead className="h-11 w-[20%] px-2 text-center text-xs font-medium whitespace-normal text-white/60 sm:px-2.5 sm:text-sm">
-            P&L
-          </TableHead>
-          <TableHead className="h-11 w-[20%] px-2 text-center text-xs font-medium whitespace-normal text-white/60 sm:px-2.5 sm:text-sm">
-            Win Rate
-          </TableHead>
-          <TableHead className="h-11 w-[20%] px-2 text-right text-xs font-medium whitespace-normal text-white/60 sm:px-2.5 sm:text-sm">
-            PF
-          </TableHead>
-        </TableRow>
-      </TableHeader>
-
-      <TableBody>
-        {strategies.map((row) => (
-          <StrategyPerformanceRowCells key={row.id} row={row} />
-        ))}
-      </TableBody>
-    </Table>
-  );
-}
-
 export function RecentTradesTable({
   variant = "recent-trades",
   title,
@@ -209,14 +302,14 @@ export function RecentTradesTable({
   const resolvedTitle =
     title ?? (isStrategyPerformance ? "Strategy Performance" : "Recent Trades");
   const shouldShowHeaderBadge = showHeaderBadge ?? !isStrategyPerformance;
+  const sectionClassName = cn(
+    "min-w-0 overflow-hidden rounded-[20px] border border-white/20 bg-white/5 p-4 md:p-6",
+    isStrategyPerformance && "flex min-h-0 max-h-[500px] flex-col xl:max-h-[366px]",
+    className,
+  );
 
   return (
-    <section
-      className={cn(
-        "min-w-0 overflow-hidden rounded-[20px] border border-white/20 bg-white/5 p-4 md:p-6",
-        className,
-      )}
-    >
+    <section className={sectionClassName}>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <h3 className="text-base font-semibold text-white md:text-lg">
           {resolvedTitle}
@@ -226,6 +319,7 @@ export function RecentTradesTable({
 
       <ResponsiveTableScroll
         className={cn(
+          isStrategyPerformance && "flex-1 min-h-0 overflow-auto",
           isStrategyPerformance &&
             "**:data-[slot=table-container]:overflow-x-hidden",
         )}
