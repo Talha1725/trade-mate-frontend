@@ -269,7 +269,7 @@ export default function AnalyticsPage() {
 
         <div className="grid grid-cols-1 gap-5 md:gap-6 xl:grid-cols-3">
           <TradingCalendarCard {...analytics.calendar} />
-          <div className="xl:col-span-2 2xl:col-span-2 min-[1800px]:col-span-1!">
+          <div className="xl:col-span-2 2xl:col-span-2 min-[1800px]:col-span-2!">
             <RecentTradesTable
               variant="strategy-performance"
               strategies={analytics.strategyPerformance.rows}

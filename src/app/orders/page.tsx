@@ -295,7 +295,7 @@ export default function OrdersPage() {
       <div className="flex w-full min-w-0 flex-col gap-6">
         <PageHeader title="Orders" description="View and manage your open orders." />
 
-        <section className="rounded-[20px] border border-white/20 bg-white/5 p-4 md:p-5">
+        {/* <section className="rounded-[20px] border border-white/20 bg-white/5 p-4 md:p-5">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="space-y-1">
               <p className="text-sm text-white/60">Selected Asset</p>
@@ -339,7 +339,7 @@ export default function OrdersPage() {
               </SelectContent>
             </Select>
           </div>
-        </section>
+        </section> */}
 
         <OrdersMetricCards cards={metricCards} />
 
@@ -353,11 +353,18 @@ export default function OrdersPage() {
             priceMax={depthChart.priceMax}
             centerPrice={depthChart.centerPrice}
             axisTicks={depthChart.axisTicks}
+            symbol={selectedSymbol}
+            assetClass={selectedAsset?.category ?? null}
             isLoading={overview === null}
           />
         </div>
 
-        <OrderBookCard snapshot={orderBook} sizeLabel={sizeLabel} />
+        <OrderBookCard
+          snapshot={orderBook}
+          sizeLabel={sizeLabel}
+          symbol={selectedSymbol}
+          assetClass={selectedAsset?.category ?? null}
+        />
 
         <ActiveOrdersTable
           orders={activeOrders}

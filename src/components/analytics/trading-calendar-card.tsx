@@ -9,8 +9,11 @@ import { cn } from "@/lib/utils";
 import type {
   TradingCalendarCardProps,
   TradingCalendarDay,
-  TradingCalendarTileTone,
 } from "@/types/trading-calendar-card";
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
 
 function SessionsBadge({ label }: { label: string }) {
   return (
@@ -21,8 +24,18 @@ function SessionsBadge({ label }: { label: string }) {
 }
 
 function getTileBackground(day: TradingCalendarDay) {
-  const tone: TradingCalendarTileTone = `${day.tone}-${day.intensity}`;
-  return TRADING_CALENDAR_TILE_BACKGROUNDS[tone];
+  if (day.tone === "neutral") {
+    return TRADING_CALENDAR_TILE_BACKGROUNDS["neutral-dark"];
+  }
+
+  const fallbackStrength = day.intensity === "light" ? 0.78 : 0.42;
+  const strength = clamp(day.strength ?? fallbackStrength, 0, 1);
+  const fillAlpha = 0.18 + strength * 0.62;
+  const glowAlpha = 0.08 + strength * 0.22;
+  const base = day.tone === "win" ? [12, 233, 160] : [239, 68, 68];
+  const accent = day.tone === "win" ? [16, 137, 97] : [152, 0, 0];
+
+  return `linear-gradient(180deg, rgba(${base.join(", ")}, ${fillAlpha}) 0%, rgba(${accent.join(", ")}, ${fillAlpha}) 100%), radial-gradient(52.13% 193.91% at 47.87% 100%, rgba(${accent.join(", ")}, ${glowAlpha}) 0%, rgba(15, 23, 42, 0.06) 100%)`;
 }
 
 function CalendarDayTile({ day }: { day: TradingCalendarDay }) {

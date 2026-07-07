@@ -11,8 +11,9 @@ export function usePositions(accountId?: string | null) {
     queryKey: ["positions", accountId],
     queryFn: () => terminalApi.getOpenPositions(token ?? undefined, accountId ?? undefined),
     enabled: !!token && !!accountId,
-    refetchInterval: 5000,
-    refetchIntervalInBackground: true,
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }
 
@@ -44,7 +45,10 @@ export function useAccountSummary(accountId?: string | null) {
 
   return useQuery({
     queryKey: ["account", "summary", accountId],
-    enabled: !!token,
+    enabled: !!token && !!accountId,
     queryFn: () => accountSummaryApi.getAccountSummary(token ?? undefined, accountId ?? undefined),
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }

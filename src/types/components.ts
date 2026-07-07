@@ -10,6 +10,7 @@ import type {
   SymbolBreakdownDatum,
 } from "@/types/dashboard";
 import type { Position, Trade, TradeOrderDirection } from "@/types/trade";
+import type { TradeHistoryPagination } from "@/types/trade-history";
 
 export type AppShellProps = {
   userLabel?: string;
@@ -147,6 +148,7 @@ export type OpenPositionsTableProps = {
 export type TradeHistoryTableProps = {
   trades?: Trade[];
   isLoading?: boolean;
+  pagination?: TradeHistoryPagination;
 };
 
 export interface SidebarItemProps {

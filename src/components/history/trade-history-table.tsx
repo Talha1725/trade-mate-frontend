@@ -32,6 +32,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { SortableColumnHeader } from "@/components/sortable-column-header";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { mockTrades } from "@/lib/mock-data/trades";
 import { SIDEBAR_ICONS } from "@/lib/mock-data/sidebar-icons";
@@ -88,10 +90,10 @@ function TradeHistoryRowCells({ trade }: { trade: Trade }) {
         {formatTradingQty(trade.vol)}
       </TableCell>
       <TableCell className="px-4 py-2 text-sm font-medium text-white/60">
-        {formatTradingPrice(trade.openP)}
+        {formatTradingPrice(trade.openP, trade.symbol)}
       </TableCell>
       <TableCell className="px-4 py-2 text-sm font-medium text-white/60">
-        {formatTradingPrice(trade.closeP)}
+        {formatTradingPrice(trade.closeP, trade.symbol)}
       </TableCell>
       <TableCell className="px-4 py-2">
         <TradingPnlValue value={trade.profit} />
@@ -135,12 +137,12 @@ const tradeHistoryColumns: ColumnDef<Trade>[] = [
   {
     accessorKey: "openP",
     header: ({ column }) => <SortableColumnHeader column={column} label="Entry" />,
-    cell: ({ row }) => <span>{formatTradingPrice(row.original.openP)}</span>,
+    cell: ({ row }) => <span>{formatTradingPrice(row.original.openP, row.original.symbol)}</span>,
   },
   {
     accessorKey: "closeP",
     header: ({ column }) => <SortableColumnHeader column={column} label="Exit" />,
-    cell: ({ row }) => <span>{formatTradingPrice(row.original.closeP)}</span>,
+    cell: ({ row }) => <span>{formatTradingPrice(row.original.closeP, row.original.symbol)}</span>,
   },
   {
     accessorKey: "profit",
@@ -149,7 +151,7 @@ const tradeHistoryColumns: ColumnDef<Trade>[] = [
   },
   {
     accessorKey: "status",
-    header: ({ column }) => <SortableColumnHeader column={column} label="Status" />,
+    header: () => <span>Status</span>,
     cell: ({ row }) => {
       const isClosed = !row.original.status || row.original.status === "Closed";
       return (
@@ -165,15 +167,16 @@ const tradeHistoryColumns: ColumnDef<Trade>[] = [
 export function TradeHistoryTable({
   trades = mockTrades,
   isLoading = false,
+  pagination,
   className,
 }: TradeHistoryTableProps) {
   const stats = useMemo(() => {
-    const total = trades.length;
+    const total = pagination?.totalItems ?? trades.length;
     const winning = trades.filter((trade) => trade.profit > 0).length;
     const winRate = total > 0 ? Math.round((winning / total) * 100) : 0;
 
     return { total, winRate };
-  }, [trades]);
+  }, [pagination?.totalItems, trades]);
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const table = useReactTable({
@@ -272,27 +275,85 @@ export function TradeHistoryTable({
           <p className="text-sm text-white/40">No trades found.</p>
         </div>
       ) : (
-        <ResponsiveTableScroll>
-          <Table className="min-w-[980px]">
-            <TableHeader variant="gradient">
-              <TableRow className="hover:bg-transparent">
-                {table.getHeaderGroups()[0]?.headers.map((header) => (
-                  <TableHead key={header.id} className="h-11 px-4 text-sm font-medium text-white/60">
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
+        <div className="space-y-4">
+          <ResponsiveTableScroll>
+            <Table className="min-w-[980px]">
+              <TableHeader variant="gradient">
+                <TableRow className="hover:bg-transparent">
+                  {table.getHeaderGroups()[0]?.headers.map((header) => (
+                    <TableHead key={header.id} className="h-11 px-4 text-sm font-medium text-white/60">
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
 
-            <TableBody>
-              {table.getRowModel().rows.map((row) => (
-                <TradeHistoryRowCells key={row.original.id} trade={row.original} />
-              ))}
-            </TableBody>
-          </Table>
-        </ResponsiveTableScroll>
+              <TableBody>
+                {table.getRowModel().rows.map((row) => (
+                  <TradeHistoryRowCells key={row.original.id} trade={row.original} />
+                ))}
+              </TableBody>
+            </Table>
+          </ResponsiveTableScroll>
+
+          {pagination ? (
+            <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-wrap items-center gap-3 text-sm text-white/50">
+                <p>
+                  Showing {pagination.totalItems === 0 ? 0 : (pagination.page - 1) * pagination.pageSize + 1}
+                  -{pagination.totalItems === 0 ? 0 : Math.min(pagination.totalItems, pagination.page * pagination.pageSize)} of {pagination.totalItems}
+                </p>
+
+                {pagination.onPageSizeChange ? (
+                  <div className="flex items-center gap-2">
+                    <span>Rows per page</span>
+                      <Select
+                        value={String(pagination.pageSize)}
+                        onValueChange={(value) => pagination.onPageSizeChange?.(Number(value))}
+                      >
+                      <SelectTrigger className="h-8 w-[88px] border-white/12 bg-[#111114] text-white shadow-none hover:bg-white/8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="border-white/12 bg-[#111114] text-white shadow-xl shadow-black/40">
+                        {(pagination.pageSizeOptions ?? [10, 25, 50]).map((option) => (
+                          <SelectItem key={option} value={String(option)} className="focus:bg-white/8">
+                            {option}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-white/12 bg-white/5 text-white/70 shadow-none hover:bg-white/10 hover:text-white disabled:bg-white/5 disabled:text-white/30"
+                  onClick={() => pagination.onPageChange(pagination.page - 1)}
+                  disabled={pagination.page <= 1}
+                >
+                  Previous
+                </Button>
+                <p className="text-sm text-white/50">
+                  Page {pagination.page} of {pagination.pageCount || 1}
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-white/12 bg-white/5 text-white/70 shadow-none hover:bg-white/10 hover:text-white disabled:bg-white/5 disabled:text-white/30"
+                  onClick={() => pagination.onPageChange(pagination.page + 1)}
+                  disabled={pagination.page >= (pagination.pageCount || 1)}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          ) : null}
+        </div>
       )}
     </section>
   );

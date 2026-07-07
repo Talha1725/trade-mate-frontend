@@ -18,6 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { formatTradingPrice } from "@/components/shared/trading-table-cells";
 import type {
   OrderBookCardProps,
   OrderBookRow,
@@ -31,11 +32,8 @@ const BID_DEPTH_GRADIENT =
 const BID_DEPTH_GRADIENT_REVERSE =
   "linear-gradient(90deg, rgba(34, 224, 162, 0) 15%, rgba(34, 224, 162, 0.5) 50.12%, rgba(34, 224, 162, 0.4) 100%)";
 
-function formatUsdPrice(value: number) {
-  return `$${value.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
+function formatUsdPrice(value: number, symbol?: string, assetClass?: string | null) {
+  return `$${formatTradingPrice(value, symbol, assetClass)}`;
 }
 
 function formatBtcAmount(value: number) {
@@ -157,6 +155,8 @@ export function OrderBookCard({
   title = "Order Book",
   snapshot,
   sizeLabel = "BTC",
+  assetClass = null,
+  symbol = null,
   className,
 }: OrderBookCardProps) {
   const [sortBy, setSortBy] = useState<OrderBookSortOption>("default");
@@ -237,7 +237,7 @@ export function OrderBookCard({
                   className="border-0 hover:bg-white/5 data-[state=selected]:bg-white/5"
                 >
                   <TableCell className="px-3 py-2.5 text-sm font-medium text-[#EF4444]">
-                    {formatUsdPrice(row.price)}
+                    {formatUsdPrice(row.price, symbol ?? undefined, assetClass)}
                   </TableCell>
                   <AskDepthCell size={row.size} depthPercent={row.barPercent} />
                   <TableCell className="px-3 py-2.5 text-right text-sm text-white/60">
@@ -261,7 +261,7 @@ export function OrderBookCard({
                   className="border-0 hover:bg-white/5 data-[state=selected]:bg-white/5"
                 >
                   <TableCell className="px-3 py-2.5 w-[140px]! text-sm font-medium text-primary">
-                    {formatUsdPrice(row.price)}
+                    {formatUsdPrice(row.price, symbol ?? undefined, assetClass)}
                   </TableCell>
                   <BidDepthCell
                     size={row.size}
@@ -280,13 +280,14 @@ export function OrderBookCard({
 
       <div className="mt-5 flex flex-col items-center gap-1 text-center">
         <div className="inline-flex items-center gap-2 text-2xl font-semibold text-primary md:text-[32px]">
-          <span>{formatUsdPrice(snapshot.midPrice)}</span>
+          <span>{formatUsdPrice(snapshot.midPrice, symbol ?? undefined, assetClass)}</span>
           {snapshot.midDirection === "up" ? (
             <IoArrowUpSharp className="size-6" />
           ) : null}
         </div>
         <p className="text-sm text-white/60">
-          Spread {snapshot.spread.toFixed(2)} ({formatSpreadPercent(snapshot.spreadPercent)})
+          Spread {formatTradingPrice(snapshot.spread, symbol ?? undefined, assetClass)} (
+          {formatSpreadPercent(snapshot.spreadPercent)})
         </p>
       </div>
     </section>

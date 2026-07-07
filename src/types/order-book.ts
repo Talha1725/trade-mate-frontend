@@ -27,5 +27,7 @@ export type OrderBookCardProps = {
   title?: string;
   snapshot?: OrderBookSnapshot | null;
   sizeLabel?: string;
+  assetClass?: string | null;
+  symbol?: string | null;
   className?: string;
 };
