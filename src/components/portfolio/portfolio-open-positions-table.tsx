@@ -9,6 +9,7 @@ import { IoCloseCircle } from "react-icons/io5";
 import { TradingTableCard } from "@/components/shared/trading-table-card";
 import { SortableColumnHeader } from "@/components/sortable-column-header";
 import { AssetIcon } from "@/components/shared/asset-icon";
+import { formatTradingPrice } from "@/components/shared/trading-table-cells";
 import { cn } from "@/lib/utils";
 import type {
   PortfolioOpenPositionRisk,
@@ -18,13 +19,6 @@ import type {
 import type { MarketWatchIcon } from "@/types/market-watch-card";
 import type { OpenPositionSide } from "@/types/open-positions-strip";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-
-function formatPrice(value: number) {
-  return value.toLocaleString("en-US", {
-    minimumFractionDigits: value < 1 ? 4 : 2,
-    maximumFractionDigits: value < 1 ? 4 : 2,
-  });
-}
 
 function formatSize(value: number, unit: string) {
   const decimals = unit === "XRP" ? 4 : 4;
@@ -188,15 +182,19 @@ export function PortfolioOpenPositionsTable({
       {
         accessorKey: "avgEntry",
         header: ({ column }) => <SortableColumnHeader column={column} label="Avg Entry" />,
-        cell: ({ row }) => (
-          <span className="font-medium text-white/60">{formatPrice(row.original.avgEntry)}</span>
+          cell: ({ row }) => (
+          <span className="font-medium text-white/60">
+            {formatTradingPrice(row.original.avgEntry, row.original.symbol)}
+          </span>
         ),
       },
       {
         accessorKey: "markPrice",
         header: ({ column }) => <SortableColumnHeader column={column} label="Mark Price" />,
-        cell: ({ row }) => (
-          <span className="font-medium text-white/60">{formatPrice(row.original.markPrice)}</span>
+          cell: ({ row }) => (
+          <span className="font-medium text-white/60">
+            {formatTradingPrice(row.original.markPrice, row.original.symbol)}
+          </span>
         ),
       },
       {

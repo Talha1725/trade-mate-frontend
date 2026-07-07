@@ -176,8 +176,38 @@ export const mockDepthChartData: Record<DepthChartLevel, DepthChartPoint[]> = {
   "500": scaleDepthPoints(BASE_DEPTH_POINTS, 1.06),
 };
 
-export function formatDepthPriceTick(price: number): string {
+const FOREX_PREFIXES = ["AUD", "CAD", "CHF", "EUR", "GBP", "JPY", "NZD", "USD"];
+
+function isForexSymbol(symbol?: string | null) {
+  if (!symbol) {
+    return false;
+  }
+
+  const normalized = symbol.trim().toUpperCase();
+
+  if (normalized.length !== 6) {
+    return false;
+  }
+
+  const base = normalized.slice(0, 3);
+  const quote = normalized.slice(3);
+
+  return FOREX_PREFIXES.includes(base) && FOREX_PREFIXES.includes(quote);
+}
+
+function getDepthPriceDecimals(price: number, symbol?: string | null, assetClass?: string | null) {
+  if (assetClass === "FOREX" || isForexSymbol(symbol)) {
+    return 5;
+  }
+
+  return price < 1 ? 4 : 2;
+}
+
+export function formatDepthPriceTick(price: number, symbol?: string | null, assetClass?: string | null): string {
+  const fractionDigits = getDepthPriceDecimals(price, symbol, assetClass);
+
   return new Intl.NumberFormat("en-US", {
-    maximumFractionDigits: price < 1 ? 4 : 2,
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
   }).format(price);
 }

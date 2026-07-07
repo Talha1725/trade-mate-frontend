@@ -88,10 +88,10 @@ function TradeHistoryRowCells({ trade }: { trade: Trade }) {
         {formatTradingQty(trade.vol)}
       </TableCell>
       <TableCell className="px-4 py-2 text-sm font-medium text-white/60">
-        {formatTradingPrice(trade.openP)}
+        {formatTradingPrice(trade.openP, trade.symbol)}
       </TableCell>
       <TableCell className="px-4 py-2 text-sm font-medium text-white/60">
-        {formatTradingPrice(trade.closeP)}
+        {formatTradingPrice(trade.closeP, trade.symbol)}
       </TableCell>
       <TableCell className="px-4 py-2">
         <TradingPnlValue value={trade.profit} />
@@ -135,12 +135,12 @@ const tradeHistoryColumns: ColumnDef<Trade>[] = [
   {
     accessorKey: "openP",
     header: ({ column }) => <SortableColumnHeader column={column} label="Entry" />,
-    cell: ({ row }) => <span>{formatTradingPrice(row.original.openP)}</span>,
+    cell: ({ row }) => <span>{formatTradingPrice(row.original.openP, row.original.symbol)}</span>,
   },
   {
     accessorKey: "closeP",
     header: ({ column }) => <SortableColumnHeader column={column} label="Exit" />,
-    cell: ({ row }) => <span>{formatTradingPrice(row.original.closeP)}</span>,
+    cell: ({ row }) => <span>{formatTradingPrice(row.original.closeP, row.original.symbol)}</span>,
   },
   {
     accessorKey: "profit",

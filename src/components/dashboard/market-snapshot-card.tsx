@@ -1,6 +1,7 @@
 "use client";
 
 import { SparklineChart } from "@/components/dashboard/sparkline-chart";
+import { formatTradingPrice } from "@/components/shared/trading-table-cells";
 import { cn } from "@/lib/utils";
 import type {
   MarketSnapshotBadge,
@@ -8,13 +9,6 @@ import type {
   MarketSnapshotStat,
 } from "@/types/market-snapshot";
 import Image from "next/image";
-
-function formatPrice(value: number) {
-  return value.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-}
 
 function formatPercent(value: number) {
   const prefix = value >= 0 ? "+" : "";
@@ -57,7 +51,7 @@ function SnapshotStatRow({ stat }: { stat: MarketSnapshotStat }) {
   );
 }
 
-export function MarketSnapshotCard({ data, className }: MarketSnapshotCardProps) {
+export function MarketSnapshotCard({ data, symbol, assetClass, className }: MarketSnapshotCardProps) {
   if (!data) {
     return (
       <div
@@ -103,7 +97,7 @@ export function MarketSnapshotCard({ data, className }: MarketSnapshotCardProps)
 
           <div className="mt-2.5 flex flex-wrap items-end gap-2">
             <span className="text-2xl font-medium tracking-tight text-white md:text-[32px]">
-              {formatPrice(snapshot.price)}
+              {formatTradingPrice(snapshot.price, symbol ?? undefined, assetClass ?? null)}
             </span>
             <span
               className={cn(

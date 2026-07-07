@@ -4,6 +4,7 @@ import { Star, Loader2 } from "lucide-react";
 import { useState } from "react";
 
 import { AssetIcon } from "@/components/shared/asset-icon";
+import { formatTradingPrice } from "@/components/shared/trading-table-cells";
 import {
   mockMarketNews,
   mockMarketSignals,
@@ -17,13 +18,6 @@ import type {
   MarketWatchItem,
   MarketWatchTab,
 } from "@/types/market-watch-card";
-
-function formatPrice(value: number) {
-  return value.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-}
 
 function formatPercent(value: number) {
   const prefix = value >= 0 ? "+" : "";
@@ -67,7 +61,7 @@ function WatchlistRow({
 
         <span className="shrink-0 text-right">
           <span className="block tracking-tight text-sm font-medium text-white md:text-base">
-            {formatPrice(item.price)}
+            {formatTradingPrice(item.price, item.symbol)}
           </span>
           <span
             className={cn(

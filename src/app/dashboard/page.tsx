@@ -526,7 +526,11 @@ export default function DashboardPage() {
               onItemSelect={setSelectedMarketId}
               onWatchlistToggle={toggleWishlistAsset}
             />
-            <MarketSnapshotCard data={marketSnapshot ?? undefined} />
+            <MarketSnapshotCard
+              data={marketSnapshot ?? undefined}
+              symbol={chartSymbol}
+              assetClass={selectedFilterAsset?.category ?? null}
+            />
           </div>
         </div>
 

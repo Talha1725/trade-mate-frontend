@@ -48,5 +48,7 @@ export type MarketSnapshotResponse = {
 
 export type MarketSnapshotCardProps = {
   data?: MarketSnapshotData;
+  symbol?: string | null;
+  assetClass?: string | null;
   className?: string;
 };

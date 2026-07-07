@@ -4,6 +4,7 @@ import { IoArrowDownSharp, IoArrowUpSharp } from "react-icons/io5";
 
 import { ResponsiveTableScroll } from "@/components/shared/responsive-table-scroll";
 import { TradingSymbolCell } from "@/components/shared/trading-symbol-cell";
+import { formatTradingPrice } from "@/components/shared/trading-table-cells";
 import {
   Table,
   TableBody,
@@ -21,8 +22,13 @@ import type {
 } from "@/types/orders-recent-trades";
 import type { StrategyPerformanceRow } from "@/types/strategy-performance";
 
-function formatUsdPrice(value: number) {
-  return `$${value.toLocaleString("en-US", {
+function formatUsdPrice(value: number, symbol?: string) {
+  return `$${formatTradingPrice(value, symbol)}`;
+}
+
+function formatSignedCurrency(value: number) {
+  const prefix = value >= 0 ? "+" : "-";
+  return `${prefix}$${Math.abs(value).toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
@@ -53,7 +59,7 @@ function PriceCell({ trade }: { trade: RecentTradeRow }) {
       )}
     >
       <span className="min-w-[80px] text-sm font-medium">
-        {formatUsdPrice(trade.price)}
+        {formatUsdPrice(trade.price, trade.symbol)}
       </span>
       <Icon className="size-3.5" />
     </span>
@@ -74,7 +80,7 @@ function StrategyPerformanceRowCells({ row }: { row: StrategyPerformanceRow }) {
           pnlTone === "positive" ? "font-medium text-primary" : pnlTone === "negative" ? "font-medium text-destructive" : "text-white",
         )}
       >
-        {formatUsdPrice(row.price)}
+        {formatUsdPrice(row.price, row.symbol)}
       </TableCell>
       <TableCell
         className={cn(
@@ -82,8 +88,7 @@ function StrategyPerformanceRowCells({ row }: { row: StrategyPerformanceRow }) {
           pnlTone === "positive" ? "font-medium text-primary" : pnlTone === "negative" ? "font-medium text-destructive" : "text-white",
         )}
       >
-        {row.pnl >= 0 ? "+" : "-"}
-        {formatUsdPrice(Math.abs(row.pnl))}
+        {formatSignedCurrency(row.pnl)}
       </TableCell>
       <TableCell className="w-[20%] px-2 py-3 text-center text-xs whitespace-normal text-white sm:px-2.5 sm:text-sm">
         {`${row.winRate.toFixed(2)}%`}
