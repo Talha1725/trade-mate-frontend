@@ -24,6 +24,7 @@ import { buildDashboardData } from "@/lib/utils/trader-data";
 import { mergeStablePositions } from "@/lib/utils/stable-positions";
 import { normalizeTradingSymbol } from "@/lib/utils/market-symbol-icon";
 import { resolveMarketWatchIcon } from "@/lib/utils/market-symbol-icon";
+import { formatTradingPrice } from "@/components/shared/trading-table-cells";
 import type { AccountLedgerResponse, UserPortfolioResponse } from "@/types/dashboard";
 import type { MarketSnapshotChartSummary, MarketSnapshotData } from "@/types/market-snapshot";
 import type { MarketWatchItem } from "@/types/market-watch-card";
@@ -288,14 +289,20 @@ export default function DashboardPage() {
     const lots = Number(position.lots);
     const isLong = position.direction === "BUY";
     const side = isLong ? "long" : "short";
-    const pnl =
-      position.floatingPnl != null && position.floatingPnl !== ""
-        ? Number(position.floatingPnl)
-        : (isLong ? currentPrice - entryPrice : entryPrice - currentPrice) * lots;
-    const pnlPercent = entryPrice > 0
-      ? ((isLong ? currentPrice - entryPrice : entryPrice - currentPrice) / entryPrice) * 100
-      : 0;
+    const contractMultiplier = position.symbol.trim().toUpperCase().match(/^(AUD|CAD|CHF|EUR|GBP|JPY|NZD|USD)[A-Z]{3}$/)
+      ? 100_000
+      : 1;
+    const priceDelta = (currentPrice - entryPrice) * (isLong ? 1 : -1);
+    const pnl = priceDelta * lots * contractMultiplier;
+    const pnlPercent = entryPrice > 0 ? (priceDelta / entryPrice) * 100 : 0;
     const sizeUnit = position.symbol.replace(/USD$/i, "") || position.symbol;
+    const entryLabelPrice =
+      position.symbol.trim().toUpperCase().match(/^(AUD|CAD|CHF|EUR|GBP|JPY|NZD|USD)[A-Z]{3}$/)
+        ? entryPrice.toLocaleString("en-US", {
+            minimumFractionDigits: 5,
+            maximumFractionDigits: 5,
+          })
+        : formatTradingPrice(entryPrice, position.symbol);
 
     return {
       id: position.id,
@@ -305,10 +312,7 @@ export default function DashboardPage() {
       pnl: Number(pnl.toFixed(2)),
       pnlPercent: Number(pnlPercent.toFixed(2)),
       sizeLabel: `${lots.toFixed(4)} ${sizeUnit}`,
-      entryLabel: `Entry ${entryPrice.toLocaleString("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })}`,
+      entryLabel: `Entry ${entryLabelPrice}`,
       trend: buildPositionTrend(entryPrice, currentPrice, side),
       palette: pnl >= 0 ? "profit" : "loss",
     };

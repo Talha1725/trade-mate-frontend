@@ -48,6 +48,27 @@ function getPositionContractMultiplier(symbol: string) {
   return isForexSymbol(symbol) ? 100_000 : 1;
 }
 
+function getPositionPriceDecimals(symbol: string, value: number) {
+  if (isForexSymbol(symbol)) {
+    return 5;
+  }
+
+  if (value < 1) {
+    return 4;
+  }
+
+  return 2;
+}
+
+function formatPositionPrice(value: number, symbol: string) {
+  const decimals = getPositionPriceDecimals(symbol, value);
+
+  return value.toLocaleString("en-US", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+}
+
 function inferAssetCategoryFromSymbol(symbol: string): AssetCategory {
   if (isForexSymbol(symbol)) {
     return "FOREX";
@@ -134,18 +155,12 @@ export function mapPortfolioPositionToPortfolioRow(
   const resolvedAssetCategory = assetCategory ?? inferAssetCategoryFromSymbol(position.symbol);
   const leverageLabel = getAssetLeverageLabel(resolvedAssetCategory);
   const leverageValue = Number.parseInt(leverageLabel.split(":").at(-1) ?? "1", 10) || 1;
-  const liveMarkPrice = liveQuote
-    ? position.direction === "BUY"
-      ? toNumber(liveQuote.bid ?? liveQuote.price)
-      : toNumber(liveQuote.ask ?? liveQuote.price)
+  const markPrice = liveQuote?.price != null
+    ? toNumber(liveQuote.price)
     : toNumber(position.currentPrice ?? position.entryPrice);
-  const markPrice = liveMarkPrice || toNumber(position.currentPrice ?? position.entryPrice);
   const priceDelta = (markPrice - entryPrice) * directionMultiplier;
   const calculatedPnl = priceDelta * size * contractMultiplier;
-  const pnl =
-    liveQuote != null || position.floatingPnl == null || position.floatingPnl === ""
-      ? calculatedPnl
-      : toNumber(position.floatingPnl);
+  const pnl = calculatedPnl;
   const pnlPercentBase = entryPrice * size * contractMultiplier;
   const pnlPercent = pnlPercentBase > 0 ? (pnl / pnlPercentBase) * 100 : 0;
 
