@@ -467,6 +467,12 @@ export default function DashboardPage() {
             },
             positions: payload.positions,
             trades: payload.trades,
+            tradePagination: {
+              page: 1,
+              limit: payload.trades.length || 1,
+              total: payload.trades.length,
+              pageCount: 1,
+            },
           };
         }
 

@@ -10,45 +10,52 @@ import { historyApi } from "@/lib/services/history.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
 import type { AccountLedgerResponse } from "@/types/dashboard";
-import { usePriceStream } from "@/hooks/use-price-stream";
-import type { PriceSocketPortfolioMessage } from "@/types/price";
 import { mapLedgerTrades } from "@/lib/utils/trader-data";
+import { useServerTablePagination } from "@/hooks/use-server-table-pagination";
+
+const PAGE_SIZE_OPTIONS = [10, 25, 50];
 
 export default function HistoryPage() {
   const [ledger, setLedger] = React.useState<AccountLedgerResponse | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const token = useAuthStore((state) => state.session?.token ?? null);
   const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
+  const { page, pageSize, setPage, setPageSize } = useServerTablePagination({
+    defaultPage: 1,
+    defaultPageSize: 10,
+    pageSizeOptions: PAGE_SIZE_OPTIONS,
+  });
 
   React.useEffect(() => {
-    if (!token) {
+    setPage(1);
+  }, [selectedAccountId, setPage]);
+
+  React.useEffect(() => {
+    if (!token || !selectedAccountId) {
+      setLedger(null);
       setIsLoading(false);
       return;
     }
 
-    setIsLoading(true);
-  }, [token]);
-
-  React.useEffect(() => {
-    const accountId = selectedAccountId;
-
-    if (!token || !accountId) {
-      return;
-    }
-
-    let isMounted = true;
+    let active = true;
 
     const refreshLedger = async () => {
-      try {
-        const accountLedger = await historyApi.getAccountLedger(accountId, token);
+      setIsLoading(true);
+      setLedger(null);
 
-        if (isMounted) {
+      try {
+        const accountLedger = await historyApi.getAccountLedger(selectedAccountId, token, {
+          page,
+          limit: pageSize,
+        });
+
+        if (active) {
           setLedger(accountLedger);
         }
       } catch {
         // Keep the last loaded trade history visible if a refresh fails.
       } finally {
-        if (isMounted) {
+        if (active) {
           setIsLoading(false);
         }
       }
@@ -57,49 +64,9 @@ export default function HistoryPage() {
     void refreshLedger();
 
     return () => {
-      isMounted = false;
+      active = false;
     };
-  }, [selectedAccountId, token]);
-
-  const accountSymbols = React.useMemo(
-    () =>
-      Array.from(
-        new Set(
-          (ledger?.positions ?? [])
-            .filter((position) => position.status === "OPEN")
-            .map((position) => position.symbol),
-        ),
-      ),
-    [ledger?.positions],
-  );
-
-  usePriceStream({
-    enabled: !!token && !!selectedAccountId,
-    symbols: accountSymbols,
-    accountIds: selectedAccountId ? [selectedAccountId] : [],
-    onPortfolio: (payload: PriceSocketPortfolioMessage) => {
-      const account = payload.accounts[0];
-
-      if (!account) {
-        return;
-      }
-
-      setLedger((currentLedger) => ({
-        account: {
-          ...account,
-        },
-        positions: payload.positions,
-        trades: [
-          ...(currentLedger?.trades ?? []),
-          ...payload.trades.filter(
-            (trade) =>
-              trade.status === "CLOSED" &&
-              !(currentLedger?.trades ?? []).some((currentTrade) => currentTrade.id === trade.id),
-          ),
-        ],
-      }));
-    },
-  });
+  }, [page, pageSize, selectedAccountId, token]);
 
   const trades = React.useMemo(() => mapLedgerTrades(ledger ?? undefined), [ledger]);
 
@@ -115,7 +82,22 @@ export default function HistoryPage() {
             <Loader2 className="size-8 animate-spin text-primary" />
           </div>
         ) : (
-          <TradeHistoryTable trades={trades} isLoading={isLoading && !ledger} />
+          <TradeHistoryTable
+            trades={trades}
+            isLoading={isLoading && !ledger}
+            pagination={ledger ? {
+              page: ledger.tradePagination.page,
+              pageCount: ledger.tradePagination.pageCount,
+              totalItems: ledger.tradePagination.total,
+              pageSize: ledger.tradePagination.limit,
+              pageSizeOptions: PAGE_SIZE_OPTIONS,
+              onPageChange: setPage,
+              onPageSizeChange: (nextPageSize) => {
+                setPage(1);
+                setPageSize(nextPageSize);
+              },
+            } : undefined}
+          />
         )}
       </div>
     </AppShell>

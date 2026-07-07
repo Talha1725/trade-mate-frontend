@@ -9,6 +9,7 @@ import {
   type SortingState,
   useReactTable,
 } from "@tanstack/react-table";
+import { Loader2Icon } from "lucide-react";
 import { IoCloseCircle } from "react-icons/io5";
 
 import { TradingSymbolCell } from "@/components/shared/trading-symbol-cell";
@@ -60,15 +61,32 @@ function OrderStatusBadge({ status }: { status: ActiveOrderStatus }) {
   );
 }
 
-function CancelButton({ onClick }: { onClick?: () => void }) {
+function CancelButton({ onClick }: { onClick?: () => void | Promise<void> }) {
+  const [isPending, setIsPending] = useState(false);
+
+  const handleClick = async () => {
+    if (!onClick) return;
+    setIsPending(true);
+    try {
+      await onClick();
+    } finally {
+      setIsPending(false);
+    }
+  };
+
   return (
     <button
       type="button"
-      onClick={onClick}
-      className="inline-flex cursor-pointer items-center gap-2 rounded-[10px] border border-destructive/10 bg-destructive/10 px-3.5 py-2 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20"
+      onClick={handleClick}
+      disabled={isPending}
+      className="inline-flex cursor-pointer items-center gap-2 rounded-[10px] border border-destructive/10 bg-destructive/10 px-3.5 py-2 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20 disabled:cursor-not-allowed disabled:opacity-50"
     >
-      <IoCloseCircle className="size-4 text-destructive" />
-      Cancel
+      {isPending ? (
+        <Loader2Icon className="size-4 animate-spin text-destructive" />
+      ) : (
+        <IoCloseCircle className="size-4 text-destructive" />
+      )}
+      Close
     </button>
   );
 }
