@@ -415,13 +415,13 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
           >
             {isSubmitting ? "Placing..." : `${side} ${symbol}`}
           </button>
-          <button
+          {/* <button
             type="button"
             onClick={() => toast.success("Risk check passed.")}
             className="flex-1 rounded-xl py-3 cursor-pointer text-sm font-semibold text-white/80 border border-white/10 bg-linear-to-b from-white/10 to-white/5 hover:opacity-90 transition-opacity shadow-inner shadow-white/5"
           >
             Run Risk Check
-          </button>
+          </button> */}
         </div>
       </DialogContent>
     </Dialog>

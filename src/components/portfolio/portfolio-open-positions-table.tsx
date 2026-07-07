@@ -181,7 +181,7 @@ export function PortfolioOpenPositionsTable({
       },
       {
         accessorKey: "avgEntry",
-        header: ({ column }) => <SortableColumnHeader column={column} label="Avg Entry" />,
+        header: ({ column }) => <SortableColumnHeader column={column} label="Entry" />,
           cell: ({ row }) => (
           <span className="font-medium text-white/60">
             {formatTradingPrice(row.original.avgEntry, row.original.symbol)}
@@ -197,13 +197,13 @@ export function PortfolioOpenPositionsTable({
           </span>
         ),
       },
-      {
-        accessorKey: "leverage",
-        header: ({ column }) => <SortableColumnHeader column={column} label="Lev." />,
-        cell: ({ row }) => (
-          <span className="font-medium text-white/60">1:{row.original.leverage}</span>
-        ),
-      },
+      // {
+      //   accessorKey: "leverage",
+      //   header: ({ column }) => <SortableColumnHeader column={column} label="Lev." />,
+      //   cell: ({ row }) => (
+      //     <span className="font-medium text-white/60">1:{row.original.leverage}</span>
+      //   ),
+      // },
       {
         accessorKey: "pnl",
         header: ({ column }) => <SortableColumnHeader column={column} label="P&L" />,
