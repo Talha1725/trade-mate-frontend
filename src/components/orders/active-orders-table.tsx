@@ -58,7 +58,7 @@ function CancelButton({ onClick }: { onClick?: () => void }) {
       className="inline-flex cursor-pointer items-center gap-2 rounded-[10px] border border-destructive/10 bg-destructive/10 px-3.5 py-2 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20"
     >
       <IoCloseCircle className="size-4 text-destructive" />
-      Cancel
+      Close
     </button>
   );
 }
