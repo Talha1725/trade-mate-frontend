@@ -58,6 +58,11 @@ export type AccountMetricsSummary = {
   equity: number;
   floatingPnl: number;
   winRate: number;
+  bestAsset: {
+    symbol: string;
+    pnl: number;
+    tradeCount: number;
+  } | null;
 };
 
 export type TradeStatusFilter = "All" | "Open" | "Closed";

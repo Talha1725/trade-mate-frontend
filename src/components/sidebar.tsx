@@ -13,11 +13,13 @@ import {
 import { HiMiniChartBar } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { AssetIcon } from "@/components/shared/asset-icon";
 import type { SidebarItemProps, CardRowProps } from "@/types/components";
 import { useAccountSummary, usePositions } from "@/hooks/use-trades";
 import { SIDEBAR_ICONS } from "@/lib/mock-data/sidebar-icons";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
 import { usePriceStream } from "@/hooks/use-price-stream";
+import { formatTradingSymbolLabel } from "@/lib/utils/market-symbol-icon";
 
 function formatCurrency(value?: number) {
   return `$${(value ?? 0).toLocaleString("en-US", {
@@ -104,6 +106,8 @@ export function Sidebar({ className }: { className?: string }) {
   const [showBalance, setShowBalance] = React.useState(true);
   const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
   const { data: accountSummary } = useAccountSummary(selectedAccountId);
+  const bestAssetSymbol = accountSummary?.bestAsset?.symbol ?? null;
+
   const { data: openPositions } = usePositions(selectedAccountId);
   const [openOrdersCount, setOpenOrdersCount] = React.useState(0);
 
@@ -288,9 +292,11 @@ export function Sidebar({ className }: { className?: string }) {
               iconSrc={SIDEBAR_ICONS.cupStar}
               label="Best Asset"
               subLabel="Last 30 Days"
-              value="BTCUSD"
+              value={bestAssetSymbol ? formatTradingSymbolLabel(bestAssetSymbol) : "N/A"}
               valueIcon={
-                <Image src={SIDEBAR_ICONS.bitcoinLogo} alt="Bitcoin" width={14} height={14} className="size-3.5" />
+                bestAssetSymbol ? (
+                  <AssetIcon symbol={bestAssetSymbol} label={bestAssetSymbol} size={14} className="size-3.5" />
+                ) : null
               }
             />
           </div>
