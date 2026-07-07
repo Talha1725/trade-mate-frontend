@@ -56,10 +56,10 @@ function formatCompactNumber(value: string | number) {
 
 function StatRow({ row }: { row: ChallengeProgressStatRow }) {
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-3 gap-y-1 text-sm">
+    <div className="contents">
       <div className="flex items-center gap-2">
-      <StatToneDot tone={row.tone} />
-      <span className="font-medium text-white">{row.label}</span>
+        <StatToneDot tone={row.tone} />
+        <span className="font-medium text-white">{row.label}</span>
       </div>
       <div className="text-right text-white/80">{formatCompactNumber(row.valuePrimary)}</div>
       <div className="text-right text-white">{formatCompactNumber(row.valueSecondary)}</div>
@@ -106,7 +106,7 @@ export function ChallengeProgressCard({
 
         <div className="flex flex-1 flex-col gap-4">
           <div className="rounded-[10px] border border-white/20 bg-linear-to-b from-[#13131505] to-white/6 p-4 backdrop-blur-[2px] md:p-5">
-            <div className="space-y-4">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-4 gap-y-4 text-sm">
               {stats.map((row) => (
                 <StatRow key={row.id} row={row} />
               ))}

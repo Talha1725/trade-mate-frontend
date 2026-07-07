@@ -322,7 +322,7 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
           <div className="grid grid-cols-2 gap-3">
             {/* Quantity */}
             <div>
-              <label className="text-xs text-white/50 mb-1.5 block">Load Size</label>
+              <label className="text-xs text-white/50 mb-1.5 block">Lot Size</label>
               <div className="rounded-lg border border-white/20 gradient-btn-trade px-3 py-2">
                 <input
                   type="text"
