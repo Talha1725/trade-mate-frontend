@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { Loader2 } from "lucide-react";
 
 import { AppShell } from "@/components/app-shell";
 import { LiveTradingView } from "@/components/common/live-trading-view";
@@ -22,7 +21,9 @@ import {
 } from "@/lib/utils/trading-view";
 import { buildDashboardData } from "@/lib/utils/trader-data";
 import { mergeStablePositions } from "@/lib/utils/stable-positions";
+import { normalizeTradingSymbol } from "@/lib/utils/market-symbol-icon";
 import { resolveMarketWatchIcon } from "@/lib/utils/market-symbol-icon";
+import { formatTradingPrice } from "@/components/shared/trading-table-cells";
 import type { AccountLedgerResponse, UserPortfolioResponse } from "@/types/dashboard";
 import type { MarketSnapshotChartSummary, MarketSnapshotData } from "@/types/market-snapshot";
 import type { MarketWatchItem } from "@/types/market-watch-card";
@@ -62,7 +63,6 @@ export default function DashboardPage() {
     }
 
     let isMounted = true;
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
     const refreshDashboard = async () => {
       try {
@@ -112,13 +112,6 @@ export default function DashboardPage() {
         });
       } catch {
         // Keep the last successful snapshot/ledger visible if a refresh fails.
-      } finally {
-        if (isMounted) {
-          // Slow fallback only — live updates arrive via the price-stream socket.
-          timeoutId = setTimeout(() => {
-            void refreshDashboard();
-          }, 30_000);
-        }
       }
     };
 
@@ -126,9 +119,6 @@ export default function DashboardPage() {
 
     return () => {
       isMounted = false;
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
     };
   }, [selectedAccountId, token]);
 
@@ -180,7 +170,11 @@ export default function DashboardPage() {
   const [liveWatchlistItems, setLiveWatchlistItems] = React.useState<MarketWatchItem[]>([]);
 
   React.useEffect(() => {
-    setLiveWatchlistItems(accountWatchlistItems);
+    setLiveWatchlistItems((current) => {
+      const currentById = new Map(current.map((item) => [item.id, item]));
+
+      return accountWatchlistItems.map((item) => currentById.get(item.id) ?? item);
+    });
   }, [accountWatchlistItems]);
 
   const selectedWatchlistItem = liveWatchlistItems.find((item) => item.id === selectedMarketId);
@@ -202,6 +196,14 @@ export default function DashboardPage() {
       setCompareAssetId(null);
     }
   }, [compareAssetId, selectedMarketId]);
+
+  const resolveQuoteForSymbol = React.useCallback((quotes: PriceSocketQuote[], symbol: string) => {
+    const normalizedSymbol = normalizeTradingSymbol(symbol);
+
+    return (
+      quotes.find((quote) => normalizeTradingSymbol(quote.symbol) === normalizedSymbol) ?? null
+    );
+  }, []);
 
   React.useEffect(() => {
     if (!token || !chartSymbol) {
@@ -286,14 +288,20 @@ export default function DashboardPage() {
     const lots = Number(position.lots);
     const isLong = position.direction === "BUY";
     const side = isLong ? "long" : "short";
-    const pnl =
-      position.floatingPnl != null && position.floatingPnl !== ""
-        ? Number(position.floatingPnl)
-        : (isLong ? currentPrice - entryPrice : entryPrice - currentPrice) * lots;
-    const pnlPercent = entryPrice > 0
-      ? ((isLong ? currentPrice - entryPrice : entryPrice - currentPrice) / entryPrice) * 100
-      : 0;
+    const contractMultiplier = position.symbol.trim().toUpperCase().match(/^(AUD|CAD|CHF|EUR|GBP|JPY|NZD|USD)[A-Z]{3}$/)
+      ? 100_000
+      : 1;
+    const priceDelta = (currentPrice - entryPrice) * (isLong ? 1 : -1);
+    const pnl = priceDelta * lots * contractMultiplier;
+    const pnlPercent = entryPrice > 0 ? (priceDelta / entryPrice) * 100 : 0;
     const sizeUnit = position.symbol.replace(/USD$/i, "") || position.symbol;
+    const entryLabelPrice =
+      position.symbol.trim().toUpperCase().match(/^(AUD|CAD|CHF|EUR|GBP|JPY|NZD|USD)[A-Z]{3}$/)
+        ? entryPrice.toLocaleString("en-US", {
+            minimumFractionDigits: 5,
+            maximumFractionDigits: 5,
+          })
+        : formatTradingPrice(entryPrice, position.symbol);
 
     return {
       id: position.id,
@@ -303,10 +311,7 @@ export default function DashboardPage() {
       pnl: Number(pnl.toFixed(2)),
       pnlPercent: Number(pnlPercent.toFixed(2)),
       sizeLabel: `${lots.toFixed(4)} ${sizeUnit}`,
-      entryLabel: `Entry ${entryPrice.toLocaleString("en-US", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })}`,
+      entryLabel: `Entry ${entryLabelPrice}`,
       trend: buildPositionTrend(entryPrice, currentPrice, side),
       palette: pnl >= 0 ? "profit" : "loss",
     };
@@ -319,8 +324,7 @@ export default function DashboardPage() {
 
   const handleMarketQuotes = React.useCallback(
     (quotes: PriceSocketQuote[]) => {
-      const liveQuote =
-        quotes.find((quote) => quote.symbol.toUpperCase() === chartSymbol.toUpperCase()) ?? quotes[0];
+      const liveQuote = resolveQuoteForSymbol(quotes, chartSymbol);
 
       if (!liveQuote) {
         return;
@@ -357,7 +361,7 @@ export default function DashboardPage() {
 
       setLiveWatchlistItems((current) =>
         current.map((item) => {
-          const quote = quotes.find((candidate) => candidate.symbol.toUpperCase() === item.symbol.toUpperCase());
+          const quote = resolveQuoteForSymbol(quotes, item.symbol);
 
           if (!quote) {
             return item;
@@ -375,13 +379,15 @@ export default function DashboardPage() {
         const nextQuotes = { ...current };
 
         for (const quote of quotes) {
+          const normalizedSymbol = normalizeTradingSymbol(quote.symbol);
           nextQuotes[quote.symbol.toUpperCase()] = quote;
+          nextQuotes[normalizedSymbol] = quote;
         }
 
         return nextQuotes;
       });
     },
-    [chartSymbol],
+    [chartSymbol, resolveQuoteForSymbol],
   );
 
   const subscriptionMarketSymbols = React.useMemo(
@@ -460,6 +466,12 @@ export default function DashboardPage() {
             },
             positions: payload.positions,
             trades: payload.trades,
+            tradePagination: {
+              page: 1,
+              limit: payload.trades.length || 1,
+              total: payload.trades.length,
+              pageCount: 1,
+            },
           };
         }
 
@@ -479,16 +491,6 @@ export default function DashboardPage() {
       });
     },
   });
-
-  if (!snapshot || !marketSnapshot) {
-    return (
-      <AppShell>
-        <div className="flex h-[80vh] w-full items-center justify-center">
-          <Loader2 className="size-8 animate-spin text-primary" />
-        </div>
-      </AppShell>
-    );
-  }
 
   return (
     <AppShell>
@@ -526,7 +528,11 @@ export default function DashboardPage() {
               onItemSelect={setSelectedMarketId}
               onWatchlistToggle={toggleWishlistAsset}
             />
-            <MarketSnapshotCard data={marketSnapshot ?? undefined} />
+            <MarketSnapshotCard
+              data={marketSnapshot ?? undefined}
+              symbol={chartSymbol}
+              assetClass={selectedFilterAsset?.category ?? null}
+            />
           </div>
         </div>
 

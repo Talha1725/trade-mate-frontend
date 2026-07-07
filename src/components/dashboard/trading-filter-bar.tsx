@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/dashboard/ui/select";
 import { AssetIcon } from "@/components/shared/asset-icon";
+import { formatTradingPrice } from "@/components/shared/trading-table-cells";
 import { useAccountWishlist } from "@/hooks/use-account-wishlist";
 import { useResolvedAccountNumber } from "@/hooks/use-resolved-account-number";
 import { TRADING_TIMEFRAMES } from "@/lib/mock-data/trading-filter-bar";
@@ -29,13 +30,6 @@ const FILTER_BAR_ACTIONS = [
 const ACTION_ICON_MAP = {
   replay: CirclePlayIcon,
 } as const;
-
-function formatPrice(value: number) {
-  return value.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-}
 
 function formatSignedChange(value: number) {
   const prefix = value >= 0 ? "+" : "";
@@ -170,6 +164,8 @@ export function TradingFilterBar({
   const selectedAsset =
     assets.find((asset) => asset.id === selectedAssetId) ?? assets[0];
   const isPositive = quote.change >= 0;
+  const selectedAssetClass = selectedAsset?.category ?? null;
+  const selectedAssetSymbol = selectedAsset?.symbol;
 
   return (
     <div
@@ -182,7 +178,7 @@ export function TradingFilterBar({
 
       <div className="flex items-center gap-2 min-w-[200px] shrink-0">
         <span className="text-base md:text-lg font-medium text-white">
-          {formatPrice(quote.price)}
+          {formatTradingPrice(quote.price, selectedAssetSymbol, selectedAssetClass)}
         </span>
         <span
           className={cn(
@@ -242,9 +238,9 @@ export function TradingFilterBar({
       </div>
 
       <div className=" flex flex-wrap items-center gap-2.5 text-xs">
-        <OhlcvStat label="O" value={formatPrice(ohlcv.open)} />
-        <OhlcvStat label="H" value={formatPrice(ohlcv.high)} tone="positive" />
-        <OhlcvStat label="L" value={formatPrice(ohlcv.low)} tone="negative" />
+        <OhlcvStat label="O" value={formatTradingPrice(ohlcv.open, selectedAssetSymbol, selectedAssetClass)} />
+        <OhlcvStat label="H" value={formatTradingPrice(ohlcv.high, selectedAssetSymbol, selectedAssetClass)} tone="positive" />
+        <OhlcvStat label="L" value={formatTradingPrice(ohlcv.low, selectedAssetSymbol, selectedAssetClass)} tone="negative" />
         <OhlcvStat label="V" value={formatVolume(ohlcv.volume)} />
       </div>
     </div>

@@ -5,10 +5,33 @@ import { cn } from "@/lib/utils";
 export const TRADING_TABLE_ROW_CLASS =
   "border-white/10 hover:bg-white/5 data-[state=selected]:bg-white/5";
 
-export function formatTradingPrice(value: number) {
+const FOREX_PREFIXES = ["AUD", "CAD", "CHF", "EUR", "GBP", "JPY", "NZD", "USD"];
+
+function isForexSymbol(symbol: string) {
+  const normalized = symbol.trim().toUpperCase();
+
+  if (normalized.length !== 6) {
+    return false;
+  }
+
+  const base = normalized.slice(0, 3);
+  const quote = normalized.slice(3);
+
+  return FOREX_PREFIXES.includes(base) && FOREX_PREFIXES.includes(quote);
+}
+
+function getTradingPriceDecimals(value: number, symbol?: string, assetClass?: string | null) {
+  if (assetClass === "FOREX" || (symbol ? isForexSymbol(symbol) : false)) {
+    return 5;
+  }
+
+  return value < 1 ? 4 : 2;
+}
+
+export function formatTradingPrice(value: number, symbol?: string, assetClass?: string | null) {
   return value.toLocaleString("en-US", {
-    minimumFractionDigits: value < 1 ? 4 : 2,
-    maximumFractionDigits: value < 1 ? 4 : 2,
+    minimumFractionDigits: getTradingPriceDecimals(value, symbol, assetClass),
+    maximumFractionDigits: getTradingPriceDecimals(value, symbol, assetClass),
   });
 }
 

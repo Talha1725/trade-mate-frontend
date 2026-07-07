@@ -42,6 +42,9 @@ export function useAccountWishlist(
     queryKey: accountNumber ? getWishlistQueryKey(accountNumber) : ["accounts", "wishlist", "disabled"],
     enabled: !!token && !!accountNumber,
     queryFn: () => wishlistApi.getWishlist(accountNumber!),
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   const wishlistAssets = React.useMemo(

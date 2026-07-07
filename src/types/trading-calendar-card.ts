@@ -7,6 +7,7 @@ export type TradingCalendarDay = {
   day: number;
   tone: TradingCalendarDayTone;
   intensity: TradingCalendarDayIntensity;
+  strength?: number;
   isOutsideMonth?: boolean;
 };
 

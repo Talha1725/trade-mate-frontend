@@ -71,6 +71,8 @@ export function DepthChartCard({
   priceMax = DEPTH_CHART_PRICE_MAX,
   centerPrice = DEPTH_CHART_CENTER_PRICE,
   axisTicks = DEPTH_CHART_AXIS_TICKS,
+  assetClass = null,
+  symbol = null,
   isLoading = false,
   className,
 }: DepthChartCardProps) {
@@ -161,7 +163,7 @@ export function DepthChartCard({
               type="number"
               domain={[priceMin, priceMax]}
               ticks={axisTicks}
-              tickFormatter={formatDepthPriceTick}
+              tickFormatter={(price) => formatDepthPriceTick(price, symbol, assetClass)}
               tickLine={false}
               axisLine={false}
               tickMargin={12}

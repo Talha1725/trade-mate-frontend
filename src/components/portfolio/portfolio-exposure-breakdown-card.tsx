@@ -36,10 +36,19 @@ function ExposureIconBox({
 
 function ExposureRow({ item }: { item: PortfolioExposureItem }) {
   return (
-    <div className="grid grid-cols-[auto_auto_1fr_auto] items-center gap-3">
+    <div className="grid grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto] lg:grid-cols-[auto_minmax(0,0.3fr)_minmax(0,1fr)_auto] items-center gap-3">
       <ExposureIconBox iconSrc={item.iconSrc} tone={item.iconTone} />
-      <span className="w-14 text-sm font-medium text-white">{item.label}</span>
-      <GradientHorizontalProgress value={item.percent} fill={item.fill} />
+      <span
+        className="min-w-0 truncate text-sm font-medium text-white"
+        title={item.label}
+      >
+        {item.label}
+      </span>
+      <GradientHorizontalProgress
+        value={item.percent}
+        fill={item.fill}
+        className="min-w-0"
+      />
       <span className="w-10 text-right text-sm font-medium text-white">
         {item.percent}%
       </span>

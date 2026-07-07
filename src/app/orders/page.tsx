@@ -353,11 +353,18 @@ export default function OrdersPage() {
             priceMax={depthChart.priceMax}
             centerPrice={depthChart.centerPrice}
             axisTicks={depthChart.axisTicks}
+            symbol={selectedSymbol}
+            assetClass={selectedAsset?.category ?? null}
             isLoading={overview === null}
           />
         </div>
 
-        <OrderBookCard snapshot={orderBook} sizeLabel={sizeLabel} />
+        <OrderBookCard
+          snapshot={orderBook}
+          sizeLabel={sizeLabel}
+          symbol={selectedSymbol}
+          assetClass={selectedAsset?.category ?? null}
+        />
 
         <ActiveOrdersTable
           orders={activeOrders}

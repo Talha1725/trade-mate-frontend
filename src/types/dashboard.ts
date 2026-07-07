@@ -96,8 +96,16 @@ export type PortfolioTrade = {
   positionId: string | null;
 };
 
+export type TradePagination = {
+  page: number;
+  limit: number;
+  total: number;
+  pageCount: number;
+};
+
 export type AccountLedgerResponse = UserPortfolioResponse & {
   trades: PortfolioTrade[];
+  tradePagination: TradePagination;
 };
 
 export type TradePositionRecord = PortfolioPosition;
