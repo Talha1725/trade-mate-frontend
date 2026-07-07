@@ -17,6 +17,9 @@ import { resolveMarketWatchIcon } from "@/lib/utils/market-symbol-icon";
 import type { PortfolioOpenPositionRow } from "@/types/portfolio-open-positions";
 import type { ActiveOrderRow } from "@/types/active-orders";
 import type { RecentTradeRow } from "@/types/orders-recent-trades";
+import type { PriceSocketQuote } from "@/types/price";
+import type { AssetCategory } from "@/types/asset";
+import { getAssetLeverageLabel } from "@/lib/utils/asset-leverage";
 
 function toNumber(value: string | number | null | undefined) {
   if (value == null) {
@@ -24,6 +27,39 @@ function toNumber(value: string | number | null | undefined) {
   }
 
   return typeof value === "number" ? value : Number(value);
+}
+
+const FOREX_PREFIXES = ["AUD", "CAD", "CHF", "EUR", "GBP", "JPY", "NZD", "USD"];
+
+function isForexSymbol(symbol: string) {
+  const normalized = symbol.trim().toUpperCase();
+
+  if (normalized.length !== 6) {
+    return false;
+  }
+
+  const base = normalized.slice(0, 3);
+  const quote = normalized.slice(3);
+
+  return FOREX_PREFIXES.includes(base) && FOREX_PREFIXES.includes(quote);
+}
+
+function getPositionContractMultiplier(symbol: string) {
+  return isForexSymbol(symbol) ? 100_000 : 1;
+}
+
+function inferAssetCategoryFromSymbol(symbol: string): AssetCategory {
+  if (isForexSymbol(symbol)) {
+    return "FOREX";
+  }
+
+  const normalized = symbol.trim().toUpperCase();
+
+  if (normalized.endsWith("USDT") || normalized.endsWith("USD")) {
+    return "CRYPTO";
+  }
+
+  return "STOCK";
 }
 
 function formatMoney(value: number) {
@@ -88,18 +124,30 @@ export function mapPortfolioPositionToPosition(position: PortfolioPosition): Pos
 
 export function mapPortfolioPositionToPortfolioRow(
   position: PortfolioPosition,
+  liveQuote?: PriceSocketQuote | null,
+  assetCategory?: AssetCategory | null,
 ): PortfolioOpenPositionRow {
   const entryPrice = toNumber(position.entryPrice);
-  const markPrice = toNumber(position.currentPrice ?? position.entryPrice);
   const size = toNumber(position.lots);
   const directionMultiplier = position.direction === "BUY" ? 1 : -1;
+  const contractMultiplier = getPositionContractMultiplier(position.symbol);
+  const resolvedAssetCategory = assetCategory ?? inferAssetCategoryFromSymbol(position.symbol);
+  const leverageLabel = getAssetLeverageLabel(resolvedAssetCategory);
+  const leverageValue = Number.parseInt(leverageLabel.split(":").at(-1) ?? "1", 10) || 1;
+  const liveMarkPrice = liveQuote
+    ? position.direction === "BUY"
+      ? toNumber(liveQuote.bid ?? liveQuote.price)
+      : toNumber(liveQuote.ask ?? liveQuote.price)
+    : toNumber(position.currentPrice ?? position.entryPrice);
+  const markPrice = liveMarkPrice || toNumber(position.currentPrice ?? position.entryPrice);
+  const priceDelta = (markPrice - entryPrice) * directionMultiplier;
+  const calculatedPnl = priceDelta * size * contractMultiplier;
   const pnl =
-    position.floatingPnl != null && position.floatingPnl !== ""
-      ? toNumber(position.floatingPnl)
-      : entryPrice > 0
-        ? (markPrice - entryPrice) * size * directionMultiplier
-        : 0;
-  const pnlPercent = entryPrice > 0 && size > 0 ? (pnl / (entryPrice * size)) * 100 : 0;
+    liveQuote != null || position.floatingPnl == null || position.floatingPnl === ""
+      ? calculatedPnl
+      : toNumber(position.floatingPnl);
+  const pnlPercentBase = entryPrice * size * contractMultiplier;
+  const pnlPercent = pnlPercentBase > 0 ? (pnl / pnlPercentBase) * 100 : 0;
 
   return {
     id: position.id,
@@ -110,7 +158,7 @@ export function mapPortfolioPositionToPortfolioRow(
     sizeUnit: position.symbol.replace(/USD$/i, "") || position.symbol,
     avgEntry: entryPrice,
     markPrice,
-    leverage: 1,
+    leverage: leverageValue,
     pnl,
     pnlPercent,
     liquidationPrice: 0,

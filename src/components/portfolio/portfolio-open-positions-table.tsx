@@ -201,7 +201,7 @@ export function PortfolioOpenPositionsTable({
         accessorKey: "leverage",
         header: ({ column }) => <SortableColumnHeader column={column} label="Lev." />,
         cell: ({ row }) => (
-          <span className="font-medium text-white/60">{row.original.leverage}x</span>
+          <span className="font-medium text-white/60">1:{row.original.leverage}</span>
         ),
       },
       {

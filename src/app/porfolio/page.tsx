@@ -17,6 +17,7 @@ import { terminalApi } from "@/lib/services/terminal.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
 import { useUserAccounts } from "@/hooks/use-user-accounts";
+import { useSyncedTradingAssets } from "@/hooks/use-synced-trading-assets";
 import {
     buildPortfolioAllocationItems,
     buildPortfolioExposureItems,
@@ -27,7 +28,7 @@ import { mergeStablePositions } from "@/lib/utils/stable-positions";
 import type { UserPortfolioResponse } from "@/types/dashboard";
 import type { PortfolioOverviewResponse } from "@/types/portfolio-overview";
 import { usePriceStream } from "@/hooks/use-price-stream";
-import type { PriceSocketPortfolioMessage } from "@/types";
+import type { PriceSocketPortfolioMessage, PriceSocketQuote } from "@/types";
 
 export default function PortfolioPage() {
     const [snapshot, setSnapshot] = React.useState<UserPortfolioResponse | null>(null);
@@ -36,11 +37,20 @@ export default function PortfolioPage() {
     const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
     const setSelectedAccountId = useSelectedAccountStore((state) => state.setSelectedAccountId);
     const { data: userAccounts } = useUserAccounts();
+    const { data: tradingAssets = [] } = useSyncedTradingAssets();
     const positionOrderRef = React.useRef(new Map<string, number>());
     const positionOrderCounterRef = React.useRef(0);
     const positionMissingCountsRef = React.useRef(new Map<string, number>());
+    const [liveQuotes, setLiveQuotes] = React.useState<Record<string, PriceSocketQuote>>({});
     const accountListLoaded = userAccounts !== undefined;
     const availableAccounts = userAccounts?.accounts ?? [];
+    const assetCategoryBySymbol = React.useMemo(
+        () =>
+            new Map(
+                tradingAssets.map((asset) => [asset.symbol.toUpperCase(), asset.category]),
+            ),
+        [tradingAssets],
+    );
 
     const resolvedAccountId = React.useMemo(() => {
         if (!accountListLoaded) {
@@ -67,6 +77,7 @@ export default function PortfolioPage() {
     React.useEffect(() => {
         setSnapshot(null);
         setOverview(null);
+        setLiveQuotes({});
         positionOrderRef.current.clear();
         positionOrderCounterRef.current = 0;
         positionMissingCountsRef.current.clear();
@@ -136,7 +147,14 @@ export default function PortfolioPage() {
     }, [refreshOverview, refreshSnapshot]);
 
     const positions = React.useMemo(() => {
-        const nextPositions = snapshot?.positions.map((position) => mapPortfolioPositionToPortfolioRow(position)) ?? [];
+        const nextPositions =
+            snapshot?.positions.map((position) =>
+                mapPortfolioPositionToPortfolioRow(
+                    position,
+                    liveQuotes[position.symbol.toUpperCase()] ?? null,
+                    assetCategoryBySymbol.get(position.symbol.toUpperCase()) ?? null,
+                ),
+            ) ?? [];
 
         for (const position of nextPositions) {
             if (!positionOrderRef.current.has(position.id)) {
@@ -149,7 +167,15 @@ export default function PortfolioPage() {
             const rightOrder = positionOrderRef.current.get(right.id) ?? Number.MAX_SAFE_INTEGER;
             return leftOrder - rightOrder;
         });
-    }, [snapshot?.positions]);
+    }, [assetCategoryBySymbol, liveQuotes, snapshot?.positions]);
+
+    const openPositionSymbols = React.useMemo(
+        () =>
+            Array.from(
+                new Set((snapshot?.positions ?? []).map((position) => position.symbol.toUpperCase()).filter(Boolean)),
+            ),
+        [snapshot?.positions],
+    );
 
     const metricCards = React.useMemo(
         () => buildPortfolioMetricCards(snapshot?.account ?? null, overview ?? null),
@@ -193,7 +219,19 @@ export default function PortfolioPage() {
 
     usePriceStream({
         enabled: !!token && !!accountId,
+        symbols: openPositionSymbols,
         accountIds: accountId ? [accountId] : [],
+        onQuotes: (quotes) => {
+            setLiveQuotes((current) => {
+                const next = { ...current };
+
+                for (const quote of quotes) {
+                    next[quote.symbol.toUpperCase()] = quote;
+                }
+
+                return next;
+            });
+        },
         onPortfolio: (payload: PriceSocketPortfolioMessage) => {
             const account = resolvePortfolioAccount(payload);
 
