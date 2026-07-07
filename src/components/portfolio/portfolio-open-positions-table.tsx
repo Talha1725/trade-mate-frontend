@@ -148,7 +148,7 @@ function CancelButton({ positionId, onCancel }: { positionId: string; onCancel?:
       ) : (
         <IoCloseCircle className="size-4 text-destructive" />
       )}
-      Cancel
+      Close
     </button>
   );
 }
