@@ -25,6 +25,7 @@ import {
 } from "@/lib/utils/portfolio";
 import { mapPortfolioPositionToPortfolioRow } from "@/lib/utils/trader-data";
 import { mergeStablePositions } from "@/lib/utils/stable-positions";
+import { normalizeTradingSymbol } from "@/lib/utils/market-symbol-icon";
 import type { UserPortfolioResponse } from "@/types/dashboard";
 import type { PortfolioOverviewResponse } from "@/types/portfolio-overview";
 import { usePriceStream } from "@/hooks/use-price-stream";
@@ -50,6 +51,19 @@ export default function PortfolioPage() {
                 tradingAssets.map((asset) => [asset.symbol.toUpperCase(), asset.category]),
             ),
         [tradingAssets],
+    );
+
+    const resolveLiveQuoteForSymbol = React.useCallback(
+        (symbol: string) => {
+            const normalizedSymbol = normalizeTradingSymbol(symbol);
+
+            return (
+                liveQuotes[symbol.toUpperCase()] ??
+                liveQuotes[normalizedSymbol] ??
+                null
+            );
+        },
+        [liveQuotes],
     );
 
     const resolvedAccountId = React.useMemo(() => {
@@ -151,7 +165,7 @@ export default function PortfolioPage() {
             snapshot?.positions.map((position) =>
                 mapPortfolioPositionToPortfolioRow(
                     position,
-                    liveQuotes[position.symbol.toUpperCase()] ?? null,
+                    resolveLiveQuoteForSymbol(position.symbol),
                     assetCategoryBySymbol.get(position.symbol.toUpperCase()) ?? null,
                 ),
             ) ?? [];
@@ -167,7 +181,7 @@ export default function PortfolioPage() {
             const rightOrder = positionOrderRef.current.get(right.id) ?? Number.MAX_SAFE_INTEGER;
             return leftOrder - rightOrder;
         });
-    }, [assetCategoryBySymbol, liveQuotes, snapshot?.positions]);
+    }, [assetCategoryBySymbol, resolveLiveQuoteForSymbol, snapshot?.positions]);
 
     const openPositionSymbols = React.useMemo(
         () =>
@@ -226,7 +240,9 @@ export default function PortfolioPage() {
                 const next = { ...current };
 
                 for (const quote of quotes) {
+                    const normalizedSymbol = normalizeTradingSymbol(quote.symbol);
                     next[quote.symbol.toUpperCase()] = quote;
+                    next[normalizedSymbol] = quote;
                 }
 
                 return next;

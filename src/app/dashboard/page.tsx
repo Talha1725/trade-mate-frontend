@@ -22,6 +22,7 @@ import {
 } from "@/lib/utils/trading-view";
 import { buildDashboardData } from "@/lib/utils/trader-data";
 import { mergeStablePositions } from "@/lib/utils/stable-positions";
+import { normalizeTradingSymbol } from "@/lib/utils/market-symbol-icon";
 import { resolveMarketWatchIcon } from "@/lib/utils/market-symbol-icon";
 import type { AccountLedgerResponse, UserPortfolioResponse } from "@/types/dashboard";
 import type { MarketSnapshotChartSummary, MarketSnapshotData } from "@/types/market-snapshot";
@@ -169,7 +170,11 @@ export default function DashboardPage() {
   const [liveWatchlistItems, setLiveWatchlistItems] = React.useState<MarketWatchItem[]>([]);
 
   React.useEffect(() => {
-    setLiveWatchlistItems(accountWatchlistItems);
+    setLiveWatchlistItems((current) => {
+      const currentById = new Map(current.map((item) => [item.id, item]));
+
+      return accountWatchlistItems.map((item) => currentById.get(item.id) ?? item);
+    });
   }, [accountWatchlistItems]);
 
   const selectedWatchlistItem = liveWatchlistItems.find((item) => item.id === selectedMarketId);
@@ -191,6 +196,14 @@ export default function DashboardPage() {
       setCompareAssetId(null);
     }
   }, [compareAssetId, selectedMarketId]);
+
+  const resolveQuoteForSymbol = React.useCallback((quotes: PriceSocketQuote[], symbol: string) => {
+    const normalizedSymbol = normalizeTradingSymbol(symbol);
+
+    return (
+      quotes.find((quote) => normalizeTradingSymbol(quote.symbol) === normalizedSymbol) ?? null
+    );
+  }, []);
 
   React.useEffect(() => {
     if (!token || !chartSymbol) {
@@ -308,8 +321,7 @@ export default function DashboardPage() {
 
   const handleMarketQuotes = React.useCallback(
     (quotes: PriceSocketQuote[]) => {
-      const liveQuote =
-        quotes.find((quote) => quote.symbol.toUpperCase() === chartSymbol.toUpperCase()) ?? quotes[0];
+      const liveQuote = resolveQuoteForSymbol(quotes, chartSymbol);
 
       if (!liveQuote) {
         return;
@@ -346,7 +358,7 @@ export default function DashboardPage() {
 
       setLiveWatchlistItems((current) =>
         current.map((item) => {
-          const quote = quotes.find((candidate) => candidate.symbol.toUpperCase() === item.symbol.toUpperCase());
+          const quote = resolveQuoteForSymbol(quotes, item.symbol);
 
           if (!quote) {
             return item;
@@ -364,13 +376,15 @@ export default function DashboardPage() {
         const nextQuotes = { ...current };
 
         for (const quote of quotes) {
+          const normalizedSymbol = normalizeTradingSymbol(quote.symbol);
           nextQuotes[quote.symbol.toUpperCase()] = quote;
+          nextQuotes[normalizedSymbol] = quote;
         }
 
         return nextQuotes;
       });
     },
-    [chartSymbol],
+    [chartSymbol, resolveQuoteForSymbol],
   );
 
   const subscriptionMarketSymbols = React.useMemo(
