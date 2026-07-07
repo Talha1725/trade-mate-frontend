@@ -37,7 +37,6 @@ export default function HistoryPage() {
     }
 
     let isMounted = true;
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
     const refreshLedger = async () => {
       try {
@@ -51,10 +50,6 @@ export default function HistoryPage() {
       } finally {
         if (isMounted) {
           setIsLoading(false);
-          // Slow fallback only — live updates arrive via the price-stream socket.
-          timeoutId = setTimeout(() => {
-            void refreshLedger();
-          }, 30_000);
         }
       }
     };
@@ -63,9 +58,6 @@ export default function HistoryPage() {
 
     return () => {
       isMounted = false;
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
     };
   }, [selectedAccountId, token]);
 

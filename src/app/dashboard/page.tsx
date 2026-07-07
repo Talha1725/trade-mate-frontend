@@ -62,7 +62,6 @@ export default function DashboardPage() {
     }
 
     let isMounted = true;
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
     const refreshDashboard = async () => {
       try {
@@ -112,13 +111,6 @@ export default function DashboardPage() {
         });
       } catch {
         // Keep the last successful snapshot/ledger visible if a refresh fails.
-      } finally {
-        if (isMounted) {
-          // Slow fallback only — live updates arrive via the price-stream socket.
-          timeoutId = setTimeout(() => {
-            void refreshDashboard();
-          }, 30_000);
-        }
       }
     };
 
@@ -126,9 +118,6 @@ export default function DashboardPage() {
 
     return () => {
       isMounted = false;
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
     };
   }, [selectedAccountId, token]);
 

@@ -17,6 +17,7 @@ import type { SidebarItemProps, CardRowProps } from "@/types/components";
 import { useAccountSummary, usePositions } from "@/hooks/use-trades";
 import { SIDEBAR_ICONS } from "@/lib/mock-data/sidebar-icons";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
+import { usePriceStream } from "@/hooks/use-price-stream";
 
 function formatCurrency(value?: number) {
   return `$${(value ?? 0).toLocaleString("en-US", {
@@ -104,7 +105,24 @@ export function Sidebar({ className }: { className?: string }) {
   const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
   const { data: accountSummary } = useAccountSummary(selectedAccountId);
   const { data: openPositions } = usePositions(selectedAccountId);
-  const openOrdersCount = openPositions?.positions?.length ?? 0;
+  const [openOrdersCount, setOpenOrdersCount] = React.useState(0);
+
+  React.useEffect(() => {
+    setOpenOrdersCount(openPositions?.positions?.filter((position) => position.status === "OPEN").length ?? 0);
+  }, [openPositions?.positions]);
+
+  usePriceStream({
+    enabled: !!selectedAccountId,
+    symbols: [],
+    accountIds: selectedAccountId ? [selectedAccountId] : [],
+    onPortfolio: (payload) => {
+      const nextCount = payload.positions.filter(
+        (position) => position.accountId === selectedAccountId && position.status === "OPEN",
+      ).length;
+
+      setOpenOrdersCount(nextCount);
+    },
+  });
 
   // Map routes to determine active state
   const isTabActive = (href: string) => {
