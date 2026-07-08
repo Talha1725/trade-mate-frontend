@@ -1,6 +1,7 @@
 "use client";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 import { MdEdit } from "react-icons/md";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   mockAccountInformation,
   mockAccountInformationStats,
@@ -20,6 +21,7 @@ function AccountStatBox({ stat }: { stat: AccountInformationStat }) {
           className={cn(
             "text-sm font-medium text-white",
             stat.valueTone === "positive" && "text-primary",
+            stat.valueTone === "negative" && "text-destructive",
           )}
         >
           {stat.value}
@@ -38,6 +40,7 @@ export function AccountInformationCard({
   fullName = mockAccountInformation.fullName,
   email = mockAccountInformation.email,
   memberSince = mockAccountInformation.memberSince,
+  avatarUrl = null,
   stats = mockAccountInformationStats,
   editProfileLabel = "Edit Profile",
   onEditProfile,
@@ -54,9 +57,12 @@ export function AccountInformationCard({
       <div className="mt-6 flex flex-col gap-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex min-w-0 items-center gap-4">
-            <div className="flex size-19 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-[#0CE9A0] to-[#3B82F6] text-2xl font-bold text-black md:size-[72px] md:text-3xl">
-              {initials}
-            </div>
+            <Avatar className="size-19 shrink-0 md:size-[72px]">
+              {avatarUrl ? <AvatarImage src={avatarUrl} alt={fullName} /> : null}
+              <AvatarFallback className="bg-linear-to-br from-[#0CE9A0] to-[#3B82F6] text-2xl font-bold text-black md:text-3xl">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
 
             <div className="min-w-0">
               <p className="truncate text-base font-medium text-white md:text-lg">

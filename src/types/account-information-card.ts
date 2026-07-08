@@ -1,4 +1,4 @@
-export type AccountInformationStatTone = "default" | "positive";
+export type AccountInformationStatTone = "default" | "positive" | "negative";
 
 export type AccountInformationStat = {
   id: string;
@@ -14,6 +14,7 @@ export type AccountInformationCardProps = {
   fullName?: string;
   email?: string;
   memberSince?: string;
+  avatarUrl?: string | null;
   stats?: AccountInformationStat[];
   editProfileLabel?: string;
   onEditProfile?: () => void;

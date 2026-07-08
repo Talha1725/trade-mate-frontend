@@ -2,9 +2,9 @@ import type { AccountInformationStat } from "@/types/account-information-card";
 
 export const mockAccountInformationStats: AccountInformationStat[] = [
   {
-    id: "account-type",
-    label: "Account Type",
-    value: "Free Account",
+    id: "funding-type",
+    label: "Funding Type",
+    value: "onePhase",
   },
   {
     id: "account-status",

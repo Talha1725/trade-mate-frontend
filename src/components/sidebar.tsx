@@ -15,10 +15,12 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { AssetIcon } from "@/components/shared/asset-icon";
 import type { SidebarItemProps, CardRowProps } from "@/types/components";
+import type { AccountMetricsSummary } from "@/types";
 import { useAccountSummary, usePositions } from "@/hooks/use-trades";
 import { SIDEBAR_ICONS } from "@/lib/mock-data/sidebar-icons";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
 import { usePriceStream } from "@/hooks/use-price-stream";
+import type { PriceSocketPortfolioMessage } from "@/types/price";
 import { formatTradingSymbolLabel } from "@/lib/utils/market-symbol-icon";
 
 function formatCurrency(value?: number) {
@@ -26,6 +28,72 @@ function formatCurrency(value?: number) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
+}
+
+function toNumber(value: string | number | null | undefined) {
+  if (value == null) {
+    return 0;
+  }
+
+  return typeof value === "number" ? value : Number(value);
+}
+
+function buildLiveAccountSummary(
+  payload: PriceSocketPortfolioMessage,
+  accountId: string,
+  fallback: AccountMetricsSummary | null,
+): AccountMetricsSummary | null {
+  const account = payload.accounts.find((item) => item.id === accountId);
+  const openPositions = payload.positions.filter((position) => position.accountId === accountId && position.status === "OPEN");
+
+  if (!account && !fallback) {
+    return null;
+  }
+
+  const accountTrades = payload.trades.filter((trade) => trade.accountId === accountId);
+  const closedTrades = accountTrades.filter((trade) => trade.status === "CLOSED" && trade.closedAt);
+  const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const closedTradesLast30Days = closedTrades.filter((trade) => {
+    const closedAt = new Date(trade.closedAt ?? trade.openedAt).getTime();
+    return !Number.isNaN(closedAt) && closedAt >= thirtyDaysAgo;
+  });
+
+  const bestAssetBySymbol = new Map<string, { symbol: string; pnl: number; tradeCount: number }>();
+
+  for (const trade of closedTradesLast30Days) {
+    const current = bestAssetBySymbol.get(trade.symbol) ?? {
+      symbol: trade.symbol,
+      pnl: 0,
+      tradeCount: 0,
+    };
+
+    current.pnl += toNumber(trade.pnl);
+    current.tradeCount += 1;
+    bestAssetBySymbol.set(trade.symbol, current);
+  }
+
+  const bestAsset =
+    Array.from(bestAssetBySymbol.values()).sort((left, right) => right.pnl - left.pnl)[0] ??
+    fallback?.bestAsset ??
+    null;
+
+  const winners = closedTrades.filter((trade) => toNumber(trade.pnl) > 0).length;
+  const winRate = closedTrades.length > 0 ? (winners / closedTrades.length) * 100 : fallback?.winRate ?? 0;
+  const floatingPnl = openPositions.reduce((sum, position) => sum + toNumber(position.floatingPnl), 0);
+  const balance = account ? toNumber(account.balance) : fallback?.balance ?? 0;
+  const equity = balance + floatingPnl;
+
+  return {
+    accountId,
+    accountNumber: account?.accountNumber ?? fallback?.accountNumber ?? null,
+    fundingType: account?.fundingType ?? fallback?.fundingType ?? null,
+    name: account?.name ?? fallback?.name ?? "Account",
+    balance,
+    equity,
+    floatingPnl,
+    winRate,
+    bestAsset,
+  };
 }
 
 export function SidebarItem({ icon: Icon, iconSrc, label, href, active, badge }: SidebarItemProps) {
@@ -106,25 +174,79 @@ export function Sidebar({ className }: { className?: string }) {
   const [showBalance, setShowBalance] = React.useState(true);
   const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
   const { data: accountSummary } = useAccountSummary(selectedAccountId);
-  const bestAssetSymbol = accountSummary?.bestAsset?.symbol ?? null;
+  const [liveSummary, setLiveSummary] = React.useState<AccountMetricsSummary | null>(null);
+  const activeSummary = liveSummary ?? accountSummary ?? null;
+  const bestAssetSymbol = activeSummary?.bestAsset?.symbol ?? null;
 
   const { data: openPositions } = usePositions(selectedAccountId);
   const [openOrdersCount, setOpenOrdersCount] = React.useState(0);
 
   React.useEffect(() => {
-    setOpenOrdersCount(openPositions?.positions?.filter((position) => position.status === "OPEN").length ?? 0);
+    if (!openPositions?.positions) {
+      return;
+    }
+
+    setOpenOrdersCount(openPositions.positions.filter((position) => position.status === "OPEN").length);
   }, [openPositions?.positions]);
+
+  React.useEffect(() => {
+    setLiveSummary(null);
+  }, [selectedAccountId]);
+
+  React.useEffect(() => {
+    if (!accountSummary) {
+      return;
+    }
+
+    setLiveSummary(accountSummary);
+  }, [accountSummary, selectedAccountId]);
+
+  const dailyPnlProgress = React.useMemo(() => {
+    const floatingPnl = activeSummary?.floatingPnl ?? 0;
+    const balance = activeSummary?.balance ?? 0;
+
+    if (floatingPnl === 0 || balance <= 0) {
+      return 0;
+    }
+
+    return Math.min(100, Math.max(4, (Math.abs(floatingPnl) / balance) * 10000));
+  }, [activeSummary?.balance, activeSummary?.floatingPnl]);
+
+  const dailyPnlValue = activeSummary?.floatingPnl ?? 0;
+  const dailyPnlIsPositive = dailyPnlValue > 0;
+  const dailyPnlIsNegative = dailyPnlValue < 0;
+  const dailyPnlBarClass = React.useMemo(() => {
+    if (dailyPnlIsPositive) {
+      return "bg-linear-to-r from-primary via-[#1FE1A4] to-[#10B981] shadow-[0_0_10px_rgba(34,224,162,0.55)]";
+    }
+
+    if (dailyPnlIsNegative) {
+      return "bg-linear-to-r from-[#FF4D4D] via-[#EF4444] to-[#B91C1C] shadow-[0_0_10px_rgba(239,68,68,0.55)]";
+    }
+
+    return "bg-neutral-500 shadow-[0_0_8px_rgba(115,115,115,0.35)]";
+  }, [dailyPnlIsNegative, dailyPnlIsPositive]);
 
   usePriceStream({
     enabled: !!selectedAccountId,
     symbols: [],
     accountIds: selectedAccountId ? [selectedAccountId] : [],
     onPortfolio: (payload) => {
+      if (!selectedAccountId) {
+        return;
+      }
+
       const nextCount = payload.positions.filter(
         (position) => position.accountId === selectedAccountId && position.status === "OPEN",
       ).length;
 
       setOpenOrdersCount(nextCount);
+
+      const nextSummary = buildLiveAccountSummary(payload, selectedAccountId, liveSummary);
+
+      if (nextSummary) {
+        setLiveSummary(nextSummary);
+      }
     },
   });
 
@@ -242,11 +364,11 @@ export function Sidebar({ className }: { className?: string }) {
           {/* Card Header & Balance */}
           <div className="flex flex-col gap-1.5">
             <span className="text-[14px] font-regular leading-3.5 text-neutral-400">
-              {accountSummary?.accountNumber || accountSummary?.fundingType || "Account Overview"}
+              {activeSummary?.accountNumber || activeSummary?.fundingType || "Account Overview"}
             </span>
             <div className="flex items-center justify-between">
               <span className="text-[24px] font-medium leading-6 text-white">
-                {showBalance ? formatCurrency(accountSummary?.balance) : "•••••••"}
+                {showBalance ? formatCurrency(activeSummary?.balance) : "•••••••"}
               </span>
               <button
                 onClick={() => setShowBalance(!showBalance)}
@@ -262,14 +384,22 @@ export function Sidebar({ className }: { className?: string }) {
           <div className="flex flex-col gap-1">
             <div className="flex justify-between items-center text-[10px]">
               <span className="text-xs leading-3 text-white/60 font-medium">Daily P&L</span>
-              <span className={cn("font-semibold text-xs", (accountSummary?.floatingPnl ?? 0) >= 0 ? "text-primary" : "text-destructive")}>
-                {formatCurrency(accountSummary?.floatingPnl)}
+              <span
+                className={cn(
+                  "font-semibold text-xs",
+                  dailyPnlIsPositive ? "text-primary" : dailyPnlIsNegative ? "text-destructive" : "text-white/60",
+                )}
+              >
+                {formatCurrency(activeSummary?.floatingPnl)}
               </span>
             </div>
             <div className="w-full bg-neutral-800 h-1.5 rounded-full overflow-hidden mt-1.5">
               <div
-                className="h-full bg-linear-to-r from-primary to-[#10B981] rounded-full shadow-[0_0_8px_rgba(34,224,162,0.4)]"
-                style={{ width: "70%" }}
+                className={cn(
+                  "h-full rounded-full shadow-[0_0_8px_rgba(34,224,162,0.4)] transition-[width,background-color] duration-200 ease-out",
+                  dailyPnlBarClass,
+                )}
+                style={{ width: `${dailyPnlProgress}%` }}
               />
             </div>
           </div>
@@ -280,13 +410,13 @@ export function Sidebar({ className }: { className?: string }) {
               iconSrc={SIDEBAR_ICONS.openPnl}
               label="Open P&L"
               subLabel="Today"
-              value={formatCurrency(accountSummary?.floatingPnl)}
+              value={formatCurrency(activeSummary?.floatingPnl)}
             />
             <CardRow
               iconSrc={SIDEBAR_ICONS.winrate}
               label="Win Rate"
               subLabel="Last 30 Days"
-              value={`${Math.round(accountSummary?.winRate ?? 0)}%`}
+              value={`${Math.round(activeSummary?.winRate ?? 0)}%`}
             />
             <CardRow
               iconSrc={SIDEBAR_ICONS.cupStar}

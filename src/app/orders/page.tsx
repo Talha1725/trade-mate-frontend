@@ -206,7 +206,7 @@ export default function OrdersPage() {
     () =>
       (liveOverview?.trades ?? [])
         .filter((trade) => trade.status === "CLOSED")
-        .slice(0, 8)
+        .slice(0, 6)
         .map(mapPortfolioTradeToRecentTrade),
     [liveOverview?.trades],
   );

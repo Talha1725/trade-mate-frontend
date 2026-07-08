@@ -10,6 +10,7 @@ export type AuthUser = {
   name: string;
   role: UserRole;
   createdAt?: ISODateString;
+  avatarUrl?: string | null;
 };
 
 export type LoginCredentials = {
@@ -19,6 +20,8 @@ export type LoginCredentials = {
 
 export type AuthApiUser = Pick<AuthUser, "id" | "email" | "name" | "role"> & {
   assignedId?: string;
+  avatarUrl?: string | null;
+  createdAt?: ISODateString;
 };
 
 export type AuthLoginResponse = {

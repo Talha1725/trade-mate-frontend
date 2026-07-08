@@ -68,6 +68,14 @@ export const ROUTES = {
     TOP_MOVERS:     `/api/portfolio/top-movers`,
   },
 
+  /** Settings Module */
+  SETTINGS: {
+    OVERVIEW:       `/api/settings/overview`,
+    PROFILE:        `/api/settings/profile`,
+    PASSWORD:       `/api/settings/password`,
+    AVATAR_PRESIGN: `/api/settings/avatar/presign`,
+  },
+
   /** Orders Module */
   ORDERS: {
     OVERVIEW:       `/api/orders/overview`,
