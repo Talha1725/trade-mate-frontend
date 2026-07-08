@@ -25,6 +25,7 @@ export function useOpenTrade() {
     mutationFn: (order: TradeOpenPayload) => terminalApi.placeOrder(order, useAuthStore.getState().session?.token),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["positions"] });
+      queryClient.invalidateQueries({ queryKey: ["account", "summary"] });
     },
   });
 }
@@ -37,6 +38,7 @@ export function useCloseTrade() {
       terminalApi.closeTrade(payload, useAuthStore.getState().session?.token),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["positions"] });
+      queryClient.invalidateQueries({ queryKey: ["account", "summary"] });
     },
   });
 }

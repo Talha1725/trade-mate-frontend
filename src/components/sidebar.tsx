@@ -44,6 +44,7 @@ function buildLiveAccountSummary(
   fallback: AccountMetricsSummary | null,
 ): AccountMetricsSummary | null {
   const account = payload.accounts.find((item) => item.id === accountId);
+  const openPositions = payload.positions.filter((position) => position.accountId === accountId && position.status === "OPEN");
 
   if (!account && !fallback) {
     return null;
@@ -78,15 +79,18 @@ function buildLiveAccountSummary(
 
   const winners = closedTrades.filter((trade) => toNumber(trade.pnl) > 0).length;
   const winRate = closedTrades.length > 0 ? (winners / closedTrades.length) * 100 : fallback?.winRate ?? 0;
+  const floatingPnl = openPositions.reduce((sum, position) => sum + toNumber(position.floatingPnl), 0);
+  const balance = account ? toNumber(account.balance) : fallback?.balance ?? 0;
+  const equity = balance + floatingPnl;
 
   return {
     accountId,
     accountNumber: account?.accountNumber ?? fallback?.accountNumber ?? null,
     fundingType: account?.fundingType ?? fallback?.fundingType ?? null,
     name: account?.name ?? fallback?.name ?? "Account",
-    balance: account ? toNumber(account.balance) : fallback?.balance ?? 0,
-    equity: account ? toNumber(account.equity) : fallback?.equity ?? 0,
-    floatingPnl: account ? toNumber(account.floatingPnl) : fallback?.floatingPnl ?? 0,
+    balance,
+    equity,
+    floatingPnl,
     winRate,
     bestAsset,
   };
