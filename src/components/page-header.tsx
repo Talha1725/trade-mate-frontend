@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { AccountSwitcherDropdown } from "@/components/account-switcher-dropdown";
 import { SymbolSelector } from "@/components/symbol-selector";
 import { HeaderNotificationsDropdown } from "@/components/header-notifications-dropdown";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 import { cn } from "@/lib/utils";
 import {
@@ -23,12 +24,31 @@ import type { PageHeaderProps } from "@/types";
 import { PlaceOrderDialog } from "@/components/place-order-dialog";
 import { useAuthStore } from "@/lib/stores/auth-store";
 
+function getUserInitials(userLabel?: string | null) {
+  if (!userLabel) {
+    return "TM";
+  }
+
+  const initials = userLabel
+    .trim()
+    .split(/[.\s_-]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+
+  return initials || "TM";
+}
+
 export function PageHeader({
   className,
 }: PageHeaderProps) {
   const router = useRouter();
   const signOut = useAuthStore((state) => state.signOut);
-  const userName = useAuthStore((state) => state.session?.user.name || state.session?.user.email || "Trader");
+  const user = useAuthStore((state) => state.session?.user);
+  const userName = user?.name || user?.email || "Trader";
+  const avatarUrl = user?.avatarUrl ?? null;
+  const userInitials = getUserInitials(userName);
 
   const handleSignOut = async () => {
     await signOut();
@@ -73,9 +93,14 @@ export function PageHeader({
 
         <DropdownMenu>
           <DropdownMenuTrigger className="flex cursor-pointer items-center justify-center gap-0 md:gap-2 px-3 py-0.5 rounded-lg border border-border/20 text-white outline-none">
-            <div className="size-8 rounded-full flex items-center justify-center text-sm font-medium">
-              <Image src="/header/at.svg" alt="avatar" width={20} height={20} className="size-5" />
-            </div>
+            <Avatar className="size-8">
+              {avatarUrl ? (
+                <AvatarImage src={avatarUrl} alt={userName} />
+              ) : null}
+              <AvatarFallback className="bg-linear-to-br from-[#0CE9A0] to-[#3B82F6] text-[11px] font-bold text-black">
+                {userInitials}
+              </AvatarFallback>
+            </Avatar>
             <span className="text-sm">{userName}</span>
             <ChevronDown className="size-4 text-white" />
           </DropdownMenuTrigger>

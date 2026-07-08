@@ -243,7 +243,7 @@ export default function AnalyticsPage() {
 
         <PortfolioMetricCards
           cards={analytics.statsCards.map(card => card.id === "net-pnl" ? { ...card, chartValues: undefined } : card)}
-          className="md:grid-cols-2 xl:grid-cols-3 min-[1700px]:grid-cols-6!"
+          className="md:grid-cols-2 xl:grid-cols-3"
         />
 
         <div className="grid grid-cols-1 items-stretch gap-5 md:gap-6 xl:grid-cols-10 2xl:grid-cols-10 min-[1800px]:grid-cols-10">
