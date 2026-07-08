@@ -21,6 +21,7 @@ function AccountStatBox({ stat }: { stat: AccountInformationStat }) {
           className={cn(
             "text-sm font-medium text-white",
             stat.valueTone === "positive" && "text-primary",
+            stat.valueTone === "negative" && "text-destructive",
           )}
         >
           {stat.value}

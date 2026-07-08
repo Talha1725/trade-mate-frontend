@@ -155,7 +155,7 @@ function EditProfileView({ onClose, profile }: SettingsViewProps) {
     <div className="flex flex-col">
       <DialogTitle className="mb-2 text-lg font-semibold text-white">Edit Profile</DialogTitle>
 
-      <div className="mb-3.5 flex items-center gap-28">
+      <div className="mb-3.5 flex items-center gap-4 md:gap-28">
         <label className="shrink-0 text-sm font-medium text-white/50">Profile Image</label>
         <div className="flex items-center gap-5">
           <Avatar size="xl">
@@ -185,7 +185,7 @@ function EditProfileView({ onClose, profile }: SettingsViewProps) {
       </div>
 
       <div className="mb-7 space-y-5">
-        <div className="flex items-center gap-33">
+        <div className="flex items-center gap-4 md:gap-33">
           <label className="shrink-0 text-sm font-medium text-white/50">Full Name</label>
           <div className="flex-1 rounded-[10px] border border-white/20 gradient-btn-bar px-3 py-1.75">
             <input
@@ -196,7 +196,7 @@ function EditProfileView({ onClose, profile }: SettingsViewProps) {
             />
           </div>
         </div>
-        <div className="flex items-center gap-40">
+        <div className="flex items-center gap-10 md:gap-40">
           <label className="shrink-0 text-sm font-medium text-white/50">Email</label>
           <div className="flex-1 rounded-[10px] border border-white/20 gradient-btn-bar px-3 py-1.75 opacity-75">
             <input

@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import Image from "next/image";
+import { Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { AccountInformationCard } from "@/components/settings/account-information-card";
 import { SecurityOverviewCard } from "@/components/settings/security-overview-card";
@@ -63,6 +64,13 @@ export default function SettingsPage() {
       || (user?.email?.slice(0, 2).toUpperCase() ?? "TM");
 
     const stats: AccountInformationStat[] = [
+     
+      {
+        id: "account-number",
+        label: "Account Number",
+        value: account?.accountNumber ?? "N/A",
+        valueTone: "default",
+      },
       {
         id: "funding-type",
         label: "Funding Type",
@@ -73,13 +81,6 @@ export default function SettingsPage() {
         label: "Account Status",
         value: formatAccountStatus(account?.status ?? null),
         valueTone: account?.status === "ACTIVE" ? "positive" : "negative",
-      },
-      {
-        id: "verification",
-        label: "Verification",
-        value: user?.isActive ? "Verified" : "Pending",
-        valueTone: user?.isActive ? "positive" : "default",
-        showVerifiedIcon: user?.isActive ?? false,
       },
     ];
 
@@ -107,6 +108,16 @@ export default function SettingsPage() {
     }),
     [accountInfo.avatarUrl, accountInfo.email, accountInfo.fullName],
   );
+
+  if (isLoading && !overview) {
+    return (
+      <AppShell>
+        <div className="flex h-[80vh] w-full items-center justify-center">
+          <Loader2 className="size-8 animate-spin text-primary" />
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>

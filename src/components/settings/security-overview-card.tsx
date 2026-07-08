@@ -132,7 +132,7 @@ export function SecurityOverviewCard({
           disabled={isSubmitting}
           className="mt-2 inline-flex w-fit cursor-pointer items-center rounded-xl btn-green px-6 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
         >
-          {isSubmitting ? "Updating..." : "Change Password"}
+          {isSubmitting ? "Changing..." : "Change Password"}
         </button>
       </form>
     </article>
