@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
 import { settingsApi } from "@/lib/services/settings.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
+import { Spinner } from "@/components/ui/spinner";
 import type { SecurityOverviewCardProps } from "@/types/security-overview-card";
 
 export function SecurityOverviewCard({
@@ -132,7 +133,14 @@ export function SecurityOverviewCard({
           disabled={isSubmitting}
           className="mt-2 inline-flex w-fit cursor-pointer items-center rounded-xl btn-green px-6 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
         >
-          {isSubmitting ? "Changing..." : "Change Password"}
+          {isSubmitting ? (
+            <>
+              <Spinner className="mr-2 size-4" />
+              Changing...
+            </>
+          ) : (
+            "Change Password"
+          )}
         </button>
       </form>
     </article>
