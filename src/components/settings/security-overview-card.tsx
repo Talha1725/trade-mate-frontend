@@ -1,32 +1,64 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
+import { settingsApi } from "@/lib/services/settings.api";
+import { useAuthStore } from "@/lib/stores/auth-store";
 import type { SecurityOverviewCardProps } from "@/types/security-overview-card";
 
 export function SecurityOverviewCard({
   className,
 }: SecurityOverviewCardProps) {
+  const router = useRouter();
+  const signOut = useAuthStore((state) => state.signOut);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isSubmitting) {
+      return;
+    }
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast.error("Please complete all password fields.");
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
       toast.error("Passwords do not match");
       return;
     }
-    toast.success("Password changed successfully!");
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
+
+    setIsSubmitting(true);
+
+    try {
+      await settingsApi.updatePassword({
+        currentPassword,
+        newPassword,
+      });
+
+      toast.success("Password changed successfully. Please sign in again.");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      await signOut();
+      router.replace("/login");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to update password.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -97,9 +129,10 @@ export function SecurityOverviewCard({
         </div>
         <button
           type="submit"
-          className="mt-2 inline-flex w-fit cursor-pointer items-center rounded-xl btn-green px-6 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+          disabled={isSubmitting}
+          className="mt-2 inline-flex w-fit cursor-pointer items-center rounded-xl btn-green px-6 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
         >
-          Apply Changes
+          {isSubmitting ? "Updating..." : "Change Password"}
         </button>
       </form>
     </article>

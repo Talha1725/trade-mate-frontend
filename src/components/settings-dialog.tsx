@@ -1,21 +1,20 @@
 "use client";
-import { RiEyeCloseLine } from "react-icons/ri";
+
 import * as React from "react";
 import Image from "next/image";
-import { X, Calendar, CheckCircle2, Eye, EyeOff, ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { CheckCircle2, Eye, X } from "lucide-react";
+import { RiEyeCloseLine } from "react-icons/ri";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogClose,
-} from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { SettingsDialogView, SettingsDialogProps, SettingsViewProps } from "@/types/settings";
-import { cn } from "@/lib/utils";
+import { settingsApi } from "@/lib/services/settings.api";
+import { useAuthStore } from "@/lib/stores/auth-store";
+import type { SettingsDialogProps, SettingsProfile, SettingsViewProps } from "@/types/settings";
 
-export function SettingsDialog({ view, onViewChange }: SettingsDialogProps) {
+export function SettingsDialog({ view, onViewChange, profile }: SettingsDialogProps) {
   const isOpen = view !== null;
 
   const heightMap: Record<string, string> = {
@@ -32,69 +31,178 @@ export function SettingsDialog({ view, onViewChange }: SettingsDialogProps) {
         style={{ minHeight: view ? heightMap[view] : "auto" }}
         showCloseButton={false}
       >
-        {/* Absolute Close Button */}
         <DialogClose
           render={
-            <button className="absolute top-6 right-6 size-5 rounded-full bg-white hover:opacity-90 transition-opacity text-black flex items-center justify-center cursor-pointer">
+            <button className="absolute top-6 right-6 flex size-5 cursor-pointer items-center justify-center rounded-full bg-white text-black transition-opacity hover:opacity-90">
               <X className="size-3.5" />
               <span className="sr-only">Close</span>
             </button>
           }
         />
 
-        {view === "edit-profile" && <EditProfileView onClose={() => onViewChange(null)} />}
+        {view === "edit-profile" && (
+          <EditProfileView profile={profile} onClose={() => onViewChange(null)} />
+        )}
         {view === "change-password" && <ChangePasswordView onClose={() => onViewChange(null)} />}
-        {view === "email-verification" && <EmailVerificationView onClose={() => onViewChange(null)} />}
+        {view === "email-verification" && (
+          <EmailVerificationView profile={profile} onClose={() => onViewChange(null)} />
+        )}
         {view === "billing-history" && <BillingHistoryView onClose={() => onViewChange(null)} />}
       </DialogContent>
     </Dialog>
   );
 }
 
-function EditProfileView({ onClose }: SettingsViewProps) {
+function EditProfileView({ onClose, profile }: SettingsViewProps) {
+  const queryClient = useQueryClient();
+  const [fullName, setFullName] = React.useState(profile?.fullName ?? "");
+  const [email] = React.useState(profile?.email ?? "");
+  const [avatarUrl, setAvatarUrl] = React.useState<string | null>(profile?.avatarUrl ?? null);
+  const [isSaving, setIsSaving] = React.useState(false);
+  const [isUploading, setIsUploading] = React.useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  React.useEffect(() => {
+    setFullName(profile?.fullName ?? "");
+    setAvatarUrl(profile?.avatarUrl ?? null);
+  }, [profile?.avatarUrl, profile?.fullName]);
+
+  const initials =
+    fullName
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? "")
+      .join("") || (email.slice(0, 2).toUpperCase() ?? "TM");
+
+  async function refreshProfile() {
+    await useAuthStore.getState().loadSession();
+    await queryClient.invalidateQueries({ queryKey: ["settings", "overview"] });
+  }
+
+  async function handleAvatarChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    event.target.value = "";
+
+    if (!file) {
+      return;
+    }
+
+    if (!/^image\/(png|jpe?g|webp)$/i.test(file.type)) {
+      toast.error("Please upload a PNG, JPG, or WEBP image.");
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      const presign = await settingsApi.createAvatarPresign({
+        fileName: file.name,
+        contentType: file.type,
+      });
+
+      const uploadResponse = await fetch(presign.uploadUrl, {
+        method: presign.method,
+        headers: presign.headers,
+        body: file,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error("Failed to upload avatar to S3.");
+      }
+
+      const updated = await settingsApi.updateProfile({
+        avatarUrl: presign.publicUrl,
+      });
+
+      setAvatarUrl(updated.user.avatarUrl ?? presign.publicUrl);
+      await refreshProfile();
+      toast.success("Profile image updated.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to upload profile image.");
+    } finally {
+      setIsUploading(false);
+    }
+  }
+
+  async function handleSave() {
+    const trimmedName = fullName.trim();
+
+    if (!trimmedName) {
+      toast.error("Full name is required.");
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      await settingsApi.updateProfile({
+        name: trimmedName,
+      });
+
+      await refreshProfile();
+      toast.success("Profile updated.");
+      onClose();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to update profile.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   return (
     <div className="flex flex-col">
-      <DialogTitle className="text-lg font-semibold text-white mb-2">Edit Profile</DialogTitle>
+      <DialogTitle className="mb-2 text-lg font-semibold text-white">Edit Profile</DialogTitle>
 
-      <div className="flex items-center mb-3.5 gap-28">
-        <label className="text-sm font-medium text-white/50 shrink-0">Profile Image</label>
+      <div className="mb-3.5 flex items-center gap-28">
+        <label className="shrink-0 text-sm font-medium text-white/50">Profile Image</label>
         <div className="flex items-center gap-5">
           <Avatar size="xl">
-            <AvatarFallback className="bg-[#2a2b35] overflow-hidden">
-              <Image src="/profile icon.svg" alt="Profile" width={64} height={64} className="size-full object-cover" />
-            </AvatarFallback>
+            {avatarUrl ? <AvatarImage src={avatarUrl} alt={fullName || email || "Profile"} /> : null}
+            <AvatarFallback className="overflow-hidden bg-[#2a2b35] text-black">{initials}</AvatarFallback>
           </Avatar>
           <div>
-            <div className="text-sm font-medium text-white mb-1">Upload Image</div>
-            <div className="text-sm font-normal text-white/60 mb-2">Min 400x400px, PNG or JPEG</div>
+            <div className="mb-1 text-sm font-medium text-white">Upload Image</div>
+            <div className="mb-2 text-sm font-normal text-white/60">Min 400x400px, PNG or JPEG</div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/jpg,image/webp"
+              className="hidden"
+              onChange={handleAvatarChange}
+            />
             <button
               type="button"
-              onClick={() => toast.info("Profile image upload is not enabled for this account yet.")}
-              className="text-sm font-medium cursor-pointer text-white px-3.5 py-1.75 rounded-[10px] gradient-btn-upload border border-white/3 hover:bg-[#333] transition-colors"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              className="gradient-btn-upload cursor-pointer rounded-[10px] border border-white/3 px-3.5 py-1.75 text-sm font-medium text-white transition-colors hover:bg-[#333] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Upload
+              {isUploading ? "Uploading..." : "Upload"}
             </button>
           </div>
         </div>
       </div>
 
-      <div className="space-y-5 mb-7">
+      <div className="mb-7 space-y-5">
         <div className="flex items-center gap-33">
-          <label className="text-sm font-medium text-white/50 shrink-0">Full Name</label>
-          <div className="flex-1 rounded-[10px] gradient-btn-bar border border-white/20 px-3 py-1.75">
+          <label className="shrink-0 text-sm font-medium text-white/50">Full Name</label>
+          <div className="flex-1 rounded-[10px] border border-white/20 gradient-btn-bar px-3 py-1.75">
             <input
               type="text"
-              defaultValue="Alex Travis"
-              className="w-full bg-transparent text-sm font-medium text-white  outline-none"
+              value={fullName}
+              onChange={(event) => setFullName(event.target.value)}
+              className="w-full bg-transparent text-sm font-medium text-white outline-none"
             />
           </div>
         </div>
         <div className="flex items-center gap-40">
-          <label className="text-sm font-medium text-white/50 shrink-0">Email</label>
-          <div className="flex-1 rounded-[10px] gradient-btn-bar border border-white/20 px-3 py-1.75">
+          <label className="shrink-0 text-sm font-medium text-white/50">Email</label>
+          <div className="flex-1 rounded-[10px] border border-white/20 gradient-btn-bar px-3 py-1.75 opacity-75">
             <input
               type="email"
-              defaultValue="alex.travis@gmail.com"
+              value={email}
+              readOnly
               className="w-full bg-transparent text-sm font-medium text-white outline-none"
             />
           </div>
@@ -104,16 +212,17 @@ function EditProfileView({ onClose }: SettingsViewProps) {
       <div className="flex gap-6">
         <button
           onClick={onClose}
-          className="flex-1 cursor-pointer rounded-[10px] py-2.25 text-sm font-medium text-white gradient-btn-cancel border border-white/20 transition-colors"
+          className="gradient-btn-cancel flex-1 cursor-pointer rounded-[10px] border border-white/20 py-2.25 text-sm font-medium text-white transition-colors hover:bg-white/10"
         >
           Cancel
         </button>
         <button
           type="button"
-          onClick={() => toast.info("Profile updates are not enabled for this account yet.")}
-          className="flex-1 cursor-pointer rounded-[10px] py-2.25 text-base font-medium text-white trade-btn"
+          onClick={handleSave}
+          disabled={isSaving}
+          className="trade-btn flex-1 cursor-pointer rounded-[10px] py-2.25 text-base font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
         >
-          Save Changes
+          {isSaving ? "Saving..." : "Save Changes"}
         </button>
       </div>
     </div>
@@ -121,51 +230,112 @@ function EditProfileView({ onClose }: SettingsViewProps) {
 }
 
 function ChangePasswordView({ onClose }: SettingsViewProps) {
+  const router = useRouter();
   const [showCurrent, setShowCurrent] = React.useState(false);
   const [showNew, setShowNew] = React.useState(false);
   const [showConfirm, setShowConfirm] = React.useState(false);
+  const [currentPassword, setCurrentPassword] = React.useState("");
+  const [newPassword, setNewPassword] = React.useState("");
+  const [confirmPassword, setConfirmPassword] = React.useState("");
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const signOut = useAuthStore((state) => state.signOut);
+
+  async function handleSubmit() {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast.error("Please complete all password fields.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error("New password and confirmation do not match.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await settingsApi.updatePassword({
+        currentPassword,
+        newPassword,
+      });
+      toast.success("Password updated. Please sign in again.");
+      onClose();
+      await signOut();
+      router.replace("/login");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to update password.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <div className="flex flex-col">
-      <DialogTitle className="text-base font-semibold text-white mb-6.5">Change Password</DialogTitle>
+      <DialogTitle className="mb-6.5 text-base font-semibold text-white">Change Password</DialogTitle>
 
-      <div className="space-y-4 mb-6.5">
+      <div className="mb-6.5 space-y-4">
         <div className="flex items-center gap-27">
-          <label className="text-sm font-medium text-white/50 shrink-0">Current Password</label>
-          <div className="flex-1 rounded-[10px] border border-white/20 bg-linear-to-b from-[#6E6E6E1A] to-[#13131505] px-3 py-1.5 flex items-center justify-between">
+          <label className="shrink-0 text-sm font-medium text-white/50">Current Password</label>
+          <div className="flex flex-1 items-center justify-between rounded-[10px] border border-white/20 bg-linear-to-b from-[#6E6E6E1A] to-[#13131505] px-3 py-1.5">
             <input
               type={showCurrent ? "text" : "password"}
-              defaultValue="dW3z5hgUi!&^"
+              value={currentPassword}
+              onChange={(event) => setCurrentPassword(event.target.value)}
               className="w-full bg-transparent text-sm font-medium text-white outline-none"
             />
-            <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="p-1 -mr-1 hover:opacity-80 transition-opacity cursor-pointer">
-              {showCurrent ? <RiEyeCloseLine className="size-4 text-white shrink-0" /> : <Eye className="size-4 text-white/50 shrink-0" />}
+            <button
+              type="button"
+              onClick={() => setShowCurrent(!showCurrent)}
+              className="hover:opacity-80 -mr-1 cursor-pointer p-1 transition-opacity"
+            >
+              {showCurrent ? (
+                <RiEyeCloseLine className="size-4 shrink-0 text-white" />
+              ) : (
+                <Eye className="size-4 shrink-0 text-white/50" />
+              )}
             </button>
           </div>
         </div>
         <div className="flex items-center gap-32">
-          <label className="text-sm font-medium text-white/50 shrink-0">New Password</label>
-          <div className="flex-1 rounded-[10px] border border-white/20 bg-linear-to-b from-[#6E6E6E1A] to-white/3 px-3 py-1.5 flex items-center justify-between">
+          <label className="shrink-0 text-sm font-medium text-white/50">New Password</label>
+          <div className="flex flex-1 items-center justify-between rounded-[10px] border border-white/20 bg-linear-to-b from-[#6E6E6E1A] to-white/3 px-3 py-1.5">
             <input
               type={showNew ? "text" : "password"}
-              defaultValue=".........."
+              value={newPassword}
+              onChange={(event) => setNewPassword(event.target.value)}
               className="w-full bg-transparent text-sm font-medium text-white outline-none"
             />
-            <button type="button" onClick={() => setShowNew(!showNew)} className="p-1 -mr-1 hover:opacity-80 transition-opacity cursor-pointer">
-              {showNew ? <RiEyeCloseLine className="size-4 text-white shrink-0" /> : <Eye className="size-4 text-white/50 shrink-0" />}
+            <button
+              type="button"
+              onClick={() => setShowNew(!showNew)}
+              className="hover:opacity-80 -mr-1 cursor-pointer p-1 transition-opacity"
+            >
+              {showNew ? (
+                <RiEyeCloseLine className="size-4 shrink-0 text-white" />
+              ) : (
+                <Eye className="size-4 shrink-0 text-white/50" />
+              )}
             </button>
           </div>
         </div>
         <div className="flex items-center gap-18">
-          <label className="text-sm font-medium text-white/50 shrink-0">Confirm New Password</label>
-          <div className="flex-1 rounded-[10px] border border-white/20 bg-linear-to-b from-[#6E6E6E1A] to-white/3 px-3 py-1.5 flex items-center justify-between">
+          <label className="shrink-0 text-sm font-medium text-white/50">Confirm New Password</label>
+          <div className="flex flex-1 items-center justify-between rounded-[10px] border border-white/20 bg-linear-to-b from-[#6E6E6E1A] to-white/3 px-3 py-1.5">
             <input
               type={showConfirm ? "text" : "password"}
-              defaultValue=".........."
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
               className="w-full bg-transparent text-sm font-medium text-white outline-none"
             />
-            <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="p-1 -mr-1 hover:opacity-80 transition-opacity cursor-pointer">
-              {showConfirm ? <RiEyeCloseLine className="size-4 text-white shrink-0" /> : <Eye className="size-4 text-white/50 shrink-0" />}
+            <button
+              type="button"
+              onClick={() => setShowConfirm(!showConfirm)}
+              className="hover:opacity-80 -mr-1 cursor-pointer p-1 transition-opacity"
+            >
+              {showConfirm ? (
+                <RiEyeCloseLine className="size-4 shrink-0 text-white" />
+              ) : (
+                <Eye className="size-4 shrink-0 text-white/50" />
+              )}
             </button>
           </div>
         </div>
@@ -174,31 +344,32 @@ function ChangePasswordView({ onClose }: SettingsViewProps) {
       <div className="flex gap-6">
         <button
           onClick={onClose}
-          className="flex-1 cursor-pointer rounded-[10px] py-2.25 text-sm font-medium text-white gradient-btn-cancel border border-white/20 hover:bg-white/10 transition-colors"
+          className="gradient-btn-cancel flex-1 cursor-pointer rounded-[10px] border border-white/20 py-2.25 text-sm font-medium text-white transition-colors hover:bg-white/10"
         >
           Cancel
         </button>
         <button
           type="button"
-          onClick={() => toast.info("Password changes are not enabled for this account yet.")}
-          className="flex-1 cursor-pointer rounded-[10px] py-2.25 text-base font-medium text-white trade-btn"
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+          className="trade-btn flex-1 cursor-pointer rounded-[10px] py-2.25 text-base font-medium text-white disabled:cursor-not-allowed disabled:opacity-70"
         >
-          Update Password
+          {isSubmitting ? "Updating..." : "Update Password"}
         </button>
       </div>
     </div>
   );
 }
 
-function EmailVerificationView({ onClose }: SettingsViewProps) {
+function EmailVerificationView({ onClose, profile }: SettingsViewProps) {
   return (
     <div className="flex flex-col">
-      <DialogTitle className="text-lg font-semibold text-white mb-7">Email Verification</DialogTitle>
+      <DialogTitle className="mb-7 text-lg font-semibold text-white">Email Verification</DialogTitle>
 
       <div className="space-y-8">
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium text-white/50">Email Address</span>
-          <span className="text-sm font-medium text-white">alex.travis@gmail.com</span>
+          <span className="text-sm font-medium text-white">{profile?.email ?? "—"}</span>
         </div>
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium text-white/50">Status</span>
@@ -208,17 +379,26 @@ function EmailVerificationView({ onClose }: SettingsViewProps) {
           </div>
         </div>
         <div className="flex items-start justify-between gap-4">
-          <p className="text-sm font-normal text-white/50 max-w-[350px]">
-            Your email is verified. You will receive importance account notifications.
+          <p className="max-w-[350px] text-sm font-normal text-white/50">
+            Your email is verified. You will receive important account notifications.
           </p>
           <button
             type="button"
             onClick={() => toast.info("Email verification settings are not editable yet.")}
-            className="text-sm font-medium cursor-pointer text-destructive bg-destructive/10 border border-destructive/8 px-4 py-2 rounded-[10px] hover:bg-destructive/20 transition-colors shrink-0"
+            className="shrink-0 rounded-[10px] border border-destructive/8 bg-destructive/10 px-4 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20"
           >
             Disable
           </button>
         </div>
+      </div>
+
+      <div className="mt-8 flex gap-6">
+        <button
+          onClick={onClose}
+          className="gradient-btn-cancel flex-1 cursor-pointer rounded-[10px] border border-white/20 py-3 text-sm font-medium text-white transition-colors hover:bg-white/10"
+        >
+          Cancel
+        </button>
       </div>
     </div>
   );
@@ -233,9 +413,9 @@ function BillingHistoryView({ onClose }: SettingsViewProps) {
 
   return (
     <div className="flex flex-col">
-      <DialogTitle className="text-lg leading-4.5 font-semibold text-white mb-6">Billing History</DialogTitle>
+      <DialogTitle className="mb-6 text-lg font-semibold leading-4.5 text-white">Billing History</DialogTitle>
 
-      <div className="space-y-4 mb-6">
+      <div className="mb-6 space-y-4">
         {history.map((item, i) => (
           <div key={i} className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -243,7 +423,7 @@ function BillingHistoryView({ onClose }: SettingsViewProps) {
                 <Image src="/calendar.svg" alt="Calendar" width={32} height={32} className="size-8" />
               </div>
               <div>
-                <div className="text-sm leading-3.5 font-medium text-white mb-0.5">{item.date}</div>
+                <div className="mb-0.5 text-sm font-medium leading-3.5 text-white">{item.date}</div>
                 <div className="text-xs font-normal leading-3 text-white/50">{item.type}</div>
               </div>
             </div>
@@ -252,21 +432,21 @@ function BillingHistoryView({ onClose }: SettingsViewProps) {
         ))}
       </div>
 
-      <div className="text-center text-sm leading-3.5 font-normal text-white/50 mb-8">
+      <div className="mb-8 text-center text-sm font-normal leading-3.5 text-white/50">
         No more data available
       </div>
 
       <div className="flex gap-6">
         <button
           onClick={onClose}
-          className="flex-1 cursor-pointer rounded-[10px] py-3 text-sm font-medium text-white gradient-btn-cancel hover:bg-[#333] transition-colors"
+          className="gradient-btn-cancel flex-1 cursor-pointer rounded-[10px] border border-white/20 py-3 text-sm font-medium text-white transition-colors hover:bg-[#333]"
         >
           Cancel
         </button>
         <button
           type="button"
           onClick={() => toast.info("Billing changes are not enabled for free accounts.")}
-          className="flex-1 cursor-pointer rounded-[10px] py-3 text-base font-semibold text-white trade-btn"
+          className="trade-btn flex-1 cursor-pointer rounded-[10px] py-3 text-base font-semibold text-white"
         >
           Manage Billing
         </button>
