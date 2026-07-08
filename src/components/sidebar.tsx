@@ -178,7 +178,11 @@ export function Sidebar({ className }: { className?: string }) {
   const [openOrdersCount, setOpenOrdersCount] = React.useState(0);
 
   React.useEffect(() => {
-    setOpenOrdersCount(openPositions?.positions?.filter((position) => position.status === "OPEN").length ?? 0);
+    if (!openPositions?.positions) {
+      return;
+    }
+
+    setOpenOrdersCount(openPositions.positions.filter((position) => position.status === "OPEN").length);
   }, [openPositions?.positions]);
 
   React.useEffect(() => {
@@ -186,7 +190,11 @@ export function Sidebar({ className }: { className?: string }) {
   }, [selectedAccountId]);
 
   React.useEffect(() => {
-    setLiveSummary(accountSummary ?? null);
+    if (!accountSummary) {
+      return;
+    }
+
+    setLiveSummary(accountSummary);
   }, [accountSummary, selectedAccountId]);
 
   const dailyPnlProgress = React.useMemo(() => {

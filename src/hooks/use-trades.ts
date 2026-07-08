@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { terminalApi } from "@/lib/services/terminal.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import type { TradeClosePayload, TradeOpenPayload } from "@/types";
@@ -12,6 +12,7 @@ export function usePositions(accountId?: string | null) {
     queryFn: () => terminalApi.getOpenPositions(token ?? undefined, accountId ?? undefined),
     enabled: !!token && !!accountId,
     staleTime: Infinity,
+    placeholderData: keepPreviousData,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
@@ -48,6 +49,7 @@ export function useAccountSummary(accountId?: string | null) {
     enabled: !!token && !!accountId,
     queryFn: () => accountSummaryApi.getAccountSummary(token ?? undefined, accountId ?? undefined),
     staleTime: Infinity,
+    placeholderData: keepPreviousData,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
