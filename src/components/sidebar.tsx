@@ -80,8 +80,8 @@ function buildLiveAccountSummary(
   const winners = closedTrades.filter((trade) => toNumber(trade.pnl) > 0).length;
   const winRate = closedTrades.length > 0 ? (winners / closedTrades.length) * 100 : fallback?.winRate ?? 0;
   const floatingPnl = openPositions.reduce((sum, position) => sum + toNumber(position.floatingPnl), 0);
-  const balance = account ? toNumber(account.balance) : fallback?.balance ?? 0;
-  const equity = balance + floatingPnl;
+  const balance = account ? Math.max(0, toNumber(account.balance) - toNumber(account.marginUsed)) : fallback?.balance ?? 0;
+  const equity = account ? toNumber(account.equity) : balance + floatingPnl;
 
   return {
     accountId,
