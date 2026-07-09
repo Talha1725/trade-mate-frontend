@@ -25,6 +25,7 @@ export type OrderBookSnapshot = {
 
 export type OrderBookCardProps = {
   title?: string;
+  assetLabel?: string | null;
   snapshot?: OrderBookSnapshot | null;
   sizeLabel?: string;
   assetClass?: string | null;

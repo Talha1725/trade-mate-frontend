@@ -153,6 +153,7 @@ function OrderBookTableHeader({ sizeLabel }: { sizeLabel: string }) {
 
 export function OrderBookCard({
   title = "Order Book",
+  assetLabel = null,
   snapshot,
   sizeLabel = "BTC",
   assetClass = null,
@@ -160,6 +161,7 @@ export function OrderBookCard({
   className,
 }: OrderBookCardProps) {
   const [sortBy, setSortBy] = useState<OrderBookSortOption>("default");
+  const resolvedTitle = assetLabel ? `${title} - ${assetLabel}` : title;
   const asks = useMemo(
     () => withCumulativeTotals(sortOrderBookRows(snapshot?.asks ?? [], sortBy, "ask")),
     [snapshot?.asks, sortBy],
@@ -177,7 +179,7 @@ export function OrderBookCard({
         )}
       >
         <div className="mb-5 flex items-center justify-between gap-3">
-          <h3 className="text-base font-semibold text-white md:text-lg">{title}</h3>
+          <h3 className="text-base font-semibold text-white md:text-lg">{resolvedTitle}</h3>
         </div>
         <div className="flex min-h-[260px] items-center justify-center rounded-[18px] border border-dashed border-white/15 bg-white/5 px-4 text-center text-sm text-white/45">
           Market depth simulated from EODHD live price data will appear here.
@@ -194,7 +196,7 @@ export function OrderBookCard({
       )}
     >
       <div className="mb-5 flex items-center justify-between gap-3">
-        <h3 className="text-base font-semibold text-white md:text-lg">{title}</h3>
+        <h3 className="text-base font-semibold text-white md:text-lg">{resolvedTitle}</h3>
 
         <Select
           value={sortBy}

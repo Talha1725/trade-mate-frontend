@@ -37,6 +37,15 @@ function normalizeCompareAssetId(
   return compareAssetId;
 }
 
+function getPreferredAssetId(assets: { id: string; symbol: string; category: string }[]) {
+  const preferredAsset =
+    assets.find((asset) => asset.symbol.toUpperCase() === "EURUSD") ??
+    assets.find((asset) => asset.category === "FOREX") ??
+    assets[0];
+
+  return preferredAsset?.id ?? "";
+}
+
 export const useMarketSelectionStore = create<MarketSelectionStore>()(
   persist(
     (set, get) => ({
@@ -82,7 +91,7 @@ export const useMarketSelectionStore = create<MarketSelectionStore>()(
       },
       syncAssets: (assets) => {
         const validAssetIds = new Set(assets.map((asset) => asset.id));
-        const fallbackId = assets[0]?.id ?? "";
+        const fallbackId = getPreferredAssetId(assets);
         const state = get();
 
         if (validAssetIds.size === 0) {

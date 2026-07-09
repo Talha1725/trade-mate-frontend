@@ -50,12 +50,12 @@ export function AppShell({
 
           {/* Right: Notification + Hamburger */}
           <div className="flex items-center gap-3">
-            <button className="relative p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition-colors">
+            {/* <button className="relative p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition-colors">
               <Bell className="size-5" />
               <span className="absolute -top-1 -right-1 size-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center">
                 3
               </span>
-            </button>
+            </button> */}
             <Drawer direction="left">
               <DrawerTrigger asChild>
                 <button className="p-2 rounded-lg border border-neutral-700 text-neutral-300 hover:bg-neutral-800 transition-colors">

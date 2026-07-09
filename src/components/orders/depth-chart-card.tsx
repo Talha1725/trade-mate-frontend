@@ -65,6 +65,7 @@ function DepthLegendItem({
 
 export function DepthChartCard({
   title = "Depth Chart",
+  assetLabel = null,
   dataByLevel = mockDepthChartData,
   defaultLevel = "100",
   priceMin = DEPTH_CHART_PRICE_MIN,
@@ -79,6 +80,7 @@ export function DepthChartCard({
   const bidGradientId = useId().replace(/:/g, "");
   const askGradientId = useId().replace(/:/g, "");
   const [depthLevel, setDepthLevel] = useState<DepthChartLevel>(defaultLevel);
+  const resolvedTitle = assetLabel ? `${title} - ${assetLabel}` : title;
   const chartData = useMemo(() => dataByLevel[depthLevel] ?? [], [dataByLevel, depthLevel]);
   const bidPoint = useMemo(() => {
     let latestBidPoint = null as (typeof chartData)[number] | null;
@@ -102,7 +104,7 @@ export function DepthChartCard({
     >
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="space-y-3">
-          <h3 className="text-base font-semibold text-white md:text-lg">{title}</h3>
+          <h3 className="text-base font-semibold text-white md:text-lg">{resolvedTitle}</h3>
           <div className="flex items-center gap-5">
             <DepthLegendItem label="Bids" tone="bid" />
             <DepthLegendItem label="Asks" tone="ask" />

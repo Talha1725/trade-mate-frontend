@@ -42,6 +42,7 @@ import {
 } from "@/lib/utils/trader-data";
 import type { OrderOverviewResponse } from "@/types/orders";
 import type { PriceSocketPortfolioMessage, PriceSocketQuote } from "@/types/price";
+import type { TradingFilterBarAsset } from "@/types/trading-filter-bar";
 
 function AssetSelectLabel({
   symbol,
@@ -77,6 +78,17 @@ function resolveOrdersInterval(timeframe: string) {
   }
 }
 
+function getPreferredAsset(
+  assets: TradingFilterBarAsset[],
+) {
+  return (
+    assets.find((asset) => asset.symbol.toUpperCase() === "EURUSD") ??
+    assets.find((asset) => asset.category === "FOREX") ??
+    assets[0] ??
+    null
+  );
+}
+
 export default function OrdersPage() {
   const token = useAuthStore((state) => state.session?.token ?? null);
   const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
@@ -91,10 +103,10 @@ export default function OrdersPage() {
   const availableAccounts = React.useMemo(() => userAccounts?.accounts ?? [], [userAccounts?.accounts]);
 
   const selectedAsset = React.useMemo(
-    () => tradingAssets.find((asset) => asset.id === selectedMarketId) ?? tradingAssets[0] ?? null,
+    () => tradingAssets.find((asset) => asset.id === selectedMarketId) ?? getPreferredAsset(tradingAssets),
     [selectedMarketId, tradingAssets],
   );
-  const selectedSymbol = selectedAsset?.symbol ?? "BTCUSDT";
+  const selectedSymbol = selectedAsset?.symbol ?? "EURUSD";
   const sizeLabel = React.useMemo(() => sizeLabelFromSymbol(selectedSymbol), [selectedSymbol]);
 
   const resolvedAccountId = React.useMemo(() => {
@@ -378,6 +390,7 @@ export default function OrdersPage() {
             priceMax={depthChart.priceMax}
             centerPrice={depthChart.centerPrice}
             axisTicks={depthChart.axisTicks}
+            assetLabel={selectedAsset?.label ?? null}
             symbol={selectedSymbol}
             assetClass={selectedAsset?.category ?? null}
             isLoading={overview === null}
@@ -387,6 +400,7 @@ export default function OrdersPage() {
         <OrderBookCard
           snapshot={orderBook}
           sizeLabel={sizeLabel}
+          assetLabel={selectedAsset?.label ?? null}
           symbol={selectedSymbol}
           assetClass={selectedAsset?.category ?? null}
         />

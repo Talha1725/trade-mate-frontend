@@ -22,10 +22,10 @@ import { cn } from "@/lib/utils";
 import type { AssetCategory } from "@/types/asset";
 import type { TradingFilterBarAsset } from "@/types/trading-filter-bar";
 
-const CATEGORY_ORDER: AssetCategory[] = ["CRYPTO", "FOREX", "COMMODITIES", "INDICES", "STOCK"];
+const CATEGORY_ORDER: AssetCategory[] = [ "FOREX", "CRYPTO", "COMMODITIES", "INDICES", "STOCK"];
 const CATEGORY_LABELS: Record<AssetCategory, string> = {
-  CRYPTO: "Crypto",
   FOREX: "Forex",
+  CRYPTO: "Crypto",
   COMMODITIES: "Commodities",
   INDICES: "Indices",
   STOCK: "Stocks",
