@@ -8,6 +8,7 @@ export type DepthChartPoint = {
 
 export type DepthChartCardProps = {
   title?: string;
+  assetLabel?: string | null;
   dataByLevel?: Record<DepthChartLevel, DepthChartPoint[]>;
   defaultLevel?: DepthChartLevel;
   priceMin?: number;

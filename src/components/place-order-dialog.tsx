@@ -36,7 +36,7 @@ import type { PriceSocketQuote } from "@/types/price";
 export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = React.useState(false);
   const [side, setSide] = React.useState<"Buy" | "Sell">("Buy");
-  const symbol = useSelectedSymbol() ?? "BTCUSD";
+  const symbol = useSelectedSymbol() ?? "EURUSD";
   const setSymbol = useSetSelectedSymbol();
   const [loadSize, setLoadSize] = React.useState("0.01");
   const [stopLoss, setStopLoss] = React.useState("");

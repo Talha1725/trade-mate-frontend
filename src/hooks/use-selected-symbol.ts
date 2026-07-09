@@ -5,6 +5,15 @@ import * as React from "react";
 import { useAssets } from "@/hooks/use-assets";
 import { useMarketSelectionStore } from "@/lib/stores/market-selection-store";
 
+function getPreferredSymbol(assets: { symbol: string; category: string }[]) {
+  return (
+    assets.find((asset) => asset.symbol.toUpperCase() === "EURUSD")?.symbol ??
+    assets.find((asset) => asset.category === "FOREX")?.symbol ??
+    assets[0]?.symbol ??
+    null
+  );
+}
+
 /**
  * The globally-selected trading symbol, derived from the market-selection store's
  * selected asset id + the synced assets list. This is the single source of truth
@@ -21,8 +30,7 @@ export function useSelectedSymbol(): string | null {
 
     return (
       assets.find((asset) => asset.id === selectedMarketId)?.symbol ??
-      assets[0]?.symbol ??
-      null
+      getPreferredSymbol(assets)
     );
   }, [assets, selectedMarketId]);
 }
