@@ -49,19 +49,25 @@ export function AccountSwitcherDropdown({
 }: AccountSwitcherDropdownProps) {
   const { data } = useUserAccounts();
   const selectedAccountFromStore = useSelectedAccountStore((state) => state.selectedAccountId);
+  const hasHydrated = useSelectedAccountStore((state) => state.hasHydrated);
   const setSelectedAccountId = useSelectedAccountStore((state) => state.setSelectedAccountId);
 
   const resolvedAccounts = React.useMemo(
     () => accounts ?? data?.accounts ?? [],
     [accounts, data?.accounts],
   );
-  const activeAccountId = selectedAccountId ?? selectedAccountFromStore ?? resolvedAccounts[0]?.id ?? "";
+  const activeAccountId =
+    selectedAccountId ?? selectedAccountFromStore ?? (hasHydrated ? resolvedAccounts[0]?.id ?? "" : "");
 
   React.useEffect(() => {
+    if (!hasHydrated) {
+      return;
+    }
+
     if (!selectedAccountFromStore && resolvedAccounts.length > 0) {
       setSelectedAccountId(resolvedAccounts[0].id);
     }
-  }, [resolvedAccounts, selectedAccountFromStore, setSelectedAccountId]);
+  }, [hasHydrated, resolvedAccounts, selectedAccountFromStore, setSelectedAccountId]);
 
   const activeAccountNumber = getAccountLabel(
     resolvedAccounts.find((account) => account.id === activeAccountId) ?? {
@@ -77,7 +83,7 @@ export function AccountSwitcherDropdown({
     onAccountChange?.(accountId);
   };
 
-  if (resolvedAccounts.length === 0) {
+  if (!hasHydrated || resolvedAccounts.length === 0) {
     return (
       <DropdownMenu>
         <DropdownMenuTrigger

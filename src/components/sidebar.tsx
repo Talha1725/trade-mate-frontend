@@ -19,6 +19,7 @@ import type { AccountMetricsSummary } from "@/types";
 import { useAccountSummary, usePositions } from "@/hooks/use-trades";
 import { SIDEBAR_ICONS } from "@/lib/mock-data/sidebar-icons";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
+import { useLiveAccountSnapshotStore } from "@/lib/stores/live-account-snapshot-store";
 import { usePriceStream } from "@/hooks/use-price-stream";
 import type { PriceSocketPortfolioMessage } from "@/types/price";
 import { formatTradingSymbolLabel } from "@/lib/utils/market-symbol-icon";
@@ -93,6 +94,30 @@ function buildLiveAccountSummary(
     floatingPnl,
     winRate,
     bestAsset,
+  };
+}
+
+function mergeSidebarSummary(
+  stableSummary: AccountMetricsSummary | null,
+  liveSummary: AccountMetricsSummary | null,
+): AccountMetricsSummary | null {
+  if (!stableSummary && !liveSummary) {
+    return null;
+  }
+
+  const baseSummary = stableSummary ?? liveSummary!;
+  const livePnl = liveSummary?.floatingPnl ?? baseSummary.floatingPnl;
+
+  return {
+    ...baseSummary,
+    accountNumber: stableSummary?.accountNumber ?? liveSummary?.accountNumber ?? null,
+    fundingType: stableSummary?.fundingType ?? liveSummary?.fundingType ?? null,
+    name: stableSummary?.name ?? liveSummary?.name ?? "Account",
+    balance: stableSummary?.balance ?? liveSummary?.balance ?? 0,
+    equity: stableSummary?.equity ?? liveSummary?.equity ?? 0,
+    floatingPnl: livePnl,
+    winRate: liveSummary?.winRate ?? stableSummary?.winRate ?? 0,
+    bestAsset: liveSummary?.bestAsset ?? stableSummary?.bestAsset ?? null,
   };
 }
 
@@ -173,59 +198,58 @@ export function Sidebar({ className }: { className?: string }) {
   const pathname = usePathname();
   const [showBalance, setShowBalance] = React.useState(true);
   const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
-  const { data: accountSummary } = useAccountSummary(selectedAccountId);
-  const [liveSummary, setLiveSummary] = React.useState<AccountMetricsSummary | null>(null);
-  const activeSummary = liveSummary ?? accountSummary ?? null;
+  const { data: accountSummary, refetch: refetchAccountSummary } = useAccountSummary(selectedAccountId);
+  const liveSummariesByAccountId = useLiveAccountSnapshotStore((state) => state.summariesByAccountId);
+  const liveOpenOrderCountsByAccountId = useLiveAccountSnapshotStore((state) => state.openOrderCountsByAccountId);
+  const setAccountSummary = useLiveAccountSnapshotStore((state) => state.setAccountSummary);
+  const setOpenOrderCount = useLiveAccountSnapshotStore((state) => state.setOpenOrderCount);
+  const cachedSummary = selectedAccountId ? liveSummariesByAccountId[selectedAccountId] ?? null : null;
+  const cachedOpenOrdersCount = selectedAccountId ? liveOpenOrderCountsByAccountId[selectedAccountId] ?? 0 : 0;
+  const activeSummary = mergeSidebarSummary(accountSummary ?? null, cachedSummary);
   const bestAssetSymbol = activeSummary?.bestAsset?.symbol ?? null;
 
   const { data: openPositions } = usePositions(selectedAccountId);
-  const [openOrdersCount, setOpenOrdersCount] = React.useState(0);
 
   React.useEffect(() => {
-    if (!openPositions?.positions) {
+    if (!openPositions?.positions || !selectedAccountId) {
       return;
     }
 
-    setOpenOrdersCount(openPositions.positions.filter((position) => position.status === "OPEN").length);
-  }, [openPositions?.positions]);
+    setOpenOrderCount(
+      selectedAccountId,
+      openPositions.positions.filter((position) => position.status === "OPEN").length,
+    );
+  }, [openPositions?.positions, selectedAccountId, setOpenOrderCount]);
 
   React.useEffect(() => {
-    setLiveSummary(null);
-  }, [selectedAccountId]);
+    const handlePositionsChanged = () => {
+      if (!selectedAccountId) {
+        return;
+      }
 
-  React.useEffect(() => {
-    if (!accountSummary) {
-      return;
-    }
+      void refetchAccountSummary();
+    };
 
-    setLiveSummary(accountSummary);
-  }, [accountSummary, selectedAccountId]);
+    window.addEventListener("trade-mate:positions-changed", handlePositionsChanged);
+    return () => window.removeEventListener("trade-mate:positions-changed", handlePositionsChanged);
+  }, [refetchAccountSummary, selectedAccountId]);
 
-  const dailyPnlProgress = React.useMemo(() => {
-    const floatingPnl = activeSummary?.floatingPnl ?? 0;
-    const balance = activeSummary?.balance ?? 0;
+  const activeBalance = activeSummary?.balance ?? 0;
+  const activeFloatingPnl = activeSummary?.floatingPnl ?? 0;
 
-    if (floatingPnl === 0 || balance <= 0) {
-      return 0;
-    }
+  const dailyPnlProgress =
+    activeFloatingPnl === 0 || activeBalance <= 0
+      ? 0
+      : Math.min(100, Math.max(4, (Math.abs(activeFloatingPnl) / activeBalance) * 10000));
 
-    return Math.min(100, Math.max(4, (Math.abs(floatingPnl) / balance) * 10000));
-  }, [activeSummary?.balance, activeSummary?.floatingPnl]);
-
-  const dailyPnlValue = activeSummary?.floatingPnl ?? 0;
+  const dailyPnlValue = activeFloatingPnl;
   const dailyPnlIsPositive = dailyPnlValue > 0;
   const dailyPnlIsNegative = dailyPnlValue < 0;
-  const dailyPnlBarClass = React.useMemo(() => {
-    if (dailyPnlIsPositive) {
-      return "bg-linear-to-r from-primary via-[#1FE1A4] to-[#10B981] shadow-[0_0_10px_rgba(34,224,162,0.55)]";
-    }
-
-    if (dailyPnlIsNegative) {
-      return "bg-linear-to-r from-[#FF4D4D] via-[#EF4444] to-[#B91C1C] shadow-[0_0_10px_rgba(239,68,68,0.55)]";
-    }
-
-    return "bg-neutral-500 shadow-[0_0_8px_rgba(115,115,115,0.35)]";
-  }, [dailyPnlIsNegative, dailyPnlIsPositive]);
+  const dailyPnlBarClass = dailyPnlIsPositive
+    ? "bg-linear-to-r from-primary via-[#1FE1A4] to-[#10B981] shadow-[0_0_10px_rgba(34,224,162,0.55)]"
+    : dailyPnlIsNegative
+      ? "bg-linear-to-r from-[#FF4D4D] via-[#EF4444] to-[#B91C1C] shadow-[0_0_10px_rgba(239,68,68,0.55)]"
+      : "bg-neutral-500 shadow-[0_0_8px_rgba(115,115,115,0.35)]";
 
   usePriceStream({
     enabled: !!selectedAccountId,
@@ -240,12 +264,13 @@ export function Sidebar({ className }: { className?: string }) {
         (position) => position.accountId === selectedAccountId && position.status === "OPEN",
       ).length;
 
-      setOpenOrdersCount(nextCount);
+      setOpenOrderCount(selectedAccountId, nextCount);
 
-      const nextSummary = buildLiveAccountSummary(payload, selectedAccountId, liveSummary);
+      const currentSummary = useLiveAccountSnapshotStore.getState().summariesByAccountId[selectedAccountId] ?? accountSummary ?? null;
+      const nextSummary = buildLiveAccountSummary(payload, selectedAccountId, currentSummary);
 
       if (nextSummary) {
-        setLiveSummary(nextSummary);
+        setAccountSummary(nextSummary);
       }
     },
   });
@@ -298,7 +323,7 @@ export function Sidebar({ className }: { className?: string }) {
           iconSrc={SIDEBAR_ICONS.reorder}
           label="Orders"
           href="/orders"
-          badge={openOrdersCount}
+          badge={cachedOpenOrdersCount}
           active={isTabActive("/orders")}
         />
         <SidebarItem

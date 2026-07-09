@@ -10,22 +10,23 @@ import { cn } from "@/lib/utils";
 export function AccountSelector() {
   const { data, isLoading } = useUserAccounts();
   const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
+  const hasHydrated = useSelectedAccountStore((state) => state.hasHydrated);
   const setSelectedAccountId = useSelectedAccountStore((state) => state.setSelectedAccountId);
 
   const accounts = React.useMemo(() => data?.accounts ?? [], [data?.accounts]);
   const selectedAccount = accounts.find((account) => account.id === selectedAccountId) ?? accounts[0] ?? null;
 
   React.useEffect(() => {
-    if (accounts.length === 0) {
+    if (!hasHydrated || accounts.length === 0) {
       return;
     }
 
     if (!selectedAccountId || !accounts.some((account) => account.id === selectedAccountId)) {
       setSelectedAccountId(accounts[0].id);
     }
-  }, [accounts, selectedAccountId, setSelectedAccountId]);
+  }, [accounts, hasHydrated, selectedAccountId, setSelectedAccountId]);
 
-  if (isLoading && !selectedAccount) {
+  if (!hasHydrated || (isLoading && !selectedAccount)) {
     return (
       <div className="rounded-[16px] border border-white/10 bg-white/5 px-4 py-3">
         <div className="h-3 w-20 animate-pulse rounded bg-white/10" />

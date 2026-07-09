@@ -29,6 +29,8 @@ import { getAssetLeverageLabel } from "@/lib/utils/asset-leverage";
 import { usePriceStream } from "@/hooks/use-price-stream";
 import { useSelectedSymbol, useSetSelectedSymbol } from "@/hooks/use-selected-symbol";
 import { formatMarketPrice } from "@/lib/utils/market-price";
+import { useLiveAccountSnapshotStore } from "@/lib/stores/live-account-snapshot-store";
+import { buildAccountMetricsSummaryFromAccount } from "@/lib/utils/live-account-summary";
 import type { PriceSocketQuote } from "@/types/price";
 
 export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
@@ -162,7 +164,7 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
         throw new Error("Unable to load account details.");
       }
 
-      await terminalApi.placeOrder(
+      const result = await terminalApi.placeOrder(
         {
           accountId: accountContext.accountId,
           symbol,
@@ -172,6 +174,11 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
           takeProfit: parsedTakeProfit,
         },
         token,
+      );
+
+      const currentSummary = useLiveAccountSnapshotStore.getState().summariesByAccountId[result.account.id] ?? null;
+      useLiveAccountSnapshotStore.getState().setAccountSummary(
+        buildAccountMetricsSummaryFromAccount(result.account, currentSummary),
       );
 
       toast.success(`${side} ${symbol} trade opened.`);

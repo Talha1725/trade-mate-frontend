@@ -6,6 +6,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 
 import { loginApi } from "@/lib/services/auth.api";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
+import { useLiveAccountSnapshotStore } from "@/lib/stores/live-account-snapshot-store";
 import type { AuthStore } from "@/types";
 
 export const useAuthStore = create<AuthStore>()(
@@ -27,6 +28,7 @@ export const useAuthStore = create<AuthStore>()(
 
             if (status === 401 || status === 403 || status === 404) {
               useSelectedAccountStore.getState().setSelectedAccountId(null);
+              useLiveAccountSnapshotStore.getState().clearAccountSnapshot();
               set({ session: null, status: "unauthenticated" });
               return null;
             }
@@ -40,6 +42,7 @@ export const useAuthStore = create<AuthStore>()(
       signIn: async (credentials) => {
         const session = await loginApi.login(credentials);
         useSelectedAccountStore.getState().setSelectedAccountId(null);
+        useLiveAccountSnapshotStore.getState().clearAccountSnapshot();
         set({ session, status: "authenticated" });
         return session;
       },
@@ -54,6 +57,7 @@ export const useAuthStore = create<AuthStore>()(
       },
       expireSession: () => {
         useSelectedAccountStore.getState().setSelectedAccountId(null);
+        useLiveAccountSnapshotStore.getState().clearAccountSnapshot();
         set({ session: null, status: "unauthenticated" });
       },
       clearToken: () => {

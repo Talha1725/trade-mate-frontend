@@ -182,6 +182,7 @@ function buildEmptyAnalyticsOverview(accountId: string | null): AnalyticsOvervie
 export default function AnalyticsPage() {
   const token = useAuthStore((state) => state.session?.token ?? null);
   const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
+  const hasHydrated = useSelectedAccountStore((state) => state.hasHydrated);
   const setSelectedAccountId = useSelectedAccountStore((state) => state.setSelectedAccountId);
   const { data: userAccounts } = useUserAccounts();
 
@@ -189,7 +190,7 @@ export default function AnalyticsPage() {
   const availableAccounts = userAccounts?.accounts ?? [];
 
   const resolvedAccountId = React.useMemo(() => {
-    if (!accountListLoaded) {
+    if (!accountListLoaded || !hasHydrated) {
       return null;
     }
 
@@ -198,17 +199,17 @@ export default function AnalyticsPage() {
     }
 
     return availableAccounts[0]?.id ?? null;
-  }, [accountListLoaded, availableAccounts, selectedAccountId]);
+  }, [accountListLoaded, availableAccounts, hasHydrated, selectedAccountId]);
 
   React.useEffect(() => {
-    if (!accountListLoaded) {
+    if (!accountListLoaded || !hasHydrated) {
       return;
     }
 
     if (resolvedAccountId !== selectedAccountId) {
       setSelectedAccountId(resolvedAccountId);
     }
-  }, [accountListLoaded, resolvedAccountId, selectedAccountId, setSelectedAccountId]);
+  }, [accountListLoaded, hasHydrated, resolvedAccountId, selectedAccountId, setSelectedAccountId]);
 
   const placeholderOverview = React.useMemo(
     () => buildEmptyAnalyticsOverview(resolvedAccountId),
