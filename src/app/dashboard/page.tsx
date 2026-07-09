@@ -55,7 +55,16 @@ export default function DashboardPage() {
 
   const token = useAuthStore((state) => state.session?.token ?? null);
   const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
+  const hasHydrated = useSelectedAccountStore((state) => state.hasHydrated);
   const { data: tradingAssets = [] } = useSyncedTradingAssets();
+
+  const resolvedAccountId = React.useMemo(() => {
+    if (!hasHydrated) {
+      return null;
+    }
+
+    return selectedAccountId;
+  }, [hasHydrated, selectedAccountId]);
 
   React.useEffect(() => {
     if (!token) {
@@ -68,7 +77,7 @@ export default function DashboardPage() {
       try {
         const accountSnapshot = await dashboardApi.getPortfolioSnapshot(
           token,
-          selectedAccountId ?? undefined,
+          resolvedAccountId ?? undefined,
         );
 
         if (!isMounted) {
@@ -120,7 +129,7 @@ export default function DashboardPage() {
     return () => {
       isMounted = false;
     };
-  }, [selectedAccountId, token]);
+  }, [resolvedAccountId, token]);
 
   const dashboardData = snapshot ? buildDashboardData(snapshot, ledger ?? undefined) : null;
   const liveSymbol = dashboardData?.positions[0]?.symbol;

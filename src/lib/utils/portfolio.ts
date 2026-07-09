@@ -182,12 +182,13 @@ export function buildPortfolioMetricCards(
 ): PortfolioMetricCard[] {
   const acc = account ?? ZERO_ACCOUNT;
   const ov = overview ?? ZERO_OVERVIEW;
+  const walletBalance = Math.max(0, Number(acc.balance) - Number(acc.marginUsed));
   const availableMargin = Number(acc.equity) - Number(acc.marginUsed);
   const marginUsagePercent = Number(acc.equity) > 0 ? (Number(acc.marginUsed) / Number(acc.equity)) * 100 : 0;
   const riskLabel = getRiskLabel(marginUsagePercent);
   const summary =
     ov.summary ?? {
-      walletBalance: Number(acc.balance),
+      walletBalance,
       equity: Number(acc.equity),
       floatingPnl: Number(acc.floatingPnl),
       availableMargin: Math.max(0, Number(acc.equity) - Number(acc.marginUsed)),
@@ -199,10 +200,10 @@ export function buildPortfolioMetricCards(
       riskLabel,
       riskTone: getRiskTone(riskLabel),
       profitTarget: {
-        baseBalance: Number(acc.balance),
-        targetAmount: Math.max(1, Number(acc.balance) * 0.1),
-        currentProfit: Number(acc.equity) - Number(acc.balance),
-        remaining: Math.max(0, Math.max(1, Number(acc.balance) * 0.1) - (Number(acc.equity) - Number(acc.balance))),
+        baseBalance: walletBalance,
+        targetAmount: Math.max(1, walletBalance * 0.1),
+        currentProfit: Number(acc.equity) - walletBalance,
+        remaining: Math.max(0, Math.max(1, walletBalance * 0.1) - (Number(acc.equity) - walletBalance)),
         progressPercent: 0,
       },
     };
@@ -219,7 +220,7 @@ export function buildPortfolioMetricCards(
       id: "wallet",
       variant: "icon-stats",
       title: "Wallet",
-      value: `$${formatCurrency(Number(acc.balance))}`,
+      value: `$${formatCurrency(walletBalance)}`,
       subtitle: `Equity ${formatCurrency(Number(acc.equity))}`,
       subtitleTone: "default",
       iconSrc: "/images/portfolio/wallet.svg",

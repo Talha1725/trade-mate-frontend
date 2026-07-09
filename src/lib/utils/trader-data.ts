@@ -88,6 +88,10 @@ function formatMoney(value: number) {
   return `${sign}$${Math.abs(value).toFixed(2)}`;
 }
 
+function getFreeCash(account: Pick<PortfolioAccount, "balance" | "marginUsed" | "equity">) {
+  return Math.max(0, toNumber(account.balance) - toNumber(account.marginUsed));
+}
+
 export function formatDateLabel(dateValue: string | null | undefined) {
   if (!dateValue) {
     return "-";
@@ -305,11 +309,13 @@ export function buildStatCards(account: PortfolioAccount, positions: PortfolioPo
   const winners = closedTrades.filter((trade) => toNumber(trade.pnl) > 0).length;
   const winRate = closedTrades.length > 0 ? Math.round((winners / closedTrades.length) * 100) : 0;
 
+  const freeCash = getFreeCash(account);
+
   return [
     {
       title: "Account Balance",
-      value: formatMoney(toNumber(account.balance)),
-      description: `${formatMoney(toNumber(account.equity) - toNumber(account.balance))} floating`,
+      value: formatMoney(freeCash),
+      description: `${formatMoney(toNumber(account.equity) - freeCash)} floating`,
     },
     {
       title: "Open Positions",

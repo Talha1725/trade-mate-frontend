@@ -26,6 +26,8 @@ import {
 import { mapPortfolioPositionToPortfolioRow } from "@/lib/utils/trader-data";
 import { mergeStablePositions } from "@/lib/utils/stable-positions";
 import { normalizeTradingSymbol } from "@/lib/utils/market-symbol-icon";
+import { useLiveAccountSnapshotStore } from "@/lib/stores/live-account-snapshot-store";
+import { buildAccountMetricsSummaryFromAccount } from "@/lib/utils/live-account-summary";
 import type { UserPortfolioResponse } from "@/types/dashboard";
 import type { PortfolioOverviewResponse } from "@/types/portfolio-overview";
 import { usePriceStream } from "@/hooks/use-price-stream";
@@ -36,6 +38,7 @@ export default function PortfolioPage() {
     const [overview, setOverview] = React.useState<PortfolioOverviewResponse | null>(null);
     const token = useAuthStore((state) => state.session?.token ?? null);
     const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
+    const hasHydrated = useSelectedAccountStore((state) => state.hasHydrated);
     const setSelectedAccountId = useSelectedAccountStore((state) => state.setSelectedAccountId);
     const { data: userAccounts } = useUserAccounts();
     const { data: tradingAssets = [] } = useSyncedTradingAssets();
@@ -67,7 +70,7 @@ export default function PortfolioPage() {
     );
 
     const resolvedAccountId = React.useMemo(() => {
-        if (!accountListLoaded) {
+        if (!accountListLoaded || !hasHydrated) {
             return null;
         }
 
@@ -76,17 +79,17 @@ export default function PortfolioPage() {
         }
 
         return availableAccounts[0]?.id ?? null;
-    }, [accountListLoaded, availableAccounts, selectedAccountId]);
+    }, [accountListLoaded, availableAccounts, hasHydrated, selectedAccountId]);
 
     React.useEffect(() => {
-        if (!accountListLoaded) {
+        if (!accountListLoaded || !hasHydrated) {
             return;
         }
 
         if (resolvedAccountId !== selectedAccountId) {
             setSelectedAccountId(resolvedAccountId);
         }
-    }, [accountListLoaded, resolvedAccountId, selectedAccountId, setSelectedAccountId]);
+    }, [accountListLoaded, hasHydrated, resolvedAccountId, selectedAccountId, setSelectedAccountId]);
 
     React.useEffect(() => {
         setSnapshot(null);
@@ -191,9 +194,28 @@ export default function PortfolioPage() {
         [snapshot?.positions],
     );
 
+    const liveMetricOverview = React.useMemo(() => {
+        if (!overview) {
+            return null;
+        }
+
+        const liveOpenPositions = (snapshot?.positions ?? []).filter((position) => position.status === "OPEN");
+        const winningPositionsCount = liveOpenPositions.filter((position) => Number(position.floatingPnl) > 0).length;
+        const losingPositionsCount = liveOpenPositions.filter((position) => Number(position.floatingPnl) < 0).length;
+
+        return {
+            ...overview,
+            summary: {
+                ...overview.summary,
+                winningPositionsCount,
+                losingPositionsCount,
+            },
+        };
+    }, [overview, snapshot?.positions]);
+
     const metricCards = React.useMemo(
-        () => buildPortfolioMetricCards(snapshot?.account ?? null, overview ?? null),
-        [overview, snapshot?.account],
+        () => buildPortfolioMetricCards(snapshot?.account ?? null, liveMetricOverview),
+        [liveMetricOverview, snapshot?.account],
     );
 
     const allocationItems = React.useMemo(() => {
@@ -290,15 +312,38 @@ export default function PortfolioPage() {
             if (!token) return;
 
             try {
-                await terminalApi.closeTrade({ positionId }, token);
+                const result = await terminalApi.closeTrade({ positionId }, token);
+
+                setSnapshot((current) => {
+                    if (!current) {
+                        return {
+                            account: result.account,
+                            positions: [],
+                        };
+                    }
+
+                    return {
+                        ...current,
+                        account: result.account,
+                        positions: current.positions.filter((position) => position.id !== result.position.id),
+                    };
+                });
+
+                const currentSummary =
+                    useLiveAccountSnapshotStore.getState().summariesByAccountId[result.account.id] ?? null;
+                useLiveAccountSnapshotStore.getState().setAccountSummary(
+                    buildAccountMetricsSummaryFromAccount(result.account, currentSummary),
+                );
+
                 toast.success("Position closed.");
                 window.dispatchEvent(new Event("trade-mate:positions-changed"));
                 await refreshSnapshot();
+                await refreshOverview();
             } catch (error) {
                 toast.error(error instanceof Error ? error.message : "Unable to close position.");
             }
         },
-        [refreshSnapshot, token],
+        [refreshOverview, refreshSnapshot, token],
     );
 
     const handleCloseAll = React.useCallback(async () => {
@@ -309,10 +354,11 @@ export default function PortfolioPage() {
             toast.success("All open positions closed.");
             window.dispatchEvent(new Event("trade-mate:positions-changed"));
             await refreshSnapshot();
+            await refreshOverview();
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "Unable to close all positions.");
         }
-    }, [positions, refreshSnapshot, token]);
+    }, [positions, refreshOverview, refreshSnapshot, token]);
 
     const handleExport = React.useCallback(() => {
         if (positions.length === 0) return;

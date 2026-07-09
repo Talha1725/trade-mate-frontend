@@ -27,6 +27,8 @@ import { useMarketSelectionStore } from "@/lib/stores/market-selection-store";
 import { usePriceStream } from "@/hooks/use-price-stream";
 import { useUserAccounts } from "@/hooks/use-user-accounts";
 import { useSyncedTradingAssets } from "@/hooks/use-synced-trading-assets";
+import { useLiveAccountSnapshotStore } from "@/lib/stores/live-account-snapshot-store";
+import { buildAccountMetricsSummaryFromAccount } from "@/lib/utils/live-account-summary";
 import {
   applyLiveQuoteToOrderOverview,
   buildOrderDepthChart,
@@ -78,6 +80,7 @@ function resolveOrdersInterval(timeframe: string) {
 export default function OrdersPage() {
   const token = useAuthStore((state) => state.session?.token ?? null);
   const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
+  const hasHydrated = useSelectedAccountStore((state) => state.hasHydrated);
   const selectedMarketId = useMarketSelectionStore((state) => state.selectedMarketId);
   const setSelectedMarketId = useMarketSelectionStore((state) => state.setSelectedMarketId);
   const timeframe = useMarketSelectionStore((state) => state.timeframe);
@@ -95,7 +98,7 @@ export default function OrdersPage() {
   const sizeLabel = React.useMemo(() => sizeLabelFromSymbol(selectedSymbol), [selectedSymbol]);
 
   const resolvedAccountId = React.useMemo(() => {
-    if (!accountListLoaded) {
+    if (!accountListLoaded || !hasHydrated) {
       return null;
     }
 
@@ -104,17 +107,17 @@ export default function OrdersPage() {
     }
 
     return availableAccounts[0]?.id ?? null;
-  }, [accountListLoaded, availableAccounts, selectedAccountId]);
+  }, [accountListLoaded, availableAccounts, hasHydrated, selectedAccountId]);
 
   React.useEffect(() => {
-    if (!accountListLoaded) {
+    if (!accountListLoaded || !hasHydrated) {
       return;
     }
 
     if (resolvedAccountId !== selectedAccountId) {
       setSelectedAccountId(resolvedAccountId);
     }
-  }, [accountListLoaded, resolvedAccountId, selectedAccountId, setSelectedAccountId]);
+  }, [accountListLoaded, hasHydrated, resolvedAccountId, selectedAccountId, setSelectedAccountId]);
 
   const [overview, setOverview] = React.useState<OrderOverviewResponse | null>(null);
   const [liveQuote, setLiveQuote] = React.useState<PriceSocketQuote | null>(null);
@@ -233,21 +236,43 @@ export default function OrdersPage() {
     return liveOverview.orderBook;
   }, [liveOverview, liveQuoteForSymbol, selectedAsset?.category, selectedSymbol]);
 
-  const handleClosePosition = React.useCallback(
-    async (positionId: string) => {
-      if (!token) return;
+    const handleClosePosition = React.useCallback(
+        async (positionId: string) => {
+            if (!token) return;
 
-      try {
-        await terminalApi.closeTrade({ positionId }, token);
-        toast.success("Order closed.");
-        window.dispatchEvent(new Event("trade-mate:positions-changed"));
-        await refreshOverview();
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Unable to close order.");
-      }
-    },
-    [refreshOverview, token],
-  );
+            try {
+                const result = await terminalApi.closeTrade({ positionId }, token);
+
+                setOverview((current) => {
+                  if (!current) {
+                    return current;
+                  }
+
+                  return {
+                    ...current,
+                    account: result.account,
+                    positions: current.positions.filter((position) => position.id !== result.position.id),
+                    trades: current.trades.map((trade) =>
+                      trade.id === result.trade.id ? result.trade : trade,
+                    ),
+                  };
+                });
+
+                const currentSummary =
+                  useLiveAccountSnapshotStore.getState().summariesByAccountId[result.account.id] ?? null;
+                useLiveAccountSnapshotStore.getState().setAccountSummary(
+                  buildAccountMetricsSummaryFromAccount(result.account, currentSummary),
+                );
+
+                toast.success("Order closed.");
+                window.dispatchEvent(new Event("trade-mate:positions-changed"));
+                await refreshOverview();
+            } catch (error) {
+                toast.error(error instanceof Error ? error.message : "Unable to close order.");
+            }
+        },
+        [refreshOverview, token],
+    );
 
   const handleCloseAll = React.useCallback(async () => {
     if (!token || activeOrders.length === 0) return;
