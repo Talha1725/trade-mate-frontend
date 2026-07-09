@@ -194,9 +194,28 @@ export default function PortfolioPage() {
         [snapshot?.positions],
     );
 
+    const liveMetricOverview = React.useMemo(() => {
+        if (!overview) {
+            return null;
+        }
+
+        const liveOpenPositions = (snapshot?.positions ?? []).filter((position) => position.status === "OPEN");
+        const winningPositionsCount = liveOpenPositions.filter((position) => Number(position.floatingPnl) > 0).length;
+        const losingPositionsCount = liveOpenPositions.filter((position) => Number(position.floatingPnl) < 0).length;
+
+        return {
+            ...overview,
+            summary: {
+                ...overview.summary,
+                winningPositionsCount,
+                losingPositionsCount,
+            },
+        };
+    }, [overview, snapshot?.positions]);
+
     const metricCards = React.useMemo(
-        () => buildPortfolioMetricCards(snapshot?.account ?? null, overview ?? null),
-        [overview, snapshot?.account],
+        () => buildPortfolioMetricCards(snapshot?.account ?? null, liveMetricOverview),
+        [liveMetricOverview, snapshot?.account],
     );
 
     const allocationItems = React.useMemo(() => {
