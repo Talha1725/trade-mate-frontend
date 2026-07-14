@@ -182,7 +182,7 @@ export function buildPortfolioMetricCards(
 ): PortfolioMetricCard[] {
   const acc = account ?? ZERO_ACCOUNT;
   const ov = overview ?? ZERO_OVERVIEW;
-  const walletBalance = Math.max(0, Number(acc.balance) - Number(acc.marginUsed));
+  const walletBalance = Math.max(0, Number(acc.balance));
   const availableMargin = Number(acc.equity) - Number(acc.marginUsed);
   const marginUsagePercent = Number(acc.equity) > 0 ? (Number(acc.marginUsed) / Number(acc.equity)) * 100 : 0;
   const riskLabel = getRiskLabel(marginUsagePercent);

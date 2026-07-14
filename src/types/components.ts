@@ -169,4 +169,5 @@ export interface CardRowProps {
   iconColorClass?: string;
   iconBgClass?: string;
   valueIcon?: React.ReactNode;
+  valueClassName?: string;
 }

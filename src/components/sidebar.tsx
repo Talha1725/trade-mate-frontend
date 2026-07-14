@@ -31,6 +31,15 @@ function formatCurrency(value?: number) {
   })}`;
 }
 
+function formatSignedCurrency(value?: number) {
+  const amount = value ?? 0;
+  const prefix = amount >= 0 ? "+$" : "-$";
+  return `${prefix}${Math.abs(amount).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
 function toNumber(value: string | number | null | undefined) {
   if (value == null) {
     return 0;
@@ -58,6 +67,13 @@ function buildLiveAccountSummary(
     const closedAt = new Date(trade.closedAt ?? trade.openedAt).getTime();
     return !Number.isNaN(closedAt) && closedAt >= thirtyDaysAgo;
   });
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const startOfTodayTime = startOfToday.getTime();
+  const closedTradesToday = closedTrades.filter((trade) => {
+    const closedAt = new Date(trade.closedAt ?? trade.openedAt).getTime();
+    return !Number.isNaN(closedAt) && closedAt >= startOfTodayTime;
+  });
 
   const bestAssetBySymbol = new Map<string, { symbol: string; pnl: number; tradeCount: number }>();
 
@@ -81,7 +97,10 @@ function buildLiveAccountSummary(
   const winners = closedTrades.filter((trade) => toNumber(trade.pnl) > 0).length;
   const winRate = closedTrades.length > 0 ? (winners / closedTrades.length) * 100 : fallback?.winRate ?? 0;
   const floatingPnl = openPositions.reduce((sum, position) => sum + toNumber(position.floatingPnl), 0);
-  const balance = account ? Math.max(0, toNumber(account.balance) - toNumber(account.marginUsed)) : fallback?.balance ?? 0;
+  const dailyPnl = closedTradesToday.length > 0
+    ? closedTradesToday.reduce((sum, trade) => sum + toNumber(trade.pnl), 0)
+    : fallback?.dailyPnl ?? 0;
+  const balance = account ? Math.max(0, toNumber(account.balance)) : fallback?.balance ?? 0;
   const equity = account ? toNumber(account.equity) : balance + floatingPnl;
 
   return {
@@ -92,6 +111,7 @@ function buildLiveAccountSummary(
     balance,
     equity,
     floatingPnl,
+    dailyPnl,
     winRate,
     bestAsset,
   };
@@ -116,6 +136,7 @@ function mergeSidebarSummary(
     balance: stableSummary?.balance ?? liveSummary?.balance ?? 0,
     equity: stableSummary?.equity ?? liveSummary?.equity ?? 0,
     floatingPnl: livePnl,
+    dailyPnl: stableSummary?.dailyPnl ?? liveSummary?.dailyPnl ?? 0,
     winRate: liveSummary?.winRate ?? stableSummary?.winRate ?? 0,
     bestAsset: liveSummary?.bestAsset ?? stableSummary?.bestAsset ?? null,
   };
@@ -170,6 +191,7 @@ function CardRow({
   iconColorClass,
   iconBgClass,
   valueIcon,
+  valueClassName,
 }: CardRowProps) {
   return (
     <div className="flex items-center justify-between p-2.5 rounded-xl border border-white/20 ">
@@ -188,7 +210,7 @@ function CardRow({
       </div>
       <div className="flex items-center gap-1">
         {valueIcon}
-        <span className="text-xs font-semibold text-[#EDF6FF]">{value}</span>
+        <span className={cn("text-xs font-semibold text-[#EDF6FF]", valueClassName)}>{value}</span>
       </div>
     </div>
   );
@@ -235,14 +257,14 @@ export function Sidebar({ className }: { className?: string }) {
   }, [refetchAccountSummary, selectedAccountId]);
 
   const activeBalance = activeSummary?.balance ?? 0;
-  const activeFloatingPnl = activeSummary?.floatingPnl ?? 0;
+  const activeDailyPnl = activeSummary?.dailyPnl ?? 0;
 
   const dailyPnlProgress =
-    activeFloatingPnl === 0 || activeBalance <= 0
+    activeDailyPnl === 0 || activeBalance <= 0
       ? 0
-      : Math.min(100, Math.max(4, (Math.abs(activeFloatingPnl) / activeBalance) * 10000));
+      : Math.min(100, Math.max(4, (Math.abs(activeDailyPnl) / activeBalance) * 10000));
 
-  const dailyPnlValue = activeFloatingPnl;
+  const dailyPnlValue = activeDailyPnl;
   const dailyPnlIsPositive = dailyPnlValue > 0;
   const dailyPnlIsNegative = dailyPnlValue < 0;
   const dailyPnlBarClass = dailyPnlIsPositive
@@ -415,7 +437,7 @@ export function Sidebar({ className }: { className?: string }) {
                   dailyPnlIsPositive ? "text-primary" : dailyPnlIsNegative ? "text-destructive" : "text-white/60",
                 )}
               >
-                {formatCurrency(activeSummary?.floatingPnl)}
+                {formatCurrency(dailyPnlValue)}
               </span>
             </div>
             <div className="w-full bg-neutral-800 h-1.5 rounded-full overflow-hidden mt-1.5">
@@ -435,7 +457,14 @@ export function Sidebar({ className }: { className?: string }) {
               iconSrc={SIDEBAR_ICONS.openPnl}
               label="Open P&L"
               subLabel="Today"
-              value={formatCurrency(activeSummary?.floatingPnl)}
+              value={formatSignedCurrency(activeSummary?.floatingPnl)}
+              valueClassName={cn(
+                (activeSummary?.floatingPnl ?? 0) > 0
+                  ? "text-primary"
+                  : (activeSummary?.floatingPnl ?? 0) < 0
+                    ? "text-destructive"
+                    : "text-[#EDF6FF]",
+              )}
             />
             <CardRow
               iconSrc={SIDEBAR_ICONS.winrate}
