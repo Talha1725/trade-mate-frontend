@@ -166,7 +166,7 @@ export function mapPortfolioPositionToPortfolioRow(
   const calculatedPnl = priceDelta * size * contractMultiplier;
   const pnl = calculatedPnl;
   const pnlPercentBase = entryPrice * size * contractMultiplier;
-  const pnlPercent = pnlPercentBase > 0 ? (pnl / pnlPercentBase) * 100 : 0;
+  const pnlPercent = pnlPercentBase > 0 ? (pnl / pnlPercentBase) * 100 * leverageValue : 0;
 
   return {
     id: position.id,

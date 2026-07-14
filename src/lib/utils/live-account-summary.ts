@@ -20,7 +20,7 @@ export function buildAccountMetricsSummaryFromAccount(
     accountNumber: account.accountNumber ?? fallback?.accountNumber ?? null,
     fundingType: account.fundingType ?? fallback?.fundingType ?? null,
     name: account.name ?? fallback?.name ?? "Account",
-    balance: Math.max(0, toNumber(account.balance) - toNumber(account.marginUsed)),
+    balance: Math.max(0, toNumber(account.balance)),
     equity: toNumber(account.equity),
     floatingPnl: toNumber(account.floatingPnl),
     winRate: fallback?.winRate ?? 0,
