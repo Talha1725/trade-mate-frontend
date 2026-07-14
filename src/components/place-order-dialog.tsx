@@ -288,7 +288,7 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
           {/* Symbol Row */}
           <div>
             <label className="text-xs text-white/50 mb-1.5 block">Symbol</label>
-            <SymbolSelector className="w-full" />
+            <SymbolSelector className="w-full" contentClassName=" w-[330px] sm:w-[405px]" />
           </div>
 
           {/* Other 4 fields in 2x2 grid */}

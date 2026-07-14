@@ -36,7 +36,13 @@ const CATEGORY_LABELS: Record<AssetCategory, string> = {
  * market-selection store — one selection across the whole app. Styled to match
  * the asset selector in the chart filter bar.
  */
-export function SymbolSelector({ className }: { className?: string }) {
+export function SymbolSelector({
+  className,
+  contentClassName,
+}: {
+  className?: string;
+  contentClassName?: string;
+}) {
   // Keep the store's known assets in sync wherever this selector is mounted.
   useSyncedTradingAssets();
   const { data: assets = [] } = useAssets();
@@ -91,7 +97,10 @@ export function SymbolSelector({ className }: { className?: string }) {
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-[260px] rounded-lg border border-white/20 bg-[#0d0d0d] p-0 text-white"
+        className={cn(
+          "w-[260px] rounded-lg border border-white/20 bg-[#0d0d0d] p-0 text-white",
+          contentClassName,
+        )}
       >
         <Command className="bg-transparent">
           <div className="sticky top-0 z-10 bg-[#0d0d0d] border-b border-white/10 pb-2.5 pt-1 px-1">
