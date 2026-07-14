@@ -12,18 +12,11 @@ import {
   DialogTitle,
   DialogClose,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { terminalApi } from "@/lib/services/terminal.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
 import { useSyncedTradingAssets } from "@/hooks/use-synced-trading-assets";
-import { AssetIcon } from "@/components/shared/asset-icon";
 import { SIDEBAR_ICONS } from "@/lib/mock-data/sidebar-icons";
 import { getAssetLeverageLabel } from "@/lib/utils/asset-leverage";
 import { usePriceStream } from "@/hooks/use-price-stream";
@@ -32,6 +25,7 @@ import { formatMarketPrice } from "@/lib/utils/market-price";
 import { useLiveAccountSnapshotStore } from "@/lib/stores/live-account-snapshot-store";
 import { buildAccountMetricsSummaryFromAccount } from "@/lib/utils/live-account-summary";
 import type { PriceSocketQuote } from "@/types/price";
+import { SymbolSelector } from "@/components/symbol-selector";
 
 export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = React.useState(false);
@@ -47,7 +41,7 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
   const [quote, setQuote] = React.useState<PriceSocketQuote | null>(null);
   const token = useAuthStore((state) => state.session?.token ?? null);
   const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
-  const { data: tradingAssets = [], isLoading: isAssetsLoading } = useSyncedTradingAssets();
+  const { data: tradingAssets = [] } = useSyncedTradingAssets();
   const selectedAsset = React.useMemo(
     () => tradingAssets.find((asset) => asset.symbol === symbol) ?? null,
     [symbol, tradingAssets],
@@ -56,11 +50,6 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
     () => getAssetLeverageLabel(selectedAsset?.category),
     [selectedAsset?.category],
   );
-
-  // Live bid/ask for the selected symbol — streams only while the modal is open.
-  React.useEffect(() => {
-    setQuote(null);
-  }, [symbol]);
 
   usePriceStream({
     enabled: open && !!symbol,
@@ -121,15 +110,18 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
     if (!selectedAsset) {
       setSymbol(tradingAssets[0].symbol);
     }
-  }, [selectedAsset, tradingAssets]);
+  }, [selectedAsset, setSymbol, tradingAssets]);
 
-  React.useEffect(() => {
-    if (!open) {
-      return;
-    }
+  const handleOpenChange = React.useCallback(
+    (nextOpen: boolean) => {
+      setOpen(nextOpen);
 
-    void loadAccountContext({ silent: true });
-  }, [loadAccountContext, open]);
+      if (nextOpen) {
+        void loadAccountContext({ silent: true });
+      }
+    },
+    [loadAccountContext],
+  );
 
   const submitOrder = async () => {
     if (!token) {
@@ -193,7 +185,7 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger render={React.isValidElement(children) ? children : <button>{children}</button>} />
       <DialogContent
         className="w-full max-w-[450px] sm:max-w-[450px] max-h-[90vh] overflow-y-auto custom-scrollbar bg-[#0d0d0d] border border-white/20 p-5 pt-14 gap-0 shadow-2xl rounded-[16px] text-white"
@@ -295,34 +287,8 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
         <div className="space-y-4">
           {/* Symbol Row */}
           <div>
-            {/* Symbol */}
-          <div>
             <label className="text-xs text-white/50 mb-1.5 block">Symbol</label>
-              <Select value={symbol} onValueChange={(val) => val && setSymbol(val)}>
-                <SelectTrigger className="flex w-full items-center justify-between rounded-lg border border-white/20 gradient-btn-trade px-3 h-9 text-sm font-medium text-white shadow-none">
-                  <div className="flex items-center gap-2">
-                    <AssetIcon symbol={symbol} label={symbol} size={16} />
-                    <span>{symbol.replace("USD", "/USD")}</span>
-                  </div>
-                </SelectTrigger>
-                <SelectContent className="bg-[#141414] border-[#222] text-white">
-                  {isAssetsLoading ? (
-                    <SelectItem value={symbol} disabled>
-                      Loading assets...
-                    </SelectItem>
-                  ) : (
-                    tradingAssets.map((asset) => (
-                      <SelectItem key={asset.id} value={asset.symbol}>
-                        <div className="flex w-full min-w-0 items-center gap-2 pr-2">
-                          <AssetIcon symbol={asset.symbol} label={asset.label} size={16} />
-                          <span className="min-w-0 flex-1 truncate text-white">{asset.label}</span>
-                        </div>
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
+            <SymbolSelector className="w-full" />
           </div>
 
           {/* Other 4 fields in 2x2 grid */}

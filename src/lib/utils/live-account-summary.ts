@@ -23,6 +23,7 @@ export function buildAccountMetricsSummaryFromAccount(
     balance: Math.max(0, toNumber(account.balance)),
     equity: toNumber(account.equity),
     floatingPnl: toNumber(account.floatingPnl),
+    dailyPnl: fallback?.dailyPnl ?? 0,
     winRate: fallback?.winRate ?? 0,
     bestAsset: fallback?.bestAsset ?? null,
   };

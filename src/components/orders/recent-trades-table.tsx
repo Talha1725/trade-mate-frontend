@@ -321,7 +321,7 @@ export function RecentTradesTable({
         className={cn(
           isStrategyPerformance && "flex-1 min-h-0 overflow-auto",
           isStrategyPerformance &&
-            "**:data-[slot=table-container]:overflow-x-hidden",
+            "**:data-[slot=table-container]:overflow-x-auto",
         )}
       >
         {isStrategyPerformance ? (
