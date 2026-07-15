@@ -144,7 +144,7 @@ const strategyPerformanceColumns: ColumnDef<StrategyPerformanceRow>[] = [
   {
     accessorKey: "profitFactor",
     header: ({ column }) => (
-      <SortableColumnHeader column={column} label="PF" className="justify-end" />
+      <SortableColumnHeader column={column} label="Profit Factor" className="justify-end" />
     ),
     cell: ({ row }) => (
       <span className="text-right text-sm font-medium whitespace-normal text-white/60">
