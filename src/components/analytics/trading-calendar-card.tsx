@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  mockTradingCalendarDays,
   TRADING_CALENDAR_TILE_BACKGROUNDS,
   TRADING_CALENDAR_WEEKDAYS,
 } from "@/lib/mock-data/trading-calendar";
@@ -54,9 +53,9 @@ function CalendarDayTile({ day }: { day: TradingCalendarDay }) {
 
 export function TradingCalendarCard({
   title = "Trading Calendar",
-  sessionsLabel = "22 Sessions",
+  sessionsLabel,
   weekdays = [...TRADING_CALENDAR_WEEKDAYS],
-  days = mockTradingCalendarDays,
+  days,
   className,
 }: TradingCalendarCardProps) {
   return (

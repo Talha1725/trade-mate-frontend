@@ -13,7 +13,7 @@ export type ChallengeProgressCardProps = {
   statusLabel?: string;
   progress?: number;
   progressLabel?: string;
-  stats?: ChallengeProgressStatRow[];
+  stats: ChallengeProgressStatRow[];
   message?: string;
   backgroundImageSrc?: string;
   shieldIconSrc?: string;

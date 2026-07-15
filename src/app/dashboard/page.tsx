@@ -19,7 +19,10 @@ import {
   mapTimeframeToMarketInterval,
   mapTimeframeToTradingViewInterval,
 } from "@/lib/utils/trading-view";
-import { buildDashboardData } from "@/lib/utils/trader-data";
+import {
+  buildDashboardData,
+  mapPortfolioPositionToPortfolioRow,
+} from "@/lib/utils/trader-data";
 import { mergeStablePositions } from "@/lib/utils/stable-positions";
 import { normalizeTradingSymbol } from "@/lib/utils/market-symbol-icon";
 import { resolveMarketWatchIcon } from "@/lib/utils/market-symbol-icon";
@@ -57,6 +60,10 @@ export default function DashboardPage() {
   const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
   const hasHydrated = useSelectedAccountStore((state) => state.hasHydrated);
   const { data: tradingAssets = [] } = useSyncedTradingAssets();
+  const assetCategoryBySymbol = React.useMemo(
+    () => new Map(tradingAssets.map((asset) => [asset.symbol.toUpperCase(), asset.category])),
+    [tradingAssets],
+  );
 
   const resolvedAccountId = React.useMemo(() => {
     if (!hasHydrated) {
@@ -291,18 +298,14 @@ export default function DashboardPage() {
   }
 
   function mapPositionToOpenStripItem(position: PortfolioPosition): OpenPositionStripItem {
-    const entryPrice = Number(position.entryPrice);
-    const liveQuote = liveQuotes[position.symbol.toUpperCase()];
-    const currentPrice = Number(liveQuote?.price ?? position.currentPrice ?? position.entryPrice);
-    const lots = Number(position.lots);
     const isLong = position.direction === "BUY";
     const side = isLong ? "long" : "short";
-    const contractMultiplier = position.symbol.trim().toUpperCase().match(/^(AUD|CAD|CHF|EUR|GBP|JPY|NZD|USD)[A-Z]{3}$/)
-      ? 100_000
-      : 1;
-    const priceDelta = (currentPrice - entryPrice) * (isLong ? 1 : -1);
-    const pnl = priceDelta * lots * contractMultiplier;
-    const pnlPercent = entryPrice > 0 ? (priceDelta / entryPrice) * 100 : 0;
+    const liveQuote = liveQuotes[position.symbol.toUpperCase()];
+    const assetCategory = assetCategoryBySymbol.get(position.symbol.toUpperCase()) ?? null;
+    const portfolioRow = mapPortfolioPositionToPortfolioRow(position, liveQuote ?? null, assetCategory);
+    const entryPrice = Number(position.entryPrice);
+    const currentPrice = Number(liveQuote?.price ?? position.currentPrice ?? position.entryPrice);
+    const lots = Number(position.lots);
     const sizeUnit = position.symbol.replace(/USD$/i, "") || position.symbol;
     const entryLabelPrice =
       position.symbol.trim().toUpperCase().match(/^(AUD|CAD|CHF|EUR|GBP|JPY|NZD|USD)[A-Z]{3}$/)
@@ -317,12 +320,12 @@ export default function DashboardPage() {
       symbol: position.symbol,
       icon: resolveMarketWatchIcon(position.symbol) ?? "bitcoin",
       side,
-      pnl: Number(pnl.toFixed(2)),
-      pnlPercent: Number(pnlPercent.toFixed(2)),
+      pnl: Number(portfolioRow.pnl.toFixed(2)),
+      pnlPercent: Number(portfolioRow.pnlPercent.toFixed(2)),
       sizeLabel: `${lots.toFixed(4)} ${sizeUnit}`,
       entryLabel: `Entry ${entryLabelPrice}`,
       trend: buildPositionTrend(entryPrice, currentPrice, side),
-      palette: pnl >= 0 ? "profit" : "loss",
+      palette: portfolioRow.pnl >= 0 ? "profit" : "loss",
     };
   }
 

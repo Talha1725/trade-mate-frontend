@@ -6,7 +6,6 @@ import { ChallengeProgressDonut } from "@/components/analytics/challenge-progres
 import {
   CHALLENGE_PROGRESS_BACKGROUND_IMAGE,
   CHALLENGE_PROGRESS_SHIELD_ICON,
-  mockChallengeProgressStats,
 } from "@/lib/mock-data/challenge-progress";
 import { cn } from "@/lib/utils";
 import type {
@@ -56,13 +55,15 @@ function formatCompactNumber(value: string | number) {
 
 function StatRow({ row }: { row: ChallengeProgressStatRow }) {
   return (
-    <div className="contents">
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 py-1.5">
       <div className="flex items-center gap-2">
         <StatToneDot tone={row.tone} />
         <span className="font-medium text-white">{row.label}</span>
       </div>
-      <div className="text-right text-white/80">{formatCompactNumber(row.valuePrimary)}</div>
-      <div className="text-right text-white">{formatCompactNumber(row.valueSecondary)}</div>
+      <div className="flex flex-col items-end">
+        <div className="text-right text-white/80">{formatCompactNumber(row.valuePrimary)}</div>
+        <div className="text-right text-white/60">{formatCompactNumber(row.valueSecondary)}</div>
+      </div>
     </div>
   );
 }
@@ -72,7 +73,7 @@ export function ChallengeProgressCard({
   statusLabel = "On Track",
   progress = 72,
   progressLabel = "Progress",
-  stats = mockChallengeProgressStats,
+  stats,
   message = "Stay consistent to maintain your evaluation progress.",
   backgroundImageSrc = CHALLENGE_PROGRESS_BACKGROUND_IMAGE,
   shieldIconSrc = CHALLENGE_PROGRESS_SHIELD_ICON,
@@ -106,11 +107,7 @@ export function ChallengeProgressCard({
 
         <div className="flex flex-1 flex-col gap-4">
           <div className="rounded-[10px] border border-white/20 bg-linear-to-b from-[#13131505] to-white/6 p-4 backdrop-blur-[2px] md:p-5">
-            <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-4 gap-y-4 text-sm">
-              {stats.map((row) => (
-                <StatRow key={row.id} row={row} />
-              ))}
-            </div>
+            <div className="space-y-1 text-sm">{stats.map((row) => <StatRow key={row.id} row={row} />)}</div>
           </div>
 
           <div className="flex items-center gap-4 rounded-[10px] border border-white/20 bg-linear-to-b from-[#13131505] to-white/6 p-5 backdrop-blur-[2px]">

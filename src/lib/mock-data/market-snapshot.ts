@@ -13,7 +13,7 @@ export const mockMarketSnapshot: MarketSnapshotData = {
     { id: "volume", label: "Volume 24h", value: "18.42K BTC" },
     { id: "market-cap", label: "Market Cap", value: "$1.36T" },
     { id: "dominance", label: "Dominance", value: "49.2%" },
-    { id: "fear-greed", label: "Fear & Greed", value: "72 (Greed)", tone: "primary" },
+    { id: "momentum-score", label: "Momentum Score", value: "72 (Strong)", tone: "primary" },
   ],
   sparkline: [
     { value: 68210 },
