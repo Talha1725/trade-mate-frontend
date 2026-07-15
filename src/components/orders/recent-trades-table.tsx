@@ -231,10 +231,8 @@ function StrategyPerformanceTableContent({
 
 function RecentTradesTableContent({
   trades,
-  sizeLabel,
 }: {
   trades: RecentTradeRow[];
-  sizeLabel: string;
 }) {
   return (
     <Table className="min-w-[640px]">
@@ -244,10 +242,10 @@ function RecentTradesTableContent({
             Symbol
           </TableHead>
           <TableHead className="h-11 px-4 text-sm font-medium text-white/60">
-            Price (USD)
+            Price
           </TableHead>
           <TableHead className="h-11 px-4 text-center text-sm font-medium text-white/60">
-            Size ({sizeLabel})
+            Qty
           </TableHead>
           <TableHead className="h-11 px-4 text-right text-sm font-medium text-white/60">
             Time
@@ -293,7 +291,6 @@ export function RecentTradesTable({
   title,
   liveTapeLabel = "Live Tape",
   showHeaderBadge,
-  sizeLabel = "BTC",
   trades = mockRecentTrades,
   strategies = mockStrategyPerformanceRows,
   className,
@@ -327,7 +324,7 @@ export function RecentTradesTable({
         {isStrategyPerformance ? (
           <StrategyPerformanceTableContent strategies={strategies} />
         ) : (
-          <RecentTradesTableContent trades={trades} sizeLabel={sizeLabel} />
+          <RecentTradesTableContent trades={trades} />
         )}
       </ResponsiveTableScroll>
     </section>

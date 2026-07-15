@@ -310,6 +310,13 @@ export function buildOrderMetrics(
     account && Number(account.equity) > 0
       ? (Number(account.marginUsed) / Number(account.equity)) * 100
       : 0;
+  const averageSlippagePercent = averageSlippage * 100;
+  const slippageSubtitle =
+    averageSlippagePercent < 0.05
+      ? "Near zero execution drag"
+      : averageSlippagePercent < 0.2
+        ? "Low execution drag"
+        : "Elevated execution drag";
 
   return [
     {
@@ -336,11 +343,11 @@ export function buildOrderMetrics(
       id: "average-slippage",
       variant: "chart",
       title: "Average Slippage",
-      value: `${(averageSlippage * 100).toFixed(2)}%`,
-      subtitle: averageSlippage > 0.001 ? "Very low execution drag" : "Near zero execution drag",
+      value: `${averageSlippagePercent.toFixed(2)}%`,
+      subtitle: slippageSubtitle,
       chartValues: Array.from({ length: 12 }, (_, index) => {
         const waveSeed = Math.sin(index * 0.7) * 0.015 + Math.sin(index * 0.23 + 0.5) * 0.006;
-        return Number(Math.max(0.01, averageSlippage * 100 + waveSeed).toFixed(3));
+        return Number(Math.max(0.01, averageSlippagePercent + waveSeed).toFixed(3));
       }),
     },
     {

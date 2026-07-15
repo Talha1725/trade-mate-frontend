@@ -55,8 +55,8 @@ function formatOrderType(type: ActiveOrderType) {
 function OrderStatusBadge({ status }: { status: ActiveOrderStatus }) {
   return (
     <TradingOrderStatusBadge
-      label={status === "new" ? "New" : "Partial"}
-      tone={status === "new" ? "primary" : "orange"}
+      label={status === "filled" ? "Filled" : "Partial"}
+      tone={status === "filled" ? "primary" : "orange"}
     />
   );
 }

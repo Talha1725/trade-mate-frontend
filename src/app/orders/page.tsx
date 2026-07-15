@@ -381,7 +381,7 @@ export default function OrdersPage() {
         <OrdersMetricCards cards={metricCards} />
 
         <div className="grid grid-cols-1 gap-5 md:gap-6 xl:grid-cols-2">
-          <RecentTradesTable trades={recentTrades} sizeLabel={sizeLabel} />
+          <RecentTradesTable trades={recentTrades} />
 
           <DepthChartCard
             dataByLevel={depthChart.dataByLevel}

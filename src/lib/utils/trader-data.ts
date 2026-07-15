@@ -197,7 +197,7 @@ export function mapPortfolioPositionToActiveOrder(position: PortfolioPosition): 
     price: toNumber(position.entryPrice),
     takeProfit: position.takeProfit ? toNumber(position.takeProfit) : null,
     stopLoss: position.stopLoss ? toNumber(position.stopLoss) : null,
-    status: "new",
+    status: "filled",
   };
 }
 
