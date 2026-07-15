@@ -269,11 +269,12 @@ export function buildEquityCurve(account: PortfolioAccount, trades: PortfolioTra
     .filter((trade) => trade.closedAt)
     .sort((left, right) => new Date(left.closedAt ?? left.openedAt).getTime() - new Date(right.closedAt ?? right.openedAt).getTime());
   const accountSize = toNumber(account.accountSize ?? account.balance);
+  const currentBalance = toNumber(account.balance);
 
   if (closedTrades.length === 0) {
     return [
       { name: "Start", equity: accountSize },
-      { name: "Now", equity: toNumber(account.equity) },
+      { name: "Now", equity: currentBalance },
     ];
   }
 
@@ -286,9 +287,19 @@ export function buildEquityCurve(account: PortfolioAccount, trades: PortfolioTra
       name: formatDateLabel(trade.closedAt ?? trade.openedAt) || `T${index + 1}`,
       equity: Number(runningEquity.toFixed(2)),
     };
-  });
+    });
 
-  return points.slice(-7);
+  const clippedPoints = points.slice(-7);
+  const finalPoint = clippedPoints.at(-1);
+
+  if (finalPoint && finalPoint.equity !== currentBalance) {
+    clippedPoints[clippedPoints.length - 1] = {
+      ...finalPoint,
+      equity: Number(currentBalance.toFixed(2)),
+    };
+  }
+
+  return clippedPoints;
 }
 
 export function buildSymbolBreakdown(positions: PortfolioPosition[]): SymbolBreakdownDatum[] {
