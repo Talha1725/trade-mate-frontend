@@ -31,15 +31,16 @@ export type PriceSocketPortfolioMessage = {
   accounts: {
     id: string;
     userId: string;
-    accountNumber: string | null;
-    fundingType: string | null;
-    name: string;
-    type: string;
-    status: string;
-    balance: string;
-    equity: string;
-    floatingPnl: string;
-    marginUsed: string;
+      accountNumber: string | null;
+      fundingType: string | null;
+      name: string;
+      type: string;
+      status: string;
+      accountSize: string;
+      balance: string;
+      equity: string;
+      floatingPnl: string;
+      marginUsed: string;
     currency: string;
   }[];
   positions: {

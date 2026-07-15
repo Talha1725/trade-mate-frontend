@@ -268,15 +268,16 @@ export function buildEquityCurve(account: PortfolioAccount, trades: PortfolioTra
   const closedTrades = [...trades]
     .filter((trade) => trade.closedAt)
     .sort((left, right) => new Date(left.closedAt ?? left.openedAt).getTime() - new Date(right.closedAt ?? right.openedAt).getTime());
+  const accountSize = toNumber(account.accountSize ?? account.balance);
 
   if (closedTrades.length === 0) {
     return [
-      { name: "Start", equity: toNumber(account.balance) },
+      { name: "Start", equity: accountSize },
       { name: "Now", equity: toNumber(account.equity) },
     ];
   }
 
-  let runningEquity = toNumber(account.balance);
+  let runningEquity = accountSize;
 
   const points = closedTrades.map((trade, index) => {
     runningEquity += toNumber(trade.pnl);

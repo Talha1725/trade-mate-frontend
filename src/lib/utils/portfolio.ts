@@ -23,6 +23,28 @@ function formatSignedCurrency(value: number) {
   })}`;
 }
 
+function clampDisplayPercent(value: number) {
+  return Math.max(0, Math.min(100, value));
+}
+
+function formatDisplayPercent(value: number) {
+  const clampedValue = Math.max(0, Math.min(100, value));
+
+  if (clampedValue === 0) {
+    return "0.00%";
+  }
+
+  if (clampedValue < 1) {
+    return `${Number(clampedValue.toFixed(2)).toString()}%`;
+  }
+
+  if (clampedValue < 10) {
+    return `${Number(clampedValue.toFixed(1)).toString()}%`;
+  }
+
+  return `${Number(clampedValue.toFixed(0)).toString()}%`;
+}
+
 function getRiskTone(label: PortfolioOverviewResponse["summary"]["riskLabel"]) {
   return label === "High" ? "red" : label === "Medium" ? "orange" : "green";
 }
@@ -183,11 +205,14 @@ export function buildPortfolioMetricCards(
   const acc = account ?? ZERO_ACCOUNT;
   const ov = overview ?? ZERO_OVERVIEW;
   const walletBalance = Math.max(0, Number(acc.balance));
+  const accountSize = Math.max(1, Number(ov.summary?.accountSize ?? walletBalance));
   const availableMargin = Number(acc.equity) - Number(acc.marginUsed);
-  const marginUsagePercent = Number(acc.equity) > 0 ? (Number(acc.marginUsed) / Number(acc.equity)) * 100 : 0;
+  const marginUsagePercent = Number(acc.marginUsed) > 0 ? (Number(acc.marginUsed) / accountSize) * 100 : 0;
+  const freeMarginPercent = accountSize > 0 ? (availableMargin / accountSize) * 100 : 0;
   const riskLabel = getRiskLabel(marginUsagePercent);
   const summary =
     ov.summary ?? {
+      accountSize,
       walletBalance,
       equity: Number(acc.equity),
       floatingPnl: Number(acc.floatingPnl),
@@ -200,20 +225,19 @@ export function buildPortfolioMetricCards(
       riskLabel,
       riskTone: getRiskTone(riskLabel),
       profitTarget: {
-        baseBalance: walletBalance,
-        targetAmount: Math.max(1, walletBalance * 0.1),
-        currentProfit: Number(acc.equity) - walletBalance,
-        remaining: Math.max(0, Math.max(1, walletBalance * 0.1) - (Number(acc.equity) - walletBalance)),
+        baseBalance: accountSize,
+        targetAmount: Math.max(1, accountSize * 0.1),
+        currentProfit: 0,
+        remaining: Math.max(1, accountSize * 0.1),
         progressPercent: 0,
       },
     };
-  const currentProfit = Number(acc.equity) - summary.profitTarget.baseBalance;
-  const profitTargetPercent =
-    summary.profitTarget.targetAmount > 0 ? Math.min(100, (currentProfit / summary.profitTarget.targetAmount) * 100) : 0;
+  const currentProfit = Math.max(0, Number(summary.profitTarget.currentProfit));
+  const profitTargetPercent = clampDisplayPercent(summary.profitTarget.progressPercent);
   const remaining = Math.max(0, summary.profitTarget.targetAmount - currentProfit);
   const thirtyDayHigh =
     ov.chart.dataByTimeframe["D"]?.reduce((max, point) => Math.max(max, Number(point.value)), 0) ??
-    Number(acc.equity);
+    summary.accountSize;
 
   return [
     {
@@ -252,9 +276,9 @@ export function buildPortfolioMetricCards(
       variant: "gauge-progress",
       title: "Available Margin",
       value: `$${formatCurrency(availableMargin)}`,
-      subtitle: `Margin usage ${marginUsagePercent.toFixed(1)}%`,
+      subtitle: `Margin usage ${formatDisplayPercent(marginUsagePercent)}`,
       gaugeValue: marginUsagePercent,
-      progressValue: Math.max(0, 100 - marginUsagePercent),
+      progressValue: freeMarginPercent,
       progressLeftLabel: "Free Margin",
       progressRightLabel: `$${formatCurrency(availableMargin)}`,
     },
@@ -268,7 +292,7 @@ export function buildPortfolioMetricCards(
       iconSrc: "/images/portfolio/risk.svg",
       iconTone: getRiskTone(riskLabel),
       subStats: [
-        { label: "VAR", value: `${marginUsagePercent.toFixed(1)}%` },
+        { label: "VAR", value: formatDisplayPercent(marginUsagePercent) },
         { label: "Compliance", value: summary.winRate >= 50 ? "Good" : "Review", tone: summary.winRate >= 50 ? "positive" : "negative" },
       ],
       valueTone: getRiskTone(riskLabel) === "red" ? "negative" : "positive",
@@ -277,7 +301,7 @@ export function buildPortfolioMetricCards(
       id: "profit-target",
       variant: "gauge-progress",
       title: "Profit Target",
-      value: `${profitTargetPercent.toFixed(0)}%`,
+      value: formatDisplayPercent(profitTargetPercent),
       subtitle: `$${formatCurrency(currentProfit)} / $${formatCurrency(summary.profitTarget.targetAmount)}`,
       gaugeValue: profitTargetPercent,
       progressValue: profitTargetPercent,
