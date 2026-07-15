@@ -24,7 +24,7 @@ export function buildAccountMetricsSummaryFromAccount(
     equity: toNumber(account.equity),
     floatingPnl: toNumber(account.floatingPnl),
     dailyPnl: fallback?.dailyPnl ?? 0,
-    winRate: fallback?.winRate ?? 0,
+    winRate: fallback?.winRate,
     bestAsset: fallback?.bestAsset ?? null,
   };
 }

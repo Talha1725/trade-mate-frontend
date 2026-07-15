@@ -137,7 +137,7 @@ function mergeSidebarSummary(
     equity: stableSummary?.equity ?? liveSummary?.equity ?? 0,
     floatingPnl: livePnl,
     dailyPnl: stableSummary?.dailyPnl ?? liveSummary?.dailyPnl ?? 0,
-    winRate: liveSummary?.winRate ?? stableSummary?.winRate ?? 0,
+    winRate: stableSummary?.winRate ?? liveSummary?.winRate ?? 0,
     bestAsset: liveSummary?.bestAsset ?? stableSummary?.bestAsset ?? null,
   };
 }
