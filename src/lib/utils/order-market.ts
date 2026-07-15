@@ -229,21 +229,25 @@ function buildDepthSeries(
     });
   });
 
+  // Bid depth accumulates from the best bid (center) outward toward the lowest
+  // price, so cumulative volume is smallest at the center and grows toward
+  // priceMin. This makes the bid side a wall that rises away from the spread.
   let runningBid = 0;
-  const bidTotals = bidSizes.map((size) => {
-    runningBid = roundDepth(runningBid + size);
-    return runningBid;
-  });
+  const bidTotals = new Array<number>(bidSteps);
+  for (let index = bidSteps - 1; index >= 0; index -= 1) {
+    runningBid = roundDepth(runningBid + (bidSizes[index] ?? 0));
+    bidTotals[index] = runningBid;
+  }
   let runningAsk = 0;
   const askTotals = askSizes.map((size) => {
     runningAsk = roundDepth(runningAsk + size);
     return runningAsk;
   });
 
-  const maxBidTotal = bidTotals[bidTotals.length - 1] ?? 1;
+  const maxBidTotal = bidTotals[0] ?? 1;
   const maxAskTotal = askTotals[askTotals.length - 1] ?? 1;
 
-  const points: DepthChartPoint[] = bidSizes.map((size, index) => {
+  const points: DepthChartPoint[] = bidSizes.map((_size, index) => {
     const progress = index / Math.max(bidSteps - 1, 1);
     const price = roundDepth(priceMin + bidSpan * progress);
     const total = bidTotals[index] ?? 0;
