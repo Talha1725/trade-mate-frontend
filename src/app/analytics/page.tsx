@@ -62,7 +62,7 @@ function buildEmptyAnalyticsOverview(accountId: string | null): AnalyticsOvervie
       id: "profit-factor",
       variant: "icon-stats",
       title: "Profit Factor",
-      value: "0.00",
+      value: "N/A",
       subtitle: "Target 2.0+",
       iconKind: "target",
       iconTone: "green",

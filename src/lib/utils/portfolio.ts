@@ -2,43 +2,9 @@ import type { PortfolioMetricCard } from "@/types/portfolio-metric-card";
 import type { PortfolioChartResponse, PortfolioOverviewResponse } from "@/types/portfolio-overview";
 import type { PortfolioExposureItem, PortfolioAllocationItem } from "@/types/portfolio-overview";
 import type { PortfolioAccount, PortfolioPosition } from "@/types/dashboard";
-import { resolveCryptoIconCode } from "@/lib/utils/resolve-crypto-icon";
-import { resolveForexPairIcon } from "@/lib/utils/forex-flag";
 import { resolveUrfxPlanKey } from "@/lib/utils/urfx-pricing";
 import type { UrfxPricingPlanKey } from "@/types/urfx-pricing";
-
-
-const COMMODITY_SYMBOL_PREFIXES = new Set(["XAU"]);
-const CONTRACT_SIZE_BY_SYMBOL: Partial<Record<string, number>> = {
-  BTCUSDT: 1,
-  BTCUSD: 1,
-  ETHUSDT: 1,
-  SOLUSDT: 1,
-  BNBUSDT: 1,
-  XRPUSDT: 1,
-  ADAUSDT: 1,
-  DOGEUSDT: 1,
-  AVAXUSDT: 1,
-  LINKUSDT: 1,
-  TONUSDT: 1,
-  TRXUSDT: 1,
-  DOTUSDT: 1,
-  LTCUSDT: 1,
-  SUIUSDT: 1,
-  EURUSD: 100000,
-  GBPUSD: 100000,
-  USDJPY: 100000,
-  USDCHF: 100000,
-  AUDUSD: 100000,
-  USDCAD: 100000,
-  NZDUSD: 100000,
-  GBPJPY: 100000,
-  EURGBP: 100000,
-  XAUUSD: 100,
-  XAGUSD: 5000,
-  XBRUSD: 1000,
-  SPX500: 1,
-};
+import { calculateNotionalUsd, getInstrumentSpec, type QuotePriceMap } from "@/lib/utils/instrument-spec";
 
 const PROFIT_TARGET_PERCENT_BY_PLAN: Record<UrfxPricingPlanKey, number> = {
   onePhase: 10,
@@ -101,17 +67,13 @@ function getRiskLabel(marginUsagePercent: number): PortfolioOverviewResponse["su
 }
 
 function getAssetGroup(symbol: string) {
-  const normalized = symbol.trim().toUpperCase();
+  const assetClass = getInstrumentSpec(symbol).assetClass;
 
-  if (resolveCryptoIconCode(normalized)) {
+  if (assetClass === "CRYPTO") {
     return "crypto";
   }
 
-  if (COMMODITY_SYMBOL_PREFIXES.has(normalized.slice(0, 3))) {
-    return "commodities";
-  }
-
-  if (resolveForexPairIcon(normalized)) {
+  if (assetClass === "FOREX") {
     return "forex";
   }
 
@@ -138,14 +100,10 @@ function getProfitTargetPercent(fundingType: string | null | undefined) {
   return planKey ? PROFIT_TARGET_PERCENT_BY_PLAN[planKey] ?? 10 : 10;
 }
 
-function getContractSize(symbol: string) {
-  const normalized = symbol.trim().toUpperCase();
-  return CONTRACT_SIZE_BY_SYMBOL[normalized] ?? 1;
-}
-
 export function buildPortfolioAllocationItems(
   account: Pick<PortfolioAccount, "equity">,
   positions: PortfolioPosition[],
+  quotePrices: QuotePriceMap = {},
 ): PortfolioAllocationItem[] {
   const groups = {
     crypto: 0,
@@ -155,9 +113,9 @@ export function buildPortfolioAllocationItems(
   };
 
   for (const position of positions.filter((item) => item.status === "OPEN")) {
-    const value = Math.abs(
-      toNumber(position.lots) * toNumber(position.currentPrice ?? position.entryPrice) * getContractSize(position.symbol),
-    );
+    const currentPrice = toNumber(position.currentPrice ?? position.entryPrice);
+    const notional = calculateNotionalUsd(position.symbol, toNumber(position.lots), currentPrice, quotePrices);
+    const value = Math.abs(notional ?? (toNumber(position.lots) * currentPrice));
     const group = getAssetGroup(position.symbol);
     groups[group] += value;
   }

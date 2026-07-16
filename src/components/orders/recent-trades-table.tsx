@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { IoArrowDownSharp, IoArrowUpSharp } from "react-icons/io5";
 import {
   flexRender,
@@ -42,6 +42,14 @@ function formatSignedCurrency(value: number) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
+}
+
+function formatProfitFactor(value: number) {
+  if (!Number.isFinite(value)) {
+    return "∞";
+  }
+
+  return value.toFixed(2);
 }
 
 function formatTradeSize(value: number) {
@@ -148,7 +156,7 @@ const strategyPerformanceColumns: ColumnDef<StrategyPerformanceRow>[] = [
     ),
     cell: ({ row }) => (
       <span className="text-right text-sm font-medium whitespace-normal text-white/60">
-        {row.original.profitFactor.toFixed(2)}
+        {formatProfitFactor(row.original.profitFactor)}
       </span>
     ),
   },

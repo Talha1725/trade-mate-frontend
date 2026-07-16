@@ -95,7 +95,7 @@ function buildLiveAccountSummary(
     null;
 
   const winners = closedTrades.filter((trade) => toNumber(trade.pnl) > 0).length;
-  const winRate = closedTrades.length > 0 ? (winners / closedTrades.length) * 100 : fallback?.winRate ?? 0;
+  const winRate = closedTrades.length > 0 ? (winners / closedTrades.length) * 100 : fallback?.winRate;
   const floatingPnl = openPositions.reduce((sum, position) => sum + toNumber(position.floatingPnl), 0);
   const dailyPnl = closedTradesToday.length > 0
     ? closedTradesToday.reduce((sum, trade) => sum + toNumber(trade.pnl), 0)
@@ -137,7 +137,7 @@ function mergeSidebarSummary(
     equity: stableSummary?.equity ?? liveSummary?.equity ?? 0,
     floatingPnl: livePnl,
     dailyPnl: stableSummary?.dailyPnl ?? liveSummary?.dailyPnl ?? 0,
-    winRate: stableSummary?.winRate ?? liveSummary?.winRate ?? 0,
+    winRate: stableSummary?.winRate ?? liveSummary?.winRate,
     bestAsset: liveSummary?.bestAsset ?? stableSummary?.bestAsset ?? null,
   };
 }
@@ -470,7 +470,7 @@ export function Sidebar({ className }: { className?: string }) {
               iconSrc={SIDEBAR_ICONS.winrate}
               label="Win Rate"
               subLabel="Last 30 Days"
-              value={`${Math.round(activeSummary?.winRate ?? 0)}%`}
+              value={activeSummary?.winRate != null ? `${Math.round(activeSummary.winRate)}%` : "N/A"}
             />
             <CardRow
               iconSrc={SIDEBAR_ICONS.cupStar}

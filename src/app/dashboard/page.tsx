@@ -23,6 +23,7 @@ import {
   buildDashboardData,
   mapPortfolioPositionToPortfolioRow,
 } from "@/lib/utils/trader-data";
+import { getSupplementalQuoteSymbol } from "@/lib/utils/instrument-spec";
 import { mergeStablePositions } from "@/lib/utils/stable-positions";
 import { normalizeTradingSymbol } from "@/lib/utils/market-symbol-icon";
 import { resolveMarketWatchIcon } from "@/lib/utils/market-symbol-icon";
@@ -63,6 +64,13 @@ export default function DashboardPage() {
   const assetCategoryBySymbol = React.useMemo(
     () => new Map(tradingAssets.map((asset) => [asset.symbol.toUpperCase(), asset.category])),
     [tradingAssets],
+  );
+  const liveQuotePrices = React.useMemo(
+    () =>
+      Object.fromEntries(
+        Object.values(liveQuotes).map((quote) => [quote.symbol.toUpperCase(), quote.price]),
+      ) as Record<string, number>,
+    [liveQuotes],
   );
 
   const resolvedAccountId = React.useMemo(() => {
@@ -138,7 +146,7 @@ export default function DashboardPage() {
     };
   }, [resolvedAccountId, token]);
 
-  const dashboardData = snapshot ? buildDashboardData(snapshot, ledger ?? undefined) : null;
+  const dashboardData = snapshot ? buildDashboardData(snapshot, ledger ?? undefined, liveQuotePrices) : null;
   const liveSymbol = dashboardData?.positions[0]?.symbol;
   const openPortfolioPositions = React.useMemo(
     () => dashboardData?.positions.filter((position) => position.status === "OPEN") ?? [],
@@ -302,7 +310,7 @@ export default function DashboardPage() {
     const side = isLong ? "long" : "short";
     const liveQuote = liveQuotes[position.symbol.toUpperCase()];
     const assetCategory = assetCategoryBySymbol.get(position.symbol.toUpperCase()) ?? null;
-    const portfolioRow = mapPortfolioPositionToPortfolioRow(position, liveQuote ?? null, assetCategory);
+    const portfolioRow = mapPortfolioPositionToPortfolioRow(position, liveQuote ?? null, assetCategory, liveQuotePrices);
     const entryPrice = Number(position.entryPrice);
     const currentPrice = Number(liveQuote?.price ?? position.currentPrice ?? position.entryPrice);
     const lots = Number(position.lots);
@@ -402,9 +410,19 @@ export default function DashboardPage() {
     [chartSymbol, resolveQuoteForSymbol],
   );
 
-  const subscriptionMarketSymbols = React.useMemo(
-    () => Array.from(new Set([chartSymbol, ...openSymbols].filter(Boolean))),
+  const supplementalQuoteSymbols = React.useMemo(
+    () =>
+      Array.from(
+        new Set([chartSymbol, ...openSymbols].map((symbol) => getSupplementalQuoteSymbol(symbol)).filter(Boolean) as string[]),
+      ),
     [chartSymbol, openSymbols],
+  );
+  const subscriptionMarketSymbols = React.useMemo(
+    () =>
+      Array.from(
+        new Set([chartSymbol, ...openSymbols, ...supplementalQuoteSymbols].filter(Boolean) as string[]),
+      ),
+    [chartSymbol, openSymbols, supplementalQuoteSymbols],
   );
   const watchlistMarketSymbols = React.useMemo(
     () => liveWatchlistItems.map((item) => item.symbol),
