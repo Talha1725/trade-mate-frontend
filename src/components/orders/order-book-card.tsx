@@ -189,7 +189,7 @@ export function OrderBookCard({
           <h3 className="text-base font-semibold text-white md:text-lg">{resolvedTitle}</h3>
         </div>
         <div className="flex min-h-[260px] items-center justify-center rounded-[18px] border border-dashed border-white/15 bg-white/5 px-4 text-center text-sm text-white/45">
-          Market depth simulated from EODHD live price data will appear here.
+          Simulated market depth based on EODHD price data will appear here.
         </div>
       </section>
     );

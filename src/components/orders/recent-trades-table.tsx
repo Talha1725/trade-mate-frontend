@@ -297,7 +297,7 @@ function RecentTradesTableContent({
 export function RecentTradesTable({
   variant = "recent-trades",
   title,
-  liveTapeLabel = "Live Tape",
+  liveTapeLabel = "Illustrative Tape",
   showHeaderBadge,
   trades = mockRecentTrades,
   strategies = mockStrategyPerformanceRows,
