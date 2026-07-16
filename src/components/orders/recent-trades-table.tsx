@@ -45,8 +45,8 @@ function formatSignedCurrency(value: number) {
 }
 
 function formatProfitFactor(value: number) {
-  if (!Number.isFinite(value)) {
-    return "∞";
+  if (!Number.isFinite(value) || value <= 0) {
+    return "0.00";
   }
 
   return value.toFixed(2);
