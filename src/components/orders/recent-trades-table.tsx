@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { IoArrowDownSharp, IoArrowUpSharp } from "react-icons/io5";
 import {
   flexRender,
@@ -42,6 +42,14 @@ function formatSignedCurrency(value: number) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
+}
+
+function formatProfitFactor(value: number) {
+  if (!Number.isFinite(value) || value <= 0) {
+    return "0.00";
+  }
+
+  return value.toFixed(2);
 }
 
 function formatTradeSize(value: number) {
@@ -144,11 +152,11 @@ const strategyPerformanceColumns: ColumnDef<StrategyPerformanceRow>[] = [
   {
     accessorKey: "profitFactor",
     header: ({ column }) => (
-      <SortableColumnHeader column={column} label="PF" className="justify-end" />
+      <SortableColumnHeader column={column} label="Profit Factor" className="justify-end" />
     ),
     cell: ({ row }) => (
       <span className="text-right text-sm font-medium whitespace-normal text-white/60">
-        {row.original.profitFactor.toFixed(2)}
+        {formatProfitFactor(row.original.profitFactor)}
       </span>
     ),
   },
@@ -231,10 +239,8 @@ function StrategyPerformanceTableContent({
 
 function RecentTradesTableContent({
   trades,
-  sizeLabel,
 }: {
   trades: RecentTradeRow[];
-  sizeLabel: string;
 }) {
   return (
     <Table className="min-w-[640px]">
@@ -244,10 +250,10 @@ function RecentTradesTableContent({
             Symbol
           </TableHead>
           <TableHead className="h-11 px-4 text-sm font-medium text-white/60">
-            Price (USD)
+            Price
           </TableHead>
           <TableHead className="h-11 px-4 text-center text-sm font-medium text-white/60">
-            Size ({sizeLabel})
+            Qty
           </TableHead>
           <TableHead className="h-11 px-4 text-right text-sm font-medium text-white/60">
             Time
@@ -291,9 +297,8 @@ function RecentTradesTableContent({
 export function RecentTradesTable({
   variant = "recent-trades",
   title,
-  liveTapeLabel = "Live Tape",
+  liveTapeLabel = "Illustrative Tape",
   showHeaderBadge,
-  sizeLabel = "BTC",
   trades = mockRecentTrades,
   strategies = mockStrategyPerformanceRows,
   className,
@@ -327,7 +332,7 @@ export function RecentTradesTable({
         {isStrategyPerformance ? (
           <StrategyPerformanceTableContent strategies={strategies} />
         ) : (
-          <RecentTradesTableContent trades={trades} sizeLabel={sizeLabel} />
+          <RecentTradesTableContent trades={trades} />
         )}
       </ResponsiveTableScroll>
     </section>

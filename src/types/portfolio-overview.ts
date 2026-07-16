@@ -34,6 +34,7 @@ export type PortfolioTopMoverItem = {
 };
 
 export type PortfolioSummary = {
+  accountSize: number;
   walletBalance: number;
   equity: number;
   floatingPnl: number;

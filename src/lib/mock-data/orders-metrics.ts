@@ -27,7 +27,7 @@ export const mockOrdersMetricCards: OrdersMetricCard[] = [
     variant: "chart",
     title: "Average Slippage",
     value: "0.08%",
-    subtitle: "Very low execution drag",
+    subtitle: "Low execution drag",
     chartValues: mockAverageSlippageChartValues,
   },
   {

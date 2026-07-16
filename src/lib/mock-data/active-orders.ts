@@ -12,7 +12,7 @@ export const mockActiveOrders: ActiveOrderRow[] = [
     price: 69_100,
     takeProfit: 72_500,
     stopLoss: 66_000,
-    status: "new",
+    status: "filled",
   },
   {
     id: "order-2",
@@ -38,7 +38,7 @@ export const mockActiveOrders: ActiveOrderRow[] = [
     price: 182.4,
     takeProfit: 175,
     stopLoss: 190,
-    status: "new",
+    status: "filled",
   },
   {
     id: "order-4",
@@ -64,6 +64,6 @@ export const mockActiveOrders: ActiveOrderRow[] = [
     price: 0.7842,
     takeProfit: 0.72,
     stopLoss: 0.84,
-    status: "new",
+    status: "filled",
   },
 ];

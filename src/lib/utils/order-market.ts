@@ -229,21 +229,25 @@ function buildDepthSeries(
     });
   });
 
+  // Bid depth accumulates from the best bid (center) outward toward the lowest
+  // price, so cumulative volume is smallest at the center and grows toward
+  // priceMin. This makes the bid side a wall that rises away from the spread.
   let runningBid = 0;
-  const bidTotals = bidSizes.map((size) => {
-    runningBid = roundDepth(runningBid + size);
-    return runningBid;
-  });
+  const bidTotals = new Array<number>(bidSteps);
+  for (let index = bidSteps - 1; index >= 0; index -= 1) {
+    runningBid = roundDepth(runningBid + (bidSizes[index] ?? 0));
+    bidTotals[index] = runningBid;
+  }
   let runningAsk = 0;
   const askTotals = askSizes.map((size) => {
     runningAsk = roundDepth(runningAsk + size);
     return runningAsk;
   });
 
-  const maxBidTotal = bidTotals[bidTotals.length - 1] ?? 1;
+  const maxBidTotal = bidTotals[0] ?? 1;
   const maxAskTotal = askTotals[askTotals.length - 1] ?? 1;
 
-  const points: DepthChartPoint[] = bidSizes.map((size, index) => {
+  const points: DepthChartPoint[] = bidSizes.map((_size, index) => {
     const progress = index / Math.max(bidSteps - 1, 1);
     const price = roundDepth(priceMin + bidSpan * progress);
     const total = bidTotals[index] ?? 0;
@@ -306,6 +310,13 @@ export function buildOrderMetrics(
     account && Number(account.equity) > 0
       ? (Number(account.marginUsed) / Number(account.equity)) * 100
       : 0;
+  const averageSlippagePercent = averageSlippage * 100;
+  const slippageSubtitle =
+    averageSlippagePercent < 0.05
+      ? "Near zero execution drag"
+      : averageSlippagePercent < 0.2
+        ? "Low execution drag"
+        : "Elevated execution drag";
 
   return [
     {
@@ -332,11 +343,11 @@ export function buildOrderMetrics(
       id: "average-slippage",
       variant: "chart",
       title: "Average Slippage",
-      value: `${(averageSlippage * 100).toFixed(2)}%`,
-      subtitle: averageSlippage > 0.001 ? "Very low execution drag" : "Near zero execution drag",
+      value: `${averageSlippagePercent.toFixed(2)}%`,
+      subtitle: slippageSubtitle,
       chartValues: Array.from({ length: 12 }, (_, index) => {
         const waveSeed = Math.sin(index * 0.7) * 0.015 + Math.sin(index * 0.23 + 0.5) * 0.006;
-        return Number(Math.max(0.01, averageSlippage * 100 + waveSeed).toFixed(3));
+        return Number(Math.max(0.01, averageSlippagePercent + waveSeed).toFixed(3));
       }),
     },
     {

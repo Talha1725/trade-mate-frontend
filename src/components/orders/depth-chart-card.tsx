@@ -93,7 +93,15 @@ export function DepthChartCard({
 
     return latestBidPoint;
   }, [chartData]);
-  const askPoint = useMemo(() => chartData.find((point) => point.asks != null) ?? null, [chartData]);
+  const askSeries = useMemo(() => {
+    const askPoints = chartData.filter((point) => point.asks != null);
+
+    return askPoints.map((point, index) => ({
+      price: point.price,
+      asks: index === 0 ? 0 : point.asks ?? 0,
+    }));
+  }, [chartData]);
+  const askPoint = askSeries[0] ?? null;
 
   return (
     <section
@@ -183,7 +191,7 @@ export function DepthChartCard({
             />
 
             <Area
-              type="step"
+              type="stepAfter"
               dataKey="bids"
               stroke={BID_COLOR}
               strokeWidth={1.5}
@@ -195,8 +203,9 @@ export function DepthChartCard({
             />
 
             <Area
-              type="step"
+              type="stepBefore"
               dataKey="asks"
+              data={askSeries}
               stroke={ASK_COLOR}
               strokeWidth={1.5}
               fill={`url(#${askGradientId})`}
@@ -208,23 +217,28 @@ export function DepthChartCard({
 
             {bidPoint != null || askPoint != null ? (
               <>
-                {bidPoint != null ? (
-                  <ReferenceDot
-                    x={bidPoint.price}
-                    y={bidPoint.bids ?? 0}
-                    r={4}
-                    fill={BID_COLOR}
-                    stroke="none"
-                  />
-                ) : null}
                 {askPoint != null ? (
                   <ReferenceDot
                     x={askPoint.price}
-                    y={Math.max(askPoint.asks ?? 0, 3)}
-                    r={5}
+                    y={askPoint.asks ?? 0}
+                    r={6}
                     fill={ASK_COLOR}
-                    stroke="#0C0C0C"
-                    strokeWidth={2}
+                    fillOpacity={0.9}
+                    stroke="#FF8A8A44"
+                    strokeWidth={1.5}
+                    style={{ filter: "drop-shadow(0 0 8px rgba(255,77,77,0.95))" }}
+                  />
+                ) : null}
+                {bidPoint != null ? (
+                  <ReferenceDot
+                    x={bidPoint.price}
+                    y={0}
+                    r={5}
+                    fill={BID_COLOR}
+                    fillOpacity={0.92}
+                    stroke="#7DFFD044"
+                    strokeWidth={1.5}
+                    style={{ filter: "drop-shadow(0 0 8px rgba(0,255,163,0.95))" }}
                   />
                 ) : null}
               </>

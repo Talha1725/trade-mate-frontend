@@ -2,11 +2,16 @@ import type { PortfolioMetricCard } from "@/types/portfolio-metric-card";
 import type { PortfolioChartResponse, PortfolioOverviewResponse } from "@/types/portfolio-overview";
 import type { PortfolioExposureItem, PortfolioAllocationItem } from "@/types/portfolio-overview";
 import type { PortfolioAccount, PortfolioPosition } from "@/types/dashboard";
-import { resolveCryptoIconCode } from "@/lib/utils/resolve-crypto-icon";
-import { resolveForexPairIcon } from "@/lib/utils/forex-flag";
+import { resolveUrfxPlanKey } from "@/lib/utils/urfx-pricing";
+import type { UrfxPricingPlanKey } from "@/types/urfx-pricing";
+import { calculateNotionalUsd, getInstrumentSpec, type QuotePriceMap } from "@/lib/utils/instrument-spec";
 
-
-const COMMODITY_SYMBOL_PREFIXES = new Set(["XAU"]);
+const PROFIT_TARGET_PERCENT_BY_PLAN: Record<UrfxPricingPlanKey, number> = {
+  onePhase: 10,
+  twoPhase: 10,
+  instantFundingPro: 10,
+  instantFundingLite: 8,
+};
 
 function formatCurrency(value: number) {
   return value.toLocaleString("en-US", {
@@ -21,6 +26,28 @@ function formatSignedCurrency(value: number) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
+}
+
+function clampDisplayPercent(value: number) {
+  return Math.max(0, Math.min(100, value));
+}
+
+function formatDisplayPercent(value: number) {
+  const clampedValue = Math.max(0, Math.min(100, value));
+
+  if (clampedValue === 0) {
+    return "0.00%";
+  }
+
+  if (clampedValue < 1) {
+    return `${Number(clampedValue.toFixed(2)).toString()}%`;
+  }
+
+  if (clampedValue < 10) {
+    return `${Number(clampedValue.toFixed(1)).toString()}%`;
+  }
+
+  return `${Number(clampedValue.toFixed(0)).toString()}%`;
 }
 
 function getRiskTone(label: PortfolioOverviewResponse["summary"]["riskLabel"]) {
@@ -40,17 +67,13 @@ function getRiskLabel(marginUsagePercent: number): PortfolioOverviewResponse["su
 }
 
 function getAssetGroup(symbol: string) {
-  const normalized = symbol.trim().toUpperCase();
+  const assetClass = getInstrumentSpec(symbol).assetClass;
 
-  if (resolveCryptoIconCode(normalized)) {
+  if (assetClass === "CRYPTO") {
     return "crypto";
   }
 
-  if (COMMODITY_SYMBOL_PREFIXES.has(normalized.slice(0, 3))) {
-    return "commodities";
-  }
-
-  if (resolveForexPairIcon(normalized)) {
+  if (assetClass === "FOREX") {
     return "forex";
   }
 
@@ -68,9 +91,19 @@ function toNumber(value: string | number | null | undefined) {
   return typeof value === "number" ? value : Number(value);
 }
 
+function resolvePlanKey(fundingType: string | null | undefined) {
+  return resolveUrfxPlanKey(fundingType);
+}
+
+function getProfitTargetPercent(fundingType: string | null | undefined) {
+  const planKey = resolvePlanKey(fundingType);
+  return planKey ? PROFIT_TARGET_PERCENT_BY_PLAN[planKey] ?? 10 : 10;
+}
+
 export function buildPortfolioAllocationItems(
   account: Pick<PortfolioAccount, "equity">,
   positions: PortfolioPosition[],
+  quotePrices: QuotePriceMap = {},
 ): PortfolioAllocationItem[] {
   const groups = {
     crypto: 0,
@@ -80,7 +113,9 @@ export function buildPortfolioAllocationItems(
   };
 
   for (const position of positions.filter((item) => item.status === "OPEN")) {
-    const value = Math.abs(toNumber(position.lots) * toNumber(position.currentPrice ?? position.entryPrice));
+    const currentPrice = toNumber(position.currentPrice ?? position.entryPrice);
+    const notional = calculateNotionalUsd(position.symbol, toNumber(position.lots), currentPrice, quotePrices);
+    const value = Math.abs(notional ?? (toNumber(position.lots) * currentPrice));
     const group = getAssetGroup(position.symbol);
     groups[group] += value;
   }
@@ -173,21 +208,25 @@ export function buildPortfolioExposureItems(positions: PortfolioPosition[]): Por
     .filter((item) => item.percent > 0);
 }
 
-const ZERO_ACCOUNT = { balance: "0", equity: "0", floatingPnl: "0", marginUsed: "0" };
+const ZERO_ACCOUNT = { balance: "0", equity: "0", floatingPnl: "0", marginUsed: "0", accountSize: "0", fundingType: null };
 const ZERO_OVERVIEW = { summary: undefined, chart: { defaultTimeframe: "4H" as const, dataByTimeframe: {} as PortfolioChartResponse["dataByTimeframe"] } };
 
 export function buildPortfolioMetricCards(
-  account: Pick<PortfolioAccount, "balance" | "equity" | "floatingPnl" | "marginUsed"> | null,
+  account: Pick<PortfolioAccount, "balance" | "equity" | "floatingPnl" | "marginUsed" | "accountSize" | "fundingType"> | null,
   overview: Pick<PortfolioOverviewResponse, "summary" | "chart"> | null,
 ): PortfolioMetricCard[] {
   const acc = account ?? ZERO_ACCOUNT;
   const ov = overview ?? ZERO_OVERVIEW;
   const walletBalance = Math.max(0, Number(acc.balance));
+  const accountSize = Math.max(1, Number(ov.summary?.accountSize ?? acc.accountSize ?? walletBalance));
   const availableMargin = Number(acc.equity) - Number(acc.marginUsed);
-  const marginUsagePercent = Number(acc.equity) > 0 ? (Number(acc.marginUsed) / Number(acc.equity)) * 100 : 0;
+  const marginUsagePercent = Number(acc.marginUsed) > 0 ? (Number(acc.marginUsed) / accountSize) * 100 : 0;
+  const freeMarginPercent = accountSize > 0 ? (availableMargin / accountSize) * 100 : 0;
+  const fallbackProfitTargetPercent = getProfitTargetPercent(acc.fundingType);
   const riskLabel = getRiskLabel(marginUsagePercent);
   const summary =
     ov.summary ?? {
+      accountSize,
       walletBalance,
       equity: Number(acc.equity),
       floatingPnl: Number(acc.floatingPnl),
@@ -200,20 +239,19 @@ export function buildPortfolioMetricCards(
       riskLabel,
       riskTone: getRiskTone(riskLabel),
       profitTarget: {
-        baseBalance: walletBalance,
-        targetAmount: Math.max(1, walletBalance * 0.1),
-        currentProfit: Number(acc.equity) - walletBalance,
-        remaining: Math.max(0, Math.max(1, walletBalance * 0.1) - (Number(acc.equity) - walletBalance)),
+        baseBalance: accountSize,
+        targetAmount: Math.max(1, accountSize * (fallbackProfitTargetPercent / 100)),
+        currentProfit: 0,
+        remaining: Math.max(1, accountSize * (fallbackProfitTargetPercent / 100)),
         progressPercent: 0,
       },
     };
-  const currentProfit = Number(acc.equity) - summary.profitTarget.baseBalance;
-  const profitTargetPercent =
-    summary.profitTarget.targetAmount > 0 ? Math.min(100, (currentProfit / summary.profitTarget.targetAmount) * 100) : 0;
+  const currentProfit = Math.max(0, Number(summary.profitTarget.currentProfit));
+  const profitTargetProgress = clampDisplayPercent(summary.profitTarget.progressPercent);
   const remaining = Math.max(0, summary.profitTarget.targetAmount - currentProfit);
   const thirtyDayHigh =
     ov.chart.dataByTimeframe["D"]?.reduce((max, point) => Math.max(max, Number(point.value)), 0) ??
-    Number(acc.equity);
+    summary.accountSize;
 
   return [
     {
@@ -252,9 +290,9 @@ export function buildPortfolioMetricCards(
       variant: "gauge-progress",
       title: "Available Margin",
       value: `$${formatCurrency(availableMargin)}`,
-      subtitle: `Margin usage ${marginUsagePercent.toFixed(1)}%`,
+      subtitle: `Margin usage ${formatDisplayPercent(marginUsagePercent)}`,
       gaugeValue: marginUsagePercent,
-      progressValue: Math.max(0, 100 - marginUsagePercent),
+      progressValue: freeMarginPercent,
       progressLeftLabel: "Free Margin",
       progressRightLabel: `$${formatCurrency(availableMargin)}`,
     },
@@ -268,7 +306,7 @@ export function buildPortfolioMetricCards(
       iconSrc: "/images/portfolio/risk.svg",
       iconTone: getRiskTone(riskLabel),
       subStats: [
-        { label: "VAR", value: `${marginUsagePercent.toFixed(1)}%` },
+        { label: "VAR", value: formatDisplayPercent(marginUsagePercent) },
         { label: "Compliance", value: summary.winRate >= 50 ? "Good" : "Review", tone: summary.winRate >= 50 ? "positive" : "negative" },
       ],
       valueTone: getRiskTone(riskLabel) === "red" ? "negative" : "positive",
@@ -277,10 +315,10 @@ export function buildPortfolioMetricCards(
       id: "profit-target",
       variant: "gauge-progress",
       title: "Profit Target",
-      value: `${profitTargetPercent.toFixed(0)}%`,
+      value: formatDisplayPercent(profitTargetProgress),
       subtitle: `$${formatCurrency(currentProfit)} / $${formatCurrency(summary.profitTarget.targetAmount)}`,
-      gaugeValue: profitTargetPercent,
-      progressValue: profitTargetPercent,
+      gaugeValue: profitTargetProgress,
+      progressValue: profitTargetProgress,
       progressLeftLabel: "Remaining",
       progressRightLabel: `$${formatCurrency(remaining)}`,
     },

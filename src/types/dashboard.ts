@@ -43,6 +43,7 @@ export type PortfolioAccount = {
   name: string;
   type: string;
   status: string;
+  accountSize?: string;
   balance: string;
   equity: string;
   floatingPnl: string;

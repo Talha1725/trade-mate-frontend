@@ -24,6 +24,11 @@ import { useSelectedSymbol, useSetSelectedSymbol } from "@/hooks/use-selected-sy
 import { formatMarketPrice } from "@/lib/utils/market-price";
 import { useLiveAccountSnapshotStore } from "@/lib/stores/live-account-snapshot-store";
 import { buildAccountMetricsSummaryFromAccount } from "@/lib/utils/live-account-summary";
+import {
+  calculateMarginUsd,
+  calculateNotionalUsd,
+  getSupplementalQuoteSymbol,
+} from "@/lib/utils/instrument-spec";
 import type { PriceSocketQuote } from "@/types/price";
 import { SymbolSelector } from "@/components/symbol-selector";
 
@@ -38,10 +43,10 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
   const [buyingPower, setBuyingPower] = React.useState<number | null>(null);
   const [isAccountContextLoading, setIsAccountContextLoading] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [quote, setQuote] = React.useState<PriceSocketQuote | null>(null);
   const token = useAuthStore((state) => state.session?.token ?? null);
   const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
   const { data: tradingAssets = [] } = useSyncedTradingAssets();
+  const [liveQuotes, setLiveQuotes] = React.useState<Record<string, PriceSocketQuote>>({});
   const selectedAsset = React.useMemo(
     () => tradingAssets.find((asset) => asset.symbol === symbol) ?? null,
     [symbol, tradingAssets],
@@ -50,25 +55,50 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
     () => getAssetLeverageLabel(selectedAsset?.category),
     [selectedAsset?.category],
   );
+  const supplementalQuoteSymbol = React.useMemo(
+    () => getSupplementalQuoteSymbol(symbol),
+    [symbol],
+  );
+  const quotePrices = React.useMemo(
+    () =>
+      Object.fromEntries(
+        Object.values(liveQuotes).map((quote) => [quote.symbol.toUpperCase(), quote.price]),
+      ) as Record<string, number>,
+    [liveQuotes],
+  );
 
   usePriceStream({
     enabled: open && !!symbol,
-    symbols: symbol ? [symbol] : [],
+    symbols: Array.from(
+      new Set([symbol, supplementalQuoteSymbol].filter((item): item is string => Boolean(item))),
+    ),
     accountIds: [],
     onQuotes: (incoming) => {
-      if (incoming[0]) {
-        setQuote(incoming[0]);
-      }
+      setLiveQuotes((current) => {
+        const next = { ...current };
+
+        for (const item of incoming) {
+          next[item.symbol.toUpperCase()] = item;
+        }
+
+        return next;
+      });
     },
   });
 
-  const bidPrice = quote?.bid ?? quote?.price ?? null;
-  const askPrice = quote?.ask ?? quote?.price ?? null;
+  const selectedQuote = liveQuotes[symbol.toUpperCase()] ?? null;
+  const bidPrice = selectedQuote?.bid ?? selectedQuote?.price ?? null;
+  const askPrice = selectedQuote?.ask ?? selectedQuote?.price ?? null;
   const fillPrice = side === "Buy" ? askPrice : bidPrice;
   const lotsNum = Number(loadSize);
   const estimatedCost =
-    fillPrice != null && Number.isFinite(lotsNum) ? fillPrice * lotsNum : null;
-  const marginRequired = estimatedCost != null ? estimatedCost * 0.05 : null;
+    fillPrice != null && Number.isFinite(lotsNum)
+      ? calculateNotionalUsd(symbol, lotsNum, fillPrice, quotePrices)
+      : null;
+  const marginRequired =
+    fillPrice != null && Number.isFinite(lotsNum)
+      ? calculateMarginUsd(symbol, lotsNum, fillPrice, quotePrices)
+      : null;
 
   const loadAccountContext = React.useCallback(
     async (options?: { silent?: boolean }) => {
@@ -82,7 +112,7 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
         const snapshot = await terminalApi.getOpenPositions(token, selectedAccountId ?? undefined);
 
         const availableBalance =
-          Number(snapshot.account.balance ?? 0) - Number(snapshot.account.marginUsed ?? 0);
+          Number(snapshot.account.equity ?? 0) - Number(snapshot.account.marginUsed ?? 0);
         setBuyingPower(Math.max(0, availableBalance));
 
         return {

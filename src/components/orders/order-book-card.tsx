@@ -43,6 +43,13 @@ function formatBtcAmount(value: number) {
   });
 }
 
+function formatDollarAmount(value: number) {
+  return `$${value.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
 function formatSpreadPercent(value: number) {
   return `${value.toFixed(4)}%`;
 }
@@ -102,7 +109,7 @@ function AskDepthCell({
         }}
       />
       <span className="relative z-10 block text-center text-sm text-white">
-        {formatBtcAmount(size)}
+        {formatDollarAmount(size)}
       </span>
     </TableCell>
   );
@@ -127,7 +134,7 @@ function BidDepthCell({
         }}
       />
       <span className="relative z-10 block text-center text-sm text-white">
-        {formatBtcAmount(size)}
+        {formatDollarAmount(size)}
       </span>
     </TableCell>
   );
@@ -141,7 +148,7 @@ function OrderBookTableHeader({ sizeLabel }: { sizeLabel: string }) {
           Price (USD)
         </TableHead>
         <TableHead className="h-11 px-3 text-center text-sm font-medium text-white/60">
-          Size ({sizeLabel})
+          Size ($)
         </TableHead>
         <TableHead className="h-11 px-3 text-right text-sm font-medium text-white/60">
           Total ({sizeLabel})
@@ -182,7 +189,7 @@ export function OrderBookCard({
           <h3 className="text-base font-semibold text-white md:text-lg">{resolvedTitle}</h3>
         </div>
         <div className="flex min-h-[260px] items-center justify-center rounded-[18px] border border-dashed border-white/15 bg-white/5 px-4 text-center text-sm text-white/45">
-          Market depth simulated from EODHD live price data will appear here.
+          Simulated market depth based on EODHD price data will appear here.
         </div>
       </section>
     );
@@ -233,6 +240,7 @@ export function OrderBookCard({
           <OrderBookTableHeader sizeLabel={sizeLabel} />
           <TableBody>
             {asks.map((row) => {
+              const notionalSize = row.size * row.price;
               return (
                 <TableRow
                   key={row.id}
@@ -241,7 +249,7 @@ export function OrderBookCard({
                   <TableCell className="px-3 py-2.5 text-sm font-medium text-[#EF4444]">
                     {formatUsdPrice(row.price, symbol ?? undefined, assetClass)}
                   </TableCell>
-                  <AskDepthCell size={row.size} depthPercent={row.barPercent} />
+                  <AskDepthCell size={notionalSize} depthPercent={row.barPercent} />
                   <TableCell className="px-3 py-2.5 text-right text-sm text-white/60">
                     {formatBtcAmount(row.total)}
                   </TableCell>
@@ -256,17 +264,18 @@ export function OrderBookCard({
           <TableBody>
             {bids.map((row, index) => {
               const isLastRow = index === bids.length - 1;
+              const notionalSize = row.size * row.price;
 
               return (
                 <TableRow
                   key={row.id}
                   className="border-0 hover:bg-white/5 data-[state=selected]:bg-white/5"
                 >
-                  <TableCell className="px-3 py-2.5 w-[140px]! text-sm font-medium text-primary">
+                <TableCell className="px-3 py-2.5 w-[140px]! text-sm font-medium text-primary">
                     {formatUsdPrice(row.price, symbol ?? undefined, assetClass)}
                   </TableCell>
                   <BidDepthCell
-                    size={row.size}
+                    size={notionalSize}
                     depthPercent={row.barPercent}
                     reverseGradient={isLastRow}
                   />

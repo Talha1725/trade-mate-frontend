@@ -24,6 +24,7 @@ import {
     buildPortfolioMetricCards,
 } from "@/lib/utils/portfolio";
 import { mapPortfolioPositionToPortfolioRow } from "@/lib/utils/trader-data";
+import { getSupplementalQuoteSymbol } from "@/lib/utils/instrument-spec";
 import { mergeStablePositions } from "@/lib/utils/stable-positions";
 import { normalizeTradingSymbol } from "@/lib/utils/market-symbol-icon";
 import { useLiveAccountSnapshotStore } from "@/lib/stores/live-account-snapshot-store";
@@ -46,6 +47,13 @@ export default function PortfolioPage() {
     const positionOrderCounterRef = React.useRef(0);
     const positionMissingCountsRef = React.useRef(new Map<string, number>());
     const [liveQuotes, setLiveQuotes] = React.useState<Record<string, PriceSocketQuote>>({});
+    const liveQuotePrices = React.useMemo(
+        () =>
+            Object.fromEntries(
+                Object.values(liveQuotes).map((quote) => [quote.symbol.toUpperCase(), quote.price]),
+            ) as Record<string, number>,
+        [liveQuotes],
+    );
     const accountListLoaded = userAccounts !== undefined;
     const availableAccounts = userAccounts?.accounts ?? [];
     const assetCategoryBySymbol = React.useMemo(
@@ -170,6 +178,7 @@ export default function PortfolioPage() {
                     position,
                     resolveLiveQuoteForSymbol(position.symbol),
                     assetCategoryBySymbol.get(position.symbol.toUpperCase()) ?? null,
+                    liveQuotePrices,
                 ),
             ) ?? [];
 
@@ -184,7 +193,7 @@ export default function PortfolioPage() {
             const rightOrder = positionOrderRef.current.get(right.id) ?? Number.MAX_SAFE_INTEGER;
             return leftOrder - rightOrder;
         });
-    }, [assetCategoryBySymbol, resolveLiveQuoteForSymbol, snapshot?.positions]);
+    }, [assetCategoryBySymbol, liveQuotePrices, resolveLiveQuoteForSymbol, snapshot?.positions]);
 
     const openPositionSymbols = React.useMemo(
         () =>
@@ -223,8 +232,8 @@ export default function PortfolioPage() {
             return overview?.allocation.items ?? [];
         }
 
-        return buildPortfolioAllocationItems(snapshot.account, snapshot.positions);
-    }, [overview?.allocation.items, snapshot?.account, snapshot?.positions]);
+        return buildPortfolioAllocationItems(snapshot.account, snapshot.positions, liveQuotePrices);
+    }, [liveQuotePrices, overview?.allocation.items, snapshot?.account, snapshot?.positions]);
 
     const exposureItems = React.useMemo(() => {
         if (!snapshot?.positions) {
@@ -235,6 +244,26 @@ export default function PortfolioPage() {
     }, [snapshot?.positions]);
 
     const accountId = resolvedAccountId;
+    const supplementalQuoteSymbols = React.useMemo(
+        () =>
+            Array.from(
+                new Set(
+                    openPositionSymbols
+                        .map((symbol) => getSupplementalQuoteSymbol(symbol))
+                        .filter(Boolean) as string[],
+                ),
+            ),
+        [openPositionSymbols],
+    );
+    const subscriptionSymbols = React.useMemo(
+        () =>
+            Array.from(
+                new Set(
+                    [...openPositionSymbols, ...supplementalQuoteSymbols].filter(Boolean) as string[],
+                ),
+            ),
+        [openPositionSymbols, supplementalQuoteSymbols],
+    );
 
     const resolvePortfolioAccount = React.useCallback(
         (payload: PriceSocketPortfolioMessage) => {
@@ -255,7 +284,7 @@ export default function PortfolioPage() {
 
     usePriceStream({
         enabled: !!token && !!accountId,
-        symbols: openPositionSymbols,
+        symbols: subscriptionSymbols,
         accountIds: accountId ? [accountId] : [],
         onQuotes: (quotes) => {
             setLiveQuotes((current) => {

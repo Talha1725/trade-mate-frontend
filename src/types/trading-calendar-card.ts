@@ -16,8 +16,8 @@ export type TradingCalendarTileTone =
 
 export type TradingCalendarCardProps = {
   title?: string;
-  sessionsLabel?: string;
+  sessionsLabel: string;
   weekdays?: string[];
-  days?: TradingCalendarDay[];
+  days: TradingCalendarDay[];
   className?: string;
 };

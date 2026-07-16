@@ -4,7 +4,7 @@ export type ActiveOrderSide = "buy" | "sell";
 
 export type ActiveOrderType = "limit" | "market" | "stop";
 
-export type ActiveOrderStatus = "new" | "partial";
+export type ActiveOrderStatus = "filled" | "partial";
 
 export type ActiveOrderRow = {
   id: string;

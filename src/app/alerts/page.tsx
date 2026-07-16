@@ -1,19 +1,20 @@
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
-import Link from "next/link";
-
-
 
 export default function AlertsPage() {
   return (
     <AppShell>
       <div className="flex w-full min-w-0 flex-col gap-6">
-        <PageHeader title="Alerts" />
+        <PageHeader title="Alerts" description="Monitor account alerts and risk events." />
 
-        {/* page not found */}
-        <h1 className="text-2xl font-bold">Page Not Found</h1>
-        <p className="text-gray-500">The page you are looking for does not exist.</p>
-        <Link href="/" className="text-blue-500 hover:text-blue-700">Go back to the home page</Link>
+        <section className="rounded-[20px] border border-white/20 bg-white/5 p-6">
+          <h2 className="text-lg font-semibold text-white">Alerts center coming soon</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/60">
+            Alert configuration and event history are not wired up yet. This page will host
+            trading alerts, risk notifications, and account event monitoring once the backend
+            surface is ready.
+          </p>
+        </section>
       </div>
     </AppShell>
   );

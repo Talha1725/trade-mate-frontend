@@ -10,7 +10,7 @@ export function ResponsiveTableScroll({
   return (
     <div
       className={cn(
-        "w-full min-w-0 max-w-full",
+        "w-full min-w-0 max-w-full overflow-x-auto",
         className,
       )}
     >

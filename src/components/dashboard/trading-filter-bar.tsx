@@ -16,6 +16,7 @@ import { formatTradingPrice } from "@/components/shared/trading-table-cells";
 import { useAccountWishlist } from "@/hooks/use-account-wishlist";
 import { useResolvedAccountNumber } from "@/hooks/use-resolved-account-number";
 import { TRADING_TIMEFRAMES } from "@/lib/mock-data/trading-filter-bar";
+import { getMarketPricePrecision } from "@/lib/utils/market-price";
 import { cn } from "@/lib/utils";
 import type {
   TradingFilterBarAction,
@@ -31,11 +32,12 @@ const ACTION_ICON_MAP = {
   replay: CirclePlayIcon,
 } as const;
 
-function formatSignedChange(value: number) {
+function formatSignedChange(value: number, symbol?: string) {
+  const precision = getMarketPricePrecision(symbol ?? "");
   const prefix = value >= 0 ? "+" : "";
   return `${prefix}${value.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: precision,
+    maximumFractionDigits: precision,
   })}`;
 }
 
@@ -186,7 +188,7 @@ export function TradingFilterBar({
             isPositive ? "text-primary" : "text-destructive",
           )}
         >
-          {formatSignedChange(quote.change)} ({formatPercent(quote.changePercent)})
+          {formatSignedChange(quote.change, selectedAssetSymbol)} ({formatPercent(quote.changePercent)})
         </span>
       </div>
 
