@@ -3,7 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ChevronDown, LogOutIcon } from "lucide-react";
+import { ChevronDown, DownloadIcon, LaptopIcon, LogOutIcon, MonitorIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { AccountSwitcherDropdown } from "@/components/account-switcher-dropdown";
@@ -23,6 +23,21 @@ import {
 import type { PageHeaderProps } from "@/types";
 import { PlaceOrderDialog } from "@/components/place-order-dialog";
 import { useAuthStore } from "@/lib/stores/auth-store";
+
+const DESKTOP_DOWNLOAD_LINKS = [
+  {
+    label: "Download for Mac",
+    description: "macOS desktop app",
+    href: process.env.NEXT_PUBLIC_DESKTOP_MAC_DOWNLOAD_URL,
+    icon: LaptopIcon,
+  },
+  {
+    label: "Download for Windows",
+    description: "Windows desktop app",
+    href: process.env.NEXT_PUBLIC_DESKTOP_WINDOWS_DOWNLOAD_URL,
+    icon: MonitorIcon,
+  },
+] as const;
 
 function getUserInitials(userLabel?: string | null) {
   if (!userLabel) {
@@ -77,6 +92,42 @@ export function PageHeader({
             New Trade
           </button>
         </PlaceOrderDialog>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-border/20 px-4 py-[9px] text-sm font-medium text-white outline-none transition-colors hover:bg-white/5 whitespace-nowrap">
+            <DownloadIcon className="size-4" />
+            <span>Desktop App</span>
+            <ChevronDown className="size-4 text-white/70" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuGroup>
+              {DESKTOP_DOWNLOAD_LINKS.map((item) => {
+                const Icon = item.icon;
+
+                return (
+                  <DropdownMenuItem
+                    key={item.label}
+                    className="cursor-pointer gap-3 px-3 py-2.5"
+                    onClick={() => {
+                      if (!item.href) {
+                        toast.error("Download link is not configured yet.");
+                        return;
+                      }
+
+                      window.open(item.href, "_blank", "noopener,noreferrer");
+                    }}
+                  >
+                    <Icon className="size-4 text-primary" />
+                    <span className="flex min-w-0 flex-col">
+                      <span className="truncate text-sm font-medium">{item.label}</span>
+                      <span className="truncate text-xs text-white/50">{item.description}</span>
+                    </span>
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* <button className="flex items-center justify-center gap-2 px-4 py-2 rounded-full border border-border/20 text-medium-500 text-sm">
           <span className="size-2.5 animate-pulse rounded-full bg-primary shadow-[0_0_10px_var(--primary)]" />
