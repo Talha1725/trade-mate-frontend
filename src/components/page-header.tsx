@@ -28,13 +28,13 @@ const DESKTOP_DOWNLOAD_LINKS = [
   {
     label: "Download for Mac",
     description: "macOS desktop app",
-    href: process.env.NEXT_PUBLIC_DESKTOP_MAC_DOWNLOAD_URL,
+    href: "/downloads/Trade.Mate_1.0.0_aarch64.dmg",
     icon: LaptopIcon,
   },
   {
     label: "Download for Windows",
     description: "Windows desktop app",
-    href: process.env.NEXT_PUBLIC_DESKTOP_WINDOWS_DOWNLOAD_URL,
+    href: "/downloads/Trade.Mate_1.0.0_x64-setup.exe",
     icon: MonitorIcon,
   },
 ] as const;
@@ -108,14 +108,7 @@ export function PageHeader({
                   <DropdownMenuItem
                     key={item.label}
                     className="cursor-pointer gap-3 px-3 py-2.5"
-                    onClick={() => {
-                      if (!item.href) {
-                        toast.error("Download link is not configured yet.");
-                        return;
-                      }
-
-                      window.open(item.href, "_blank", "noopener,noreferrer");
-                    }}
+                    onClick={() => window.location.assign(item.href)}
                   >
                     <Icon className="size-4 text-primary" />
                     <span className="flex min-w-0 flex-col">
