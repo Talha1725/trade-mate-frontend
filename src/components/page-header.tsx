@@ -27,14 +27,14 @@ import { useAuthStore } from "@/lib/stores/auth-store";
 const DESKTOP_DOWNLOAD_LINKS = [
   {
     label: "Download for Mac",
-    description: "macOS desktop app",
-    href: "/downloads/Trade.Mate_1.0.0_aarch64.dmg",
+    description: "ZIP with app and instructions",
+    href: "/downloads/TradeMate-mac-v1.0.0.zip",
     icon: LaptopIcon,
   },
   {
     label: "Download for Windows",
-    description: "Windows desktop app",
-    href: "/downloads/Trade.Mate_1.0.0_x64-setup.exe",
+    description: "ZIP with setup and instructions",
+    href: "/downloads/TradeMate-windows-v1.0.0.zip",
     icon: MonitorIcon,
   },
 ] as const;
