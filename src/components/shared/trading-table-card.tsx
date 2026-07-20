@@ -1,6 +1,7 @@
 "use client";
 
 import { IoCloseCircle } from "react-icons/io5";
+import { Loader2 } from "lucide-react";
 import { PiDownloadFill } from "react-icons/pi";
 
 import { cn } from "@/lib/utils";
@@ -13,6 +14,7 @@ export function TradingTableCard({
   closeAllLabel = "Close All",
   onExport,
   onCloseAll,
+  isCloseAllLoading = false,
   className,
   children,
 }: TradingTableCardProps) {
@@ -39,10 +41,14 @@ export function TradingTableCard({
           <button
             type="button"
             onClick={onCloseAll}
-            disabled={!onCloseAll}
+            disabled={!onCloseAll || isCloseAllLoading}
             className="inline-flex cursor-pointer items-center gap-2 rounded-[10px] border border-destructive/10 bg-destructive/10 px-3.5 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/20 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            <IoCloseCircle className="size-4 text-destructive" />
+            {isCloseAllLoading ? (
+              <Loader2 className="size-4 animate-spin text-destructive" />
+            ) : (
+              <IoCloseCircle className="size-4 text-destructive" />
+            )}
             {closeAllLabel}
           </button>
         </div>
