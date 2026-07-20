@@ -133,13 +133,23 @@ export default function OrdersPage() {
 
   const [overview, setOverview] = React.useState<OrderOverviewResponse | null>(null);
   const [liveQuote, setLiveQuote] = React.useState<PriceSocketQuote | null>(null);
+  const closeAllSettlingRef = React.useRef(false);
+  const closeAllSettlingTimeoutRef = React.useRef<number | null>(null);
   const streamAccountId = overview?.account.id ?? resolvedAccountId;
   const liveQuoteForSymbol = liveQuote?.symbol.toUpperCase() === selectedSymbol.toUpperCase() ? liveQuote : null;
 
-  const refreshOverview = React.useCallback(async () => {
+  const hasOpenPositions = React.useCallback(
+    (positions: OrderOverviewResponse["positions"]) =>
+      positions.some((position) => position.status === "OPEN"),
+    [],
+  );
+
+  const sleep = React.useCallback((ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms)), []);
+
+  const refreshOverview = React.useCallback(async (): Promise<boolean> => {
     if (!token || !accountListLoaded || !resolvedAccountId) {
       setOverview(null);
-      return;
+      return false;
     }
 
     try {
@@ -149,12 +159,27 @@ export default function OrdersPage() {
         interval: resolveOrdersInterval(timeframe),
       });
 
+      if (closeAllSettlingRef.current && hasOpenPositions(nextOverview.positions)) {
+        return false;
+      }
+
       setOverview(nextOverview);
+
+      if (closeAllSettlingRef.current && !hasOpenPositions(nextOverview.positions)) {
+        closeAllSettlingRef.current = false;
+        if (closeAllSettlingTimeoutRef.current != null) {
+          window.clearTimeout(closeAllSettlingTimeoutRef.current);
+          closeAllSettlingTimeoutRef.current = null;
+        }
+      }
+
+      return true;
     } catch (error) {
       setOverview(null);
       toast.error(error instanceof Error ? error.message : "Unable to load order overview.");
+      return false;
     }
-  }, [accountListLoaded, resolvedAccountId, selectedSymbol, timeframe, token]);
+  }, [accountListLoaded, hasOpenPositions, resolvedAccountId, selectedSymbol, timeframe, token]);
 
   React.useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -182,6 +207,16 @@ export default function OrdersPage() {
     onPortfolio: (payload: PriceSocketPortfolioMessage) => {
       if (!streamAccountId || !payload.accountIds.includes(streamAccountId)) {
         return;
+      }
+
+      if (closeAllSettlingRef.current) {
+        const nextPositions = payload.positions.filter((position) => position.accountId === streamAccountId);
+
+        if (nextPositions.length > 0) {
+          return;
+        }
+
+        closeAllSettlingRef.current = false;
       }
 
       setOverview((current) => {
@@ -290,14 +325,49 @@ export default function OrdersPage() {
     if (!token || activeOrders.length === 0) return;
 
     try {
+      if (closeAllSettlingTimeoutRef.current != null) {
+        window.clearTimeout(closeAllSettlingTimeoutRef.current);
+      }
+
+      closeAllSettlingRef.current = true;
+      closeAllSettlingTimeoutRef.current = window.setTimeout(() => {
+        closeAllSettlingRef.current = false;
+        closeAllSettlingTimeoutRef.current = null;
+      }, 5000);
+
+      setOverview((current) => {
+        if (!current) {
+          return current;
+        }
+
+        return {
+          ...current,
+          positions: [],
+        };
+      });
+
       await Promise.all(activeOrders.map((order) => terminalApi.closeTrade({ positionId: order.id }, token)));
       toast.success("All active orders closed.");
       window.dispatchEvent(new Event("trade-mate:positions-changed"));
-      await refreshOverview();
+
+      const maxAttempts = 6;
+      for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+        const settled = await refreshOverview();
+        if (settled) {
+          break;
+        }
+
+        await sleep(350);
+      }
     } catch (error) {
+      closeAllSettlingRef.current = false;
+      if (closeAllSettlingTimeoutRef.current != null) {
+        window.clearTimeout(closeAllSettlingTimeoutRef.current);
+        closeAllSettlingTimeoutRef.current = null;
+      }
       toast.error(error instanceof Error ? error.message : "Unable to close all orders.");
     }
-  }, [activeOrders, refreshOverview, token]);
+  }, [activeOrders, refreshOverview, sleep, token]);
 
   const handleExport = React.useCallback(() => {
     if (activeOrders.length === 0) return;
