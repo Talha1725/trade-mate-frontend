@@ -35,6 +35,7 @@ import { SortableColumnHeader } from "@/components/sortable-column-header";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
+import { downloadTextFile } from "@/lib/utils/download";
 import { mockTrades } from "@/lib/mock-data/trades";
 import { SIDEBAR_ICONS } from "@/lib/mock-data/sidebar-icons";
 import { formatDateTimeLabel } from "@/lib/utils/trader-data";
@@ -216,13 +217,7 @@ export function TradeHistoryTable({
       trade.status ?? "Closed",
     ]);
     const csv = [headers, ...rows].map((row) => row.join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = "trade-history.csv";
-    anchor.click();
-    URL.revokeObjectURL(url);
+    downloadTextFile("trade-history.csv", csv, "text/csv");
   }, [trades]);
 
   return (

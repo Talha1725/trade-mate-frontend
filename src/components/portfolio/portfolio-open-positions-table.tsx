@@ -152,6 +152,7 @@ export function PortfolioOpenPositionsTable({
   onExport,
   onCloseAll,
   onCancel,
+  isCloseAllLoading,
   className,
 }: PortfolioOpenPositionsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -245,7 +246,13 @@ export function PortfolioOpenPositionsTable({
   });
 
   return (
-    <TradingTableCard title="Open Positions" onExport={onExport} onCloseAll={onCloseAll} className={className}>
+    <TradingTableCard
+      title="Open Positions"
+      onExport={onExport}
+      onCloseAll={onCloseAll}
+      isCloseAllLoading={isCloseAllLoading}
+      className={className}
+    >
       <Table className="min-w-[980px]">
         <TableHeader variant="gradient">
           {table.getHeaderGroups().map((headerGroup) => (

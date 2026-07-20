@@ -25,6 +25,7 @@ export type ActiveOrdersTableProps = {
   orders?: ActiveOrderRow[];
   onExport?: () => void;
   onCloseAll?: () => void;
+  isCloseAllLoading?: boolean;
   onCancel?: (orderId: string) => void;
   className?: string;
 };

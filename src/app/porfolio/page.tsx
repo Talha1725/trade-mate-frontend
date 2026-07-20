@@ -28,6 +28,7 @@ import { getSupplementalQuoteSymbol } from "@/lib/utils/instrument-spec";
 import { mergeStablePositions } from "@/lib/utils/stable-positions";
 import { normalizeTradingSymbol } from "@/lib/utils/market-symbol-icon";
 import { useLiveAccountSnapshotStore } from "@/lib/stores/live-account-snapshot-store";
+import { downloadTextFile } from "@/lib/utils/download";
 import { buildAccountMetricsSummaryFromAccount } from "@/lib/utils/live-account-summary";
 import type { UserPortfolioResponse } from "@/types/dashboard";
 import type { PortfolioOverviewResponse } from "@/types/portfolio-overview";
@@ -37,6 +38,7 @@ import type { PriceSocketPortfolioMessage, PriceSocketQuote } from "@/types";
 export default function PortfolioPage() {
     const [snapshot, setSnapshot] = React.useState<UserPortfolioResponse | null>(null);
     const [overview, setOverview] = React.useState<PortfolioOverviewResponse | null>(null);
+    const [isClosingAll, setIsClosingAll] = React.useState(false);
     const token = useAuthStore((state) => state.session?.token ?? null);
     const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
     const hasHydrated = useSelectedAccountStore((state) => state.hasHydrated);
@@ -379,6 +381,7 @@ export default function PortfolioPage() {
         if (!token || positions.length === 0) return;
 
         try {
+            setIsClosingAll(true);
             await Promise.all(positions.map((position) => terminalApi.closeTrade({ positionId: position.id }, token)));
             toast.success("All open positions closed.");
             window.dispatchEvent(new Event("trade-mate:positions-changed"));
@@ -386,6 +389,8 @@ export default function PortfolioPage() {
             await refreshOverview();
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "Unable to close all positions.");
+        } finally {
+            setIsClosingAll(false);
         }
     }, [positions, refreshOverview, refreshSnapshot, token]);
 
@@ -396,15 +401,7 @@ export default function PortfolioPage() {
             [position.symbol, position.side, position.size, position.avgEntry, position.markPrice, position.pnl].join(","),
         );
         const csv = [["Symbol", "Side", "Size", "Entry", "Mark", "PnL"].join(","), ...rows].join("\n");
-        const blob = new Blob([csv], {
-            type: "text/csv",
-        });
-        const url = URL.createObjectURL(blob);
-        const anchor = document.createElement("a");
-        anchor.href = url;
-        anchor.download = "portfolio-open-positions.csv";
-        anchor.click();
-        URL.revokeObjectURL(url);
+        downloadTextFile("portfolio-open-positions.csv", csv, "text/csv");
     }, [positions]);
 
     if (!snapshot || !overview) {
@@ -456,6 +453,7 @@ export default function PortfolioPage() {
                     positions={positions}
                     onCancel={handleClosePosition}
                     onCloseAll={handleCloseAll}
+                    isCloseAllLoading={isClosingAll}
                     onExport={handleExport}
                 />
             </div>

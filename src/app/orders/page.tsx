@@ -28,6 +28,7 @@ import { usePriceStream } from "@/hooks/use-price-stream";
 import { useUserAccounts } from "@/hooks/use-user-accounts";
 import { useSyncedTradingAssets } from "@/hooks/use-synced-trading-assets";
 import { useLiveAccountSnapshotStore } from "@/lib/stores/live-account-snapshot-store";
+import { downloadTextFile } from "@/lib/utils/download";
 import { buildAccountMetricsSummaryFromAccount } from "@/lib/utils/live-account-summary";
 import {
   applyLiveQuoteToOrderOverview,
@@ -133,6 +134,7 @@ export default function OrdersPage() {
 
   const [overview, setOverview] = React.useState<OrderOverviewResponse | null>(null);
   const [liveQuote, setLiveQuote] = React.useState<PriceSocketQuote | null>(null);
+  const [isClosingAll, setIsClosingAll] = React.useState(false);
   const closeAllSettlingRef = React.useRef(false);
   const closeAllSettlingTimeoutRef = React.useRef<number | null>(null);
   const streamAccountId = overview?.account.id ?? resolvedAccountId;
@@ -325,6 +327,7 @@ export default function OrdersPage() {
     if (!token || activeOrders.length === 0) return;
 
     try {
+      setIsClosingAll(true);
       if (closeAllSettlingTimeoutRef.current != null) {
         window.clearTimeout(closeAllSettlingTimeoutRef.current);
       }
@@ -334,17 +337,6 @@ export default function OrdersPage() {
         closeAllSettlingRef.current = false;
         closeAllSettlingTimeoutRef.current = null;
       }, 5000);
-
-      setOverview((current) => {
-        if (!current) {
-          return current;
-        }
-
-        return {
-          ...current,
-          positions: [],
-        };
-      });
 
       await Promise.all(activeOrders.map((order) => terminalApi.closeTrade({ positionId: order.id }, token)));
       toast.success("All active orders closed.");
@@ -366,6 +358,8 @@ export default function OrdersPage() {
         closeAllSettlingTimeoutRef.current = null;
       }
       toast.error(error instanceof Error ? error.message : "Unable to close all orders.");
+    } finally {
+      setIsClosingAll(false);
     }
   }, [activeOrders, refreshOverview, sleep, token]);
 
@@ -376,15 +370,7 @@ export default function OrdersPage() {
       [order.displayId, order.symbol, order.side, order.type, order.qty, order.price].join(","),
     );
     const csv = [["ID", "Symbol", "Side", "Type", "Qty", "Price"].join(","), ...rows].join("\n");
-    const blob = new Blob([csv], {
-      type: "text/csv",
-    });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = "active-orders.csv";
-    anchor.click();
-    URL.revokeObjectURL(url);
+    downloadTextFile("active-orders.csv", csv, "text/csv");
   }, [activeOrders]);
 
   if (!overview) {
@@ -479,6 +465,7 @@ export default function OrdersPage() {
           orders={activeOrders}
           onCancel={handleClosePosition}
           onCloseAll={handleCloseAll}
+          isCloseAllLoading={isClosingAll}
           onExport={handleExport}
         />
       </div>
