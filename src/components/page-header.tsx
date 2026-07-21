@@ -23,21 +23,108 @@ import {
 import type { PageHeaderProps } from "@/types";
 import { PlaceOrderDialog } from "@/components/place-order-dialog";
 import { useAuthStore } from "@/lib/stores/auth-store";
+import { get } from "@/lib/utils/api";
+
+const CURRENT_DESKTOP_APP_VERSION =
+  process.env.NEXT_PUBLIC_DESKTOP_APP_VERSION?.replace(/^v/i, "") ?? "1.0.0";
+const DESKTOP_RELEASE_MANIFEST_URL =
+  process.env.NEXT_PUBLIC_DESKTOP_RELEASE_MANIFEST_URL ??
+  "https://trade-mate-storage.s3.us-east-2.amazonaws.com/downloads/latest.json";
 
 const DESKTOP_DOWNLOAD_LINKS = [
   {
+    platform: "mac",
     label: "Download for Mac",
     description: "ZIP with app and instructions",
     href: "/downloads/TradeMate-mac-v1.0.0.zip",
     icon: LaptopIcon,
   },
   {
+    platform: "windows",
     label: "Download for Windows",
     description: "ZIP with setup and instructions",
     href: "/downloads/TradeMate-windows-v1.0.0.zip",
     icon: MonitorIcon,
   },
 ] as const;
+
+type DesktopDownloadPlatform = (typeof DESKTOP_DOWNLOAD_LINKS)[number]["platform"];
+
+type DesktopReleaseManifest = {
+  version?: string;
+  releasedAt?: string;
+  notes?: string;
+  macUrl?: string;
+  windowsUrl?: string;
+  downloads?: {
+    mac?: {
+      url?: string;
+      fileName?: string;
+    };
+    windows?: {
+      url?: string;
+      fileName?: string;
+    };
+  };
+};
+
+function getReleaseDownloadUrl(
+  release: DesktopReleaseManifest | null,
+  platform: DesktopDownloadPlatform,
+) {
+  if (!release) {
+    return null;
+  }
+
+  if (platform === "mac") {
+    return release.downloads?.mac?.url ?? release.macUrl ?? null;
+  }
+
+  return release.downloads?.windows?.url ?? release.windowsUrl ?? null;
+}
+
+function isDesktopReleaseManifest(value: unknown): value is DesktopReleaseManifest {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const release = value as DesktopReleaseManifest;
+
+  return Boolean(
+    release.version &&
+      (getReleaseDownloadUrl(release, "mac") || getReleaseDownloadUrl(release, "windows")),
+  );
+}
+
+function getReleaseFromApiResponse(value: unknown): DesktopReleaseManifest | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const response = value as { release?: unknown };
+
+  return isDesktopReleaseManifest(response.release) ? response.release : null;
+}
+
+function isNewDesktopRelease(release: DesktopReleaseManifest | null) {
+  if (!release?.version) {
+    return false;
+  }
+
+  return release.version.replace(/^v/i, "") !== CURRENT_DESKTOP_APP_VERSION;
+}
+
+async function getReleaseFromManifestFallback() {
+  const response = await fetch(DESKTOP_RELEASE_MANIFEST_URL, { cache: "no-store" });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const manifest: unknown = await response.json();
+
+  return isDesktopReleaseManifest(manifest) ? manifest : null;
+}
 
 function getUserInitials(userLabel?: string | null) {
   if (!userLabel) {
@@ -64,6 +151,58 @@ export function PageHeader({
   const userName = user?.name || user?.email || "Trader";
   const avatarUrl = user?.avatarUrl ?? null;
   const userInitials = getUserInitials(userName);
+  const [desktopRelease, setDesktopRelease] = React.useState<DesktopReleaseManifest | null>(null);
+
+  React.useEffect(() => {
+    let isActive = true;
+
+    async function loadDesktopRelease() {
+      try {
+        let data: DesktopReleaseManifest | null = null;
+
+        try {
+          data = getReleaseFromApiResponse(await get("/api/desktop-releases/latest"));
+        } catch {
+          data = await getReleaseFromManifestFallback();
+        }
+
+        if (!data) {
+          data = await getReleaseFromManifestFallback();
+        }
+
+        if (!isActive || !data) {
+          return;
+        }
+
+        setDesktopRelease(data);
+
+      } catch {
+        // Keep existing local download links if release metadata is unavailable.
+      }
+    }
+
+    void loadDesktopRelease();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  const desktopDownloadLinks = React.useMemo(
+    () =>
+      DESKTOP_DOWNLOAD_LINKS.map((item) => {
+        const releaseHref = getReleaseDownloadUrl(desktopRelease, item.platform);
+        const releaseVersion = desktopRelease?.version ?? CURRENT_DESKTOP_APP_VERSION;
+
+        return {
+          ...item,
+          href: releaseHref ?? item.href,
+          description: releaseHref ? `Latest v${releaseVersion}` : item.description,
+        };
+      }),
+    [desktopRelease],
+  );
+  const hasDesktopUpdate = isNewDesktopRelease(desktopRelease);
 
   const handleSignOut = async () => {
     await signOut();
@@ -97,11 +236,16 @@ export function PageHeader({
           <DropdownMenuTrigger className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-border/20 px-4 py-[9px] text-sm font-medium text-white outline-none transition-colors hover:bg-white/5 whitespace-nowrap">
             <DownloadIcon className="size-4" />
             <span>Desktop App</span>
+            {hasDesktopUpdate ? (
+              <span className="rounded-full border border-primary/30 bg-primary/15 px-2 py-0.5 text-[10px] font-semibold leading-none text-primary">
+                v{desktopRelease?.version}
+              </span>
+            ) : null}
             <ChevronDown className="size-4 text-white/70" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuGroup>
-              {DESKTOP_DOWNLOAD_LINKS.map((item) => {
+              {desktopDownloadLinks.map((item) => {
                 const Icon = item.icon;
 
                 return (
