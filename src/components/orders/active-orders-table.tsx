@@ -97,6 +97,7 @@ export function ActiveOrdersTable({
   onExport,
   onCloseAll,
   onCancel,
+  isCloseAllLoading,
   className,
 }: ActiveOrdersTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -182,6 +183,7 @@ export function ActiveOrdersTable({
       title={title}
       onExport={onExport}
       onCloseAll={onCloseAll}
+      isCloseAllLoading={isCloseAllLoading}
       className={className}
       >
       <Table className="min-w-[1040px]">

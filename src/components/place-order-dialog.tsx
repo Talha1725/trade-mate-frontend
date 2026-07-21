@@ -32,6 +32,53 @@ import {
 import type { PriceSocketQuote } from "@/types/price";
 import { SymbolSelector } from "@/components/symbol-selector";
 
+function parseOptionalPrice(value: string) {
+  const trimmed = value.trim();
+
+  if (!trimmed) {
+    return null;
+  }
+
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) ? parsed : Number.NaN;
+}
+
+function validateTpSl(input: {
+  side: "Buy" | "Sell";
+  symbol: string;
+  referencePrice: number | null;
+  stopLoss: number | null;
+  takeProfit: number | null;
+}) {
+  const { side, symbol, referencePrice, stopLoss, takeProfit } = input;
+
+  if (referencePrice == null) {
+    return "Live price is not available yet. Please try again in a moment.";
+  }
+
+  const formattedReference = formatMarketPrice(referencePrice, symbol);
+
+  if (side === "Buy") {
+    if (stopLoss != null && stopLoss >= referencePrice) {
+      return `Stop loss must be below the buy price (${formattedReference}).`;
+    }
+
+    if (takeProfit != null && takeProfit <= referencePrice) {
+      return `Take profit must be above the buy price (${formattedReference}).`;
+    }
+  } else {
+    if (stopLoss != null && stopLoss <= referencePrice) {
+      return `Stop loss must be above the sell price (${formattedReference}).`;
+    }
+
+    if (takeProfit != null && takeProfit >= referencePrice) {
+      return `Take profit must be below the sell price (${formattedReference}).`;
+    }
+  }
+
+  return null;
+}
+
 export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = React.useState(false);
   const [side, setSide] = React.useState<"Buy" | "Sell">("Buy");
@@ -166,14 +213,28 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const parsedStopLoss = stopLoss.trim() ? Number(stopLoss) : null;
-    const parsedTakeProfit = takeProfit.trim() ? Number(takeProfit) : null;
+    const parsedStopLoss = parseOptionalPrice(stopLoss);
+    const parsedTakeProfit = parseOptionalPrice(takeProfit);
 
     if (
       (parsedStopLoss != null && (!Number.isFinite(parsedStopLoss) || parsedStopLoss <= 0)) ||
       (parsedTakeProfit != null && (!Number.isFinite(parsedTakeProfit) || parsedTakeProfit <= 0))
     ) {
       toast.error("Stop loss and take profit must be valid positive prices.");
+      return;
+    }
+
+    const fillPrice = side === "Buy" ? askPrice : bidPrice;
+    const tpSlError = validateTpSl({
+      side,
+      symbol,
+      referencePrice: fillPrice,
+      stopLoss: parsedStopLoss,
+      takeProfit: parsedTakeProfit,
+    });
+
+    if (tpSlError) {
+      toast.error(tpSlError);
       return;
     }
 
@@ -204,6 +265,8 @@ export function PlaceOrderDialog({ children }: { children: React.ReactNode }) {
       );
 
       toast.success(`${side} ${symbol} trade opened.`);
+      setStopLoss("");
+      setTakeProfit("");
       window.dispatchEvent(new Event("trade-mate:positions-changed"));
       setOpen(false);
     } catch (error) {
