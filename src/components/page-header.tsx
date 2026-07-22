@@ -33,10 +33,17 @@ const DESKTOP_RELEASE_MANIFEST_URL =
 
 const DESKTOP_DOWNLOAD_LINKS = [
   {
-    platform: "mac",
-    label: "Download for Mac",
-    description: "ZIP with app and instructions",
-    href: "/downloads/TradeMate-mac-v1.0.0.zip",
+    platform: "macArm64",
+    label: "Mac Apple Silicon",
+    description: "For M1, M2, M3, M4 Macs",
+    href: "/downloads/TradeMate-mac-arm64-v1.0.0.zip",
+    icon: LaptopIcon,
+  },
+  {
+    platform: "macIntel",
+    label: "Mac Intel",
+    description: "For Intel chip Macs",
+    href: "/downloads/TradeMate-mac-intel-v1.0.0.zip",
     icon: LaptopIcon,
   },
   {
@@ -61,6 +68,14 @@ type DesktopReleaseManifest = {
       url?: string;
       fileName?: string;
     };
+    macArm64?: {
+      url?: string;
+      fileName?: string;
+    };
+    macIntel?: {
+      url?: string;
+      fileName?: string;
+    };
     windows?: {
       url?: string;
       fileName?: string;
@@ -76,8 +91,12 @@ function getReleaseDownloadUrl(
     return null;
   }
 
-  if (platform === "mac") {
-    return release.downloads?.mac?.url ?? release.macUrl ?? null;
+  if (platform === "macArm64") {
+    return release.downloads?.macArm64?.url ?? release.downloads?.mac?.url ?? release.macUrl ?? null;
+  }
+
+  if (platform === "macIntel") {
+    return release.downloads?.macIntel?.url ?? release.downloads?.mac?.url ?? release.macUrl ?? null;
   }
 
   return release.downloads?.windows?.url ?? release.windowsUrl ?? null;
@@ -92,7 +111,9 @@ function isDesktopReleaseManifest(value: unknown): value is DesktopReleaseManife
 
   return Boolean(
     release.version &&
-      (getReleaseDownloadUrl(release, "mac") || getReleaseDownloadUrl(release, "windows")),
+      (getReleaseDownloadUrl(release, "macArm64") ||
+        getReleaseDownloadUrl(release, "macIntel") ||
+        getReleaseDownloadUrl(release, "windows")),
   );
 }
 
