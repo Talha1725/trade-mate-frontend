@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   History,
   Settings,
@@ -218,6 +219,7 @@ function CardRow({
 
 export function Sidebar({ className }: { className?: string }) {
   const pathname = usePathname();
+  const queryClient = useQueryClient();
   const [showBalance, setShowBalance] = React.useState(true);
   const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
   const { data: accountSummary, refetch: refetchAccountSummary } = useAccountSummary(selectedAccountId);
@@ -226,11 +228,50 @@ export function Sidebar({ className }: { className?: string }) {
   const setAccountSummary = useLiveAccountSnapshotStore((state) => state.setAccountSummary);
   const setOpenOrderCount = useLiveAccountSnapshotStore((state) => state.setOpenOrderCount);
   const cachedSummary = selectedAccountId ? liveSummariesByAccountId[selectedAccountId] ?? null : null;
-  const cachedOpenOrdersCount = selectedAccountId ? liveOpenOrderCountsByAccountId[selectedAccountId] ?? 0 : 0;
+  const queryCachedPositions = selectedAccountId
+    ? queryClient.getQueryData<{ positions?: Array<{ status?: string }> }>(["positions", selectedAccountId])
+    : null;
+  const queryCachedOpenOrdersCount =
+    queryCachedPositions?.positions?.filter((position) => position.status === "OPEN").length ?? 0;
+  const cachedOpenOrdersCount = selectedAccountId
+    ? liveOpenOrderCountsByAccountId[selectedAccountId] ?? queryCachedOpenOrdersCount
+    : 0;
   const activeSummary = mergeSidebarSummary(accountSummary ?? null, cachedSummary);
   const bestAssetSymbol = activeSummary?.bestAsset?.symbol ?? null;
 
-  const { data: openPositions } = usePositions(selectedAccountId);
+  const { data: openPositions, isFetching: isOpenPositionsFetching } = usePositions(selectedAccountId);
+  const [displayedOpenOrdersCount, setDisplayedOpenOrdersCount] = React.useState(cachedOpenOrdersCount);
+  const lastStableOpenOrdersCountRef = React.useRef(cachedOpenOrdersCount);
+
+  React.useEffect(() => {
+    if (!selectedAccountId) {
+      lastStableOpenOrdersCountRef.current = 0;
+      setDisplayedOpenOrdersCount(0);
+      return;
+    }
+
+    const liveCount = liveOpenOrderCountsByAccountId[selectedAccountId];
+    if (liveCount != null) {
+      lastStableOpenOrdersCountRef.current = liveCount;
+      setDisplayedOpenOrdersCount(liveCount);
+      return;
+    }
+
+    if (openPositions?.positions && !isOpenPositionsFetching) {
+      const nextCount = openPositions.positions.filter((position) => position.status === "OPEN").length;
+      lastStableOpenOrdersCountRef.current = nextCount;
+      setDisplayedOpenOrdersCount(nextCount);
+      return;
+    }
+
+    if (queryCachedOpenOrdersCount > 0) {
+      lastStableOpenOrdersCountRef.current = queryCachedOpenOrdersCount;
+      setDisplayedOpenOrdersCount(queryCachedOpenOrdersCount);
+      return;
+    }
+
+    setDisplayedOpenOrdersCount(lastStableOpenOrdersCountRef.current);
+  }, [isOpenPositionsFetching, liveOpenOrderCountsByAccountId, openPositions?.positions, queryCachedOpenOrdersCount, selectedAccountId]);
 
   React.useEffect(() => {
     if (!openPositions?.positions || !selectedAccountId) {
@@ -345,7 +386,7 @@ export function Sidebar({ className }: { className?: string }) {
           iconSrc={SIDEBAR_ICONS.reorder}
           label="Orders"
           href="/orders"
-          badge={cachedOpenOrdersCount}
+          badge={displayedOpenOrdersCount}
           active={isTabActive("/orders")}
         />
         <SidebarItem

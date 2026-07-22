@@ -4,6 +4,7 @@ import type { TradingTimeframe } from "@/types/trading-filter-bar";
 export type PortfolioMetricTone = "green" | "orange" | "red" | "blue";
 
 export type PortfolioValuePoint = {
+  timestamp: number;
   label: string;
   value: number;
 };

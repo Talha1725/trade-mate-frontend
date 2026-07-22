@@ -15,169 +15,9 @@ import { analyticsApi } from "@/lib/services/analytics.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
 import { useUserAccounts } from "@/hooks/use-user-accounts";
-import type { AnalyticsOverviewResponse } from "@/types/analytics";
-import type { PortfolioMetricCard } from "@/types/portfolio-metric-card";
-import type { PortfolioValuePoint } from "@/types/portfolio-value-chart";
 import type { TradingTimeframe } from "@/types/trading-filter-bar";
 
 const ANALYTICS_TIMEFRAMES: TradingTimeframe[] = ["1m", "5m"];
-
-function buildZeroSeries(pointCount = 12): PortfolioValuePoint[] {
-  return Array.from({ length: pointCount }, (_value, index) => ({
-    label: String(index + 1),
-    value: 0,
-  }));
-}
-
-function buildEmptyAnalyticsOverview(accountId: string | null): AnalyticsOverviewResponse {
-  const zeroSeries = buildZeroSeries();
-  const zeroMetricCards: PortfolioMetricCard[] = [
-    {
-      id: "net-pnl",
-      variant: "icon-stats",
-      title: "Net P&L",
-      value: "$0.00",
-      valueTone: "default",
-      subtitle: "+0.00% this cycle",
-      subtitleTone: "default",
-      iconKind: "chart-spline",
-      iconTone: "green",
-      subStats: [
-        { label: "Best Day", value: "$0.00" },
-        { label: "Avg Day", value: "$0.00" },
-      ],
-    },
-    {
-      id: "win-rate",
-      variant: "gauge-progress",
-      title: "Win Rate",
-      value: "0.0%",
-      subtitle: "0 trades analyzed",
-      gaugeValue: 0,
-      progressValue: 0,
-      progressLeftLabel: "Goal",
-      progressRightLabel: "50%+",
-    },
-    {
-      id: "profit-factor",
-      variant: "icon-stats",
-      title: "Profit Factor",
-      value: "0.00",
-      subtitle: "Target 2.0+",
-      iconKind: "target",
-      iconTone: "green",
-      subStats: [
-        { label: "Gross Profit", value: "$0.00" },
-        { label: "Gross Loss", value: "$0.00" },
-      ],
-    },
-    {
-      id: "max-drawdown",
-      variant: "icon-stats",
-      title: "Max Drawdown",
-      value: "$0.00",
-      valueTone: "default",
-      subtitle: "-0.00%",
-      subtitleTone: "default",
-      iconKind: "trend-down",
-      iconTone: "red",
-      subStats: [
-        { label: "Threshold", value: "$0.00" },
-        { label: "Status", value: "Safe", tone: "positive" },
-      ],
-    },
-    {
-      id: "consistency",
-      variant: "icon-stats",
-      title: "Consistency",
-      value: "0.0/10",
-      subtitle: "Needs Work",
-      subtitleTone: "negative",
-      iconKind: "target",
-      iconTone: "blue",
-      subStats: [
-        { label: "Green Days", value: "0" },
-        { label: "Streak", value: "0 days" },
-      ],
-    },
-    {
-      id: "payout",
-      variant: "icon-stats",
-      title: "Rule Breaches",
-      value: "0",
-      valueTone: "positive",
-      subtitle: "No URFX breach events",
-      subtitleTone: "positive",
-      iconKind: "trend-down",
-      iconTone: "red",
-      subStats: [
-        { label: "Last Breach", value: "None", tone: "default" },
-        { label: "Account Status", value: "Active", tone: "positive" },
-      ],
-    },
-  ];
-
-  return {
-    account: {
-      id: accountId ?? "",
-      userId: "",
-      accountNumber: null,
-      fundingType: null,
-      name: "",
-      type: "DEMO",
-      status: "ACTIVE",
-      balance: "0",
-      equity: "0",
-      floatingPnl: "0",
-      marginUsed: "0",
-      currency: "USD",
-      openPositionsCount: 0,
-      createdAt: new Date().toISOString(),
-    },
-    statsCards: zeroMetricCards,
-    challengeProgress: {
-      title: "Challenge Progress",
-      statusLabel: "On Track",
-      progress: 0,
-      progressLabel: "Progress",
-      stats: [
-        {
-          id: "completed",
-          label: "Completed",
-          valuePrimary: "$0.00",
-          valueSecondary: "0.0%",
-          tone: "completed",
-        },
-        {
-          id: "remaining",
-          label: "Remaining",
-          valuePrimary: "$0.00",
-          valueSecondary: "100.0%",
-          tone: "remaining",
-        },
-      ],
-      message: "Stay consistent to maintain your evaluation progress.",
-    },
-    equityCurve: {
-      defaultTimeframe: "1m",
-      dataByTimeframe: {
-        "1m": zeroSeries,
-        "5m": zeroSeries,
-      },
-    },
-    calendar: {
-      title: "Trading Calendar",
-      sessionsLabel: "0 Sessions",
-      weekdays: ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"],
-      days: [],
-    },
-    strategyPerformance: {
-      total: 0,
-      rows: [],
-    },
-    generatedAt: new Date().toISOString(),
-  };
-}
 
 export default function AnalyticsPage() {
   const token = useAuthStore((state) => state.session?.token ?? null);
@@ -187,7 +27,7 @@ export default function AnalyticsPage() {
   const { data: userAccounts } = useUserAccounts();
 
   const accountListLoaded = userAccounts !== undefined;
-  const availableAccounts = userAccounts?.accounts ?? [];
+  const availableAccounts = React.useMemo(() => userAccounts?.accounts ?? [], [userAccounts?.accounts]);
 
   const resolvedAccountId = React.useMemo(() => {
     if (!accountListLoaded || !hasHydrated) {
@@ -210,11 +50,6 @@ export default function AnalyticsPage() {
       setSelectedAccountId(resolvedAccountId);
     }
   }, [accountListLoaded, hasHydrated, resolvedAccountId, selectedAccountId, setSelectedAccountId]);
-
-  const placeholderOverview = React.useMemo(
-    () => buildEmptyAnalyticsOverview(resolvedAccountId),
-    [resolvedAccountId],
-  );
 
   const analyticsQuery = useQuery({
     queryKey: ["analytics", resolvedAccountId, token],
