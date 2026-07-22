@@ -1,6 +1,7 @@
 import type { TradingTimeframe } from "@/types/trading-filter-bar";
 
 export type PortfolioValuePoint = {
+  timestamp: number;
   label: string;
   value: number;
 };

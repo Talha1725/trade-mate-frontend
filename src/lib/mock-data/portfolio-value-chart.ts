@@ -1,11 +1,9 @@
 import type { TradingTimeframe } from "@/types/trading-filter-bar";
+import { buildPortfolioValueSeries } from "@/lib/utils/portfolio-chart";
 import type { PortfolioValuePoint } from "@/types/portfolio-value-chart";
 
-function buildPoints(values: number[]): PortfolioValuePoint[] {
-  return values.map((value, index) => ({
-    label: String(index + 1),
-    value,
-  }));
+function buildPoints(values: number[], timeframe: TradingTimeframe): PortfolioValuePoint[] {
+  return buildPortfolioValueSeries(values, timeframe);
 }
 
 const oneMinuteValues = [
@@ -21,13 +19,13 @@ const dailyValues = [46, 52, 49, 56, 61, 58, 64, 69, 72, 75];
 const weeklyValues = [48, 54, 51, 58, 63, 60, 67, 72, 75];
 
 export const mockPortfolioValueChartData: Record<TradingTimeframe, PortfolioValuePoint[]> = {
-  "1m": buildPoints(oneMinuteValues),
-  "5m": buildPoints(fiveMinuteValues),
-  "15m": buildPoints(fifteenMinuteValues),
-  "1H": buildPoints(oneHourValues),
-  "4H": buildPoints(fourHourValues),
-  D: buildPoints(dailyValues),
-  W: buildPoints(weeklyValues),
+  "1m": buildPoints(oneMinuteValues, "1m"),
+  "5m": buildPoints(fiveMinuteValues, "5m"),
+  "15m": buildPoints(fifteenMinuteValues, "15m"),
+  "1H": buildPoints(oneHourValues, "1H"),
+  "4H": buildPoints(fourHourValues, "4H"),
+  D: buildPoints(dailyValues, "D"),
+  W: buildPoints(weeklyValues, "W"),
 };
 
 export function getPortfolioValueYAxisTicks(values: number[]) {

@@ -10,6 +10,7 @@ import {
   getPortfolioValueYAxisTicks,
   mockPortfolioValueChartData,
 } from "@/lib/mock-data/portfolio-value-chart";
+import { formatPortfolioValueTimestamp } from "@/lib/utils/portfolio-chart";
 import { cn } from "@/lib/utils";
 import type { PortfolioValueChartProps } from "@/types/portfolio-value-chart";
 import type { TradingTimeframe } from "@/types/trading-filter-bar";
@@ -60,7 +61,7 @@ export function PortfolioValueChart({
   const gradientId = useId().replace(/:/g, "");
   const [timeframe, setTimeframe] = useState<TradingTimeframe>(defaultTimeframe);
 
-  const chartData = dataByTimeframe[timeframe] ?? [];
+  const chartData = useMemo(() => dataByTimeframe[timeframe] ?? [], [dataByTimeframe, timeframe]);
   const yAxis = useMemo(
     () => getPortfolioValueYAxisTicks(chartData.map((point) => point.value)),
     [chartData],
@@ -122,7 +123,11 @@ export function PortfolioValueChart({
             <CartesianGrid vertical horizontal strokeOpacity={0.1} />
 
             <XAxis
-              dataKey="label"
+              dataKey="timestamp"
+              type="number"
+              scale="time"
+              domain={["dataMin", "dataMax"]}
+              tickFormatter={(value) => formatPortfolioValueTimestamp(Number(value), timeframe)}
               tickLine={false}
               axisLine={false}
               tickMargin={8}
