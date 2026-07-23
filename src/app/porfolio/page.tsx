@@ -26,7 +26,7 @@ import {
 import { mapPortfolioPositionToPortfolioRow } from "@/lib/utils/trader-data";
 import { getSupplementalQuoteSymbol } from "@/lib/utils/instrument-spec";
 import { mergeStablePositions } from "@/lib/utils/stable-positions";
-import { normalizeTradingSymbol } from "@/lib/utils/market-symbol-icon";
+import { getTradingSymbolAliases, normalizeTradingSymbol } from "@/lib/utils/market-symbol-icon";
 import { useLiveAccountSnapshotStore } from "@/lib/stores/live-account-snapshot-store";
 import { downloadTextFile } from "@/lib/utils/download";
 import { buildAccountMetricsSummaryFromAccount } from "@/lib/utils/live-account-summary";
@@ -68,11 +68,10 @@ export default function PortfolioPage() {
 
     const resolveLiveQuoteForSymbol = React.useCallback(
         (symbol: string) => {
-            const normalizedSymbol = normalizeTradingSymbol(symbol);
+            const normalizedSymbols = new Set(getTradingSymbolAliases(symbol));
 
             return (
-                liveQuotes[symbol.toUpperCase()] ??
-                liveQuotes[normalizedSymbol] ??
+                Object.values(liveQuotes).find((quote) => normalizedSymbols.has(normalizeTradingSymbol(quote.symbol))) ??
                 null
             );
         },
@@ -293,9 +292,9 @@ export default function PortfolioPage() {
                 const next = { ...current };
 
                 for (const quote of quotes) {
-                    const normalizedSymbol = normalizeTradingSymbol(quote.symbol);
-                    next[quote.symbol.toUpperCase()] = quote;
-                    next[normalizedSymbol] = quote;
+                    for (const alias of getTradingSymbolAliases(quote.symbol)) {
+                        next[alias] = quote;
+                    }
                 }
 
                 return next;

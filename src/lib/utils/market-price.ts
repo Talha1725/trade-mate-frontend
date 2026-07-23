@@ -15,9 +15,23 @@ function isForexSymbol(symbol: string) {
   return FOREX_PREFIXES.includes(base) && FOREX_PREFIXES.includes(quote);
 }
 
-export function getMarketPricePrecision(symbol: string, assetClass?: MarketAssetClass | null) {
+export function getMarketPricePrecision(symbol: string, assetClass?: MarketAssetClass | null, value?: number) {
   if (assetClass === "FOREX" || isForexSymbol(symbol)) {
     return 5;
+  }
+
+  const normalized = symbol.trim().toUpperCase();
+  const isCrypto = assetClass === "CRYPTO" || normalized.endsWith("USDT") || normalized.endsWith("USD");
+  if (isCrypto) {
+    const numericValue = value == null ? null : Math.abs(value);
+    if (numericValue != null) {
+      if (numericValue >= 100) return 2;
+      if (numericValue >= 1) return 4;
+      if (numericValue >= 0.01) return 6;
+      return 8;
+    }
+
+    return normalized.startsWith("BTC") || normalized.startsWith("ETH") ? 2 : 6;
   }
 
   return 2;
@@ -38,5 +52,5 @@ export function formatMarketPrice(
     return "—";
   }
 
-  return numericValue.toFixed(getMarketPricePrecision(symbol, assetClass));
+  return numericValue.toFixed(getMarketPricePrecision(symbol, assetClass, numericValue));
 }
