@@ -38,6 +38,7 @@ import { usePriceStream } from "@/hooks/use-price-stream";
 import { useAccountWishlist } from "@/hooks/use-account-wishlist";
 import { useResolvedAccountNumber } from "@/hooks/use-resolved-account-number";
 import { useSyncedTradingAssets } from "@/hooks/use-synced-trading-assets";
+import { getTradingSymbolAliases } from "@/lib/utils/market-symbol-icon";
 
 export default function DashboardPage() {
   const [snapshot, setSnapshot] = React.useState<UserPortfolioResponse | null>(null);
@@ -222,10 +223,10 @@ export default function DashboardPage() {
   }, [compareAssetId, selectedMarketId]);
 
   const resolveQuoteForSymbol = React.useCallback((quotes: PriceSocketQuote[], symbol: string) => {
-    const normalizedSymbol = normalizeTradingSymbol(symbol);
+    const normalizedSymbols = new Set(getTradingSymbolAliases(symbol));
 
     return (
-      quotes.find((quote) => normalizeTradingSymbol(quote.symbol) === normalizedSymbol) ?? null
+      quotes.find((quote) => normalizedSymbols.has(normalizeTradingSymbol(quote.symbol))) ?? null
     );
   }, []);
 
@@ -399,9 +400,9 @@ export default function DashboardPage() {
         const nextQuotes = { ...current };
 
         for (const quote of quotes) {
-          const normalizedSymbol = normalizeTradingSymbol(quote.symbol);
-          nextQuotes[quote.symbol.toUpperCase()] = quote;
-          nextQuotes[normalizedSymbol] = quote;
+          for (const alias of getTradingSymbolAliases(quote.symbol)) {
+            nextQuotes[alias] = quote;
+          }
         }
 
         return nextQuotes;

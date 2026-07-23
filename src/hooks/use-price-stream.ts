@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
+import { unstable_batchedUpdates } from "react-dom";
 
 import { getPriceSocketUrl } from "@/lib/utils/price-stream";
-import type { PriceSocketPortfolioMessage, PriceSocketQuote, PriceSocketServerMessage, PriceStreamOptions } from "@/types/price";
+import type { PriceSocketQuote, PriceSocketServerMessage, PriceStreamOptions } from "@/types/price";
 
 function normalize(values?: string[]) {
   return Array.from(new Set((values ?? []).map((value) => value.trim()).filter((value) => value.length > 0)));
@@ -49,6 +50,41 @@ export function usePriceStream({
     let isDisposed = false;
     let intentionalClose = false;
     let closeAfterOpen = false;
+    const latestQuoteTimestamps = new Map<string, number>();
+
+    const onlyLatestQuotes = (quotes: PriceSocketQuote[]) => {
+      const latestQuotes: PriceSocketQuote[] = [];
+
+      for (const quote of quotes) {
+        const timestamp = Date.parse(quote.timestamp);
+        const key = quote.symbol.toUpperCase();
+        const previousTimestamp = latestQuoteTimestamps.get(key) ?? 0;
+
+        // A REST snapshot may arrive after a websocket tick. Do not let that
+        // older value overwrite the quote already rendered by the browser.
+        if (
+          Number.isFinite(timestamp) &&
+          timestamp < previousTimestamp
+        ) {
+          continue;
+        }
+
+        if (
+          Number.isFinite(timestamp) &&
+          timestamp === previousTimestamp &&
+          quote.source !== "eodhd-ws"
+        ) {
+          continue;
+        }
+
+        if (Number.isFinite(timestamp)) {
+          latestQuoteTimestamps.set(key, timestamp);
+        }
+        latestQuotes.push(quote);
+      }
+
+      return latestQuotes;
+    };
 
     const connect = () => {
       if (isDisposed) {
@@ -81,26 +117,35 @@ export function usePriceStream({
         try {
           const payload = JSON.parse(event.data as string) as PriceSocketServerMessage;
 
-          if (payload.type === "snapshot" || payload.type === "update") {
-            callbacksRef.current.onQuotes?.(payload.quotes);
-            return;
-          }
+          unstable_batchedUpdates(() => {
+            if (payload.type === "snapshot" || payload.type === "update") {
+              const latestQuotes = onlyLatestQuotes(payload.quotes);
+              if (latestQuotes.length > 0) {
+                callbacksRef.current.onQuotes?.(latestQuotes);
+              }
+              return;
+            }
 
-          if (payload.type === "portfolio") {
-            callbacksRef.current.onPortfolio?.(payload);
-            return;
-          }
+            if (payload.type === "portfolio") {
+              callbacksRef.current.onPortfolio?.(payload);
+              return;
+            }
 
-          if (payload.type === "error") {
-            callbacksRef.current.onError?.(payload.message);
-          }
+            if (payload.type === "error") {
+              callbacksRef.current.onError?.(payload.message);
+            }
+          });
         } catch {
-          callbacksRef.current.onError?.("Unable to parse live market update.");
+          unstable_batchedUpdates(() => {
+            callbacksRef.current.onError?.("Unable to parse live market update.");
+          });
         }
       };
 
       socket.onerror = () => {
-        callbacksRef.current.onError?.("Live market stream is temporarily unavailable.");
+        unstable_batchedUpdates(() => {
+          callbacksRef.current.onError?.("Live market stream is temporarily unavailable.");
+        });
       };
 
       socket.onclose = () => {

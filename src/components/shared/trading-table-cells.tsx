@@ -25,6 +25,16 @@ function getTradingPriceDecimals(value: number, symbol?: string, assetClass?: st
     return 5;
   }
 
+  const normalized = symbol?.trim().toUpperCase() ?? "";
+  const isCrypto = assetClass === "CRYPTO" || normalized.endsWith("USDT") || normalized.endsWith("USD");
+  if (isCrypto) {
+    const absoluteValue = Math.abs(value);
+    if (absoluteValue >= 100) return 2;
+    if (absoluteValue >= 1) return 4;
+    if (absoluteValue >= 0.01) return 6;
+    return 8;
+  }
+
   return value < 1 ? 4 : 2;
 }
 
