@@ -23,7 +23,10 @@ import { useSelectedAccountStore } from "@/lib/stores/account-store";
 import { useLiveAccountSnapshotStore } from "@/lib/stores/live-account-snapshot-store";
 import { usePriceStream } from "@/hooks/use-price-stream";
 import type { PriceSocketPortfolioMessage } from "@/types/price";
-import { formatTradingSymbolLabel } from "@/lib/utils/market-symbol-icon";
+import type { PriceSocketQuote } from "@/types/price";
+import { formatTradingSymbolLabel, getTradingSymbolAliases } from "@/lib/utils/market-symbol-icon";
+import { getSupplementalQuoteSymbol } from "@/lib/utils/instrument-spec";
+import { mapPortfolioPositionToPortfolioRow } from "@/lib/utils/trader-data";
 
 function formatCurrency(value?: number) {
   return `$${(value ?? 0).toLocaleString("en-US", {
@@ -240,6 +243,44 @@ export function Sidebar({ className }: { className?: string }) {
   const bestAssetSymbol = activeSummary?.bestAsset?.symbol ?? null;
 
   const { data: openPositions, isFetching: isOpenPositionsFetching } = usePositions(selectedAccountId);
+  const sidebarPositions = openPositions?.positions;
+  const [liveQuotes, setLiveQuotes] = React.useState<Record<string, PriceSocketQuote>>({});
+  const liveQuotePrices = React.useMemo(
+    () => Object.fromEntries(Object.values(liveQuotes).map((quote) => [quote.symbol.toUpperCase(), quote.price])),
+    [liveQuotes],
+  );
+  const sidebarQuoteSymbols = React.useMemo(() => {
+    const symbols = new Set<string>();
+
+    for (const position of sidebarPositions ?? []) {
+      if (position.status !== "OPEN") {
+        continue;
+      }
+
+      symbols.add(position.symbol);
+      const supplemental = getSupplementalQuoteSymbol(position.symbol);
+      if (supplemental) {
+        symbols.add(supplemental);
+      }
+    }
+
+    return Array.from(symbols);
+  }, [sidebarPositions]);
+  const liveOpenPnl = React.useMemo(() => {
+    if (!sidebarPositions) {
+      return null;
+    }
+
+    return sidebarPositions
+      .filter((position) => position.status === "OPEN")
+      .reduce((total, position) => {
+        const aliases = new Set(getTradingSymbolAliases(position.symbol));
+        const quote = Object.values(liveQuotes).find((item) => aliases.has(item.symbol.toUpperCase())) ?? null;
+        const row = mapPortfolioPositionToPortfolioRow(position, quote, null, liveQuotePrices);
+        return total + row.pnl;
+      }, 0);
+  }, [liveQuotePrices, liveQuotes, sidebarPositions]);
+  const displayedOpenPnl = liveOpenPnl ?? activeSummary?.floatingPnl;
   const [displayedOpenOrdersCount, setDisplayedOpenOrdersCount] = React.useState(cachedOpenOrdersCount);
   const lastStableOpenOrdersCountRef = React.useRef(cachedOpenOrdersCount);
 
@@ -290,12 +331,13 @@ export function Sidebar({ className }: { className?: string }) {
         return;
       }
 
+      void queryClient.invalidateQueries({ queryKey: ["positions", selectedAccountId] });
       void refetchAccountSummary();
     };
 
     window.addEventListener("trade-mate:positions-changed", handlePositionsChanged);
     return () => window.removeEventListener("trade-mate:positions-changed", handlePositionsChanged);
-  }, [refetchAccountSummary, selectedAccountId]);
+  }, [queryClient, refetchAccountSummary, selectedAccountId]);
 
   const activeBalance = activeSummary?.balance ?? 0;
   const activeDailyPnl = activeSummary?.dailyPnl ?? 0;
@@ -316,8 +358,19 @@ export function Sidebar({ className }: { className?: string }) {
 
   usePriceStream({
     enabled: !!selectedAccountId,
-    symbols: [],
+    symbols: sidebarQuoteSymbols,
     accountIds: selectedAccountId ? [selectedAccountId] : [],
+    onQuotes: (quotes) => {
+      setLiveQuotes((current) => {
+        const next = { ...current };
+
+        for (const quote of quotes) {
+          next[quote.symbol.toUpperCase()] = quote;
+        }
+
+        return next;
+      });
+    },
     onPortfolio: (payload) => {
       if (!selectedAccountId) {
         return;
@@ -498,11 +551,11 @@ export function Sidebar({ className }: { className?: string }) {
               iconSrc={SIDEBAR_ICONS.openPnl}
               label="Open P&L"
               subLabel="Today"
-              value={formatSignedCurrency(activeSummary?.floatingPnl)}
+              value={formatSignedCurrency(displayedOpenPnl)}
               valueClassName={cn(
-                (activeSummary?.floatingPnl ?? 0) > 0
+                (displayedOpenPnl ?? 0) > 0
                   ? "text-primary"
-                  : (activeSummary?.floatingPnl ?? 0) < 0
+                  : (displayedOpenPnl ?? 0) < 0
                     ? "text-destructive"
                     : "text-[#EDF6FF]",
               )}
