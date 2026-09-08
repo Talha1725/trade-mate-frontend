@@ -17,6 +17,11 @@ export type UserAccountSummary = {
   createdAt: ISODateString;
 };
 
+export type ApiAccount = Omit<UserAccountSummary, "openPositionsCount"> & {
+  openPositionsCount?: number;
+  trades?: { status?: string }[];
+};
+
 export type UserAccountListResponse = {
   accounts: UserAccountSummary[];
 };

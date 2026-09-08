@@ -2,6 +2,7 @@ import type React from "react";
 import type { ID, ISODateString } from "@/types";
 
 export type UserRole = "trader" | "admin";
+export type AuthApiRole = UserRole | "TRADER" | "ADMIN";
 
 export type AuthUser = {
   id: ID;
@@ -26,6 +27,7 @@ export type ForgotPasswordResponse = {
 export type ResetPasswordInput = {
   token: string;
   password: string;
+  confirmPassword?: string;
 };
 
 export type ResetPasswordResponse = {
@@ -33,15 +35,20 @@ export type ResetPasswordResponse = {
   message: string;
 };
 
-export type AuthApiUser = Pick<AuthUser, "id" | "email" | "name" | "role"> & {
+export type AuthApiUser = Pick<AuthUser, "id" | "email"> & {
   assignedId?: string;
+  name: string | null;
+  role: AuthApiRole;
   avatarUrl?: string | null;
   createdAt?: ISODateString;
+  isActive?: boolean;
+  lastLoginAt?: ISODateString | null;
 };
 
 export type AuthLoginResponse = {
-  token: string;
+  accessToken: string;
   user: AuthApiUser;
+  expiresAt?: ISODateString;
 };
 
 export type AuthSession = {

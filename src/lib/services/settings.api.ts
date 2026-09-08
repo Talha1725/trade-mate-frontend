@@ -13,6 +13,7 @@ export type UpdateSettingsProfilePayload = {
 export type UpdateSettingsPasswordPayload = {
   currentPassword: string;
   newPassword: string;
+  confirmPassword?: string;
 };
 
 export type CreateSettingsAvatarPresignPayload = {
@@ -28,11 +29,14 @@ export const settingsApi = {
   },
 
   updateProfile(payload: UpdateSettingsProfilePayload) {
-    return patch<{ user: SettingsOverviewResponse["user"] }>(ROUTES.SETTINGS.PROFILE, payload);
+    return patch<SettingsOverviewResponse["user"]>(ROUTES.SETTINGS.PROFILE, payload).then((user) => ({ user }));
   },
 
   updatePassword(payload: UpdateSettingsPasswordPayload) {
-    return patch<{ success: true }>(ROUTES.SETTINGS.PASSWORD, payload);
+    return patch<{ signedOutSessions: number }>(ROUTES.SETTINGS.PASSWORD, {
+      ...payload,
+      confirmPassword: payload.confirmPassword ?? payload.newPassword,
+    }).then(() => ({ success: true as const }));
   },
 
   createAvatarPresign(payload: CreateSettingsAvatarPresignPayload) {

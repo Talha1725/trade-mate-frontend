@@ -1,6 +1,9 @@
 import axios from "axios"
 import type { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios"
+import type { ApiEnvelope } from "@/types"
 import { useAuthStore } from "@/lib/stores/auth-store"
+
+const API_PREFIX = "/api/v2"
 
 const api: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || "",
@@ -10,6 +13,30 @@ const api: AxiosInstance = axios.create({
     "Content-Type": "application/json",
   },
 })
+
+function isApiEnvelope<T>(value: unknown): value is ApiEnvelope<T> {
+  if (!value || typeof value !== "object") {
+    return false
+  }
+
+  return "success" in value && "data" in value
+}
+
+function normalizeApiUrl(url?: string) {
+  if (!url || /^https?:\/\//i.test(url)) {
+    return url
+  }
+
+  if (url === API_PREFIX || url.startsWith(`${API_PREFIX}/`)) {
+    return url
+  }
+
+  if (url.startsWith("/api/")) {
+    return `${API_PREFIX}${url.slice("/api".length)}`
+  }
+
+  return url
+}
 
 function extractErrorMessage(error: AxiosError): string {
   const responseData = error.response?.data as
@@ -49,6 +76,8 @@ function isAuthenticationFailure(error: AxiosError) {
 
 api.interceptors.request.use(
   (config) => {
+    config.url = normalizeApiUrl(config.url)
+
     const state = useAuthStore.getState()
     const token = state.session?.token
     if (token) {
@@ -62,7 +91,13 @@ api.interceptors.request.use(
 )
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (isApiEnvelope(response.data)) {
+      response.data = response.data.data
+    }
+
+    return response
+  },
   (error) => {
     if (axios.isAxiosError(error)) {
       if (isAuthenticationFailure(error)) {

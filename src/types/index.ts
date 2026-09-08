@@ -1,5 +1,11 @@
 export type ID = string;
 
+export type ApiEnvelope<T> = {
+  success: boolean;
+  message?: string;
+  data?: T;
+};
+
 export type ISODateString = string;
 
 export type Nullable<T> = T | null;

@@ -1,6 +1,8 @@
 import { ROUTES } from "@/constant/routes"
 import { get, post } from "@/lib/utils/api"
 import type {
+  AuthApiUser,
+  AuthLoginResponse,
   AuthSession,
   ForgotPasswordResponse,
   LoginCredentials,
@@ -9,51 +11,64 @@ import type {
 } from "@/types/auth"
 import { useAuthStore } from "@/lib/stores/auth-store"
 
+function mapAuthUser(user: AuthApiUser): AuthSession["user"] {
+  return {
+    id: user.id,
+    email: user.email,
+    assignedId: user.assignedId,
+    name: user.name || "",
+    role: user.role.toLowerCase() as "admin" | "trader",
+    avatarUrl: user.avatarUrl ?? null,
+    createdAt: user.createdAt,
+  }
+}
+
 export const loginApi = {
   async login(credentials: LoginCredentials): Promise<AuthSession> {
-    const res = await post<{ token: string; user: { id: string; email: string; assignedId?: string; name: string; role: string; avatarUrl?: string | null; createdAt?: string } }>(ROUTES.AUTH.LOGIN, credentials)
+    const res = await post<AuthLoginResponse>(ROUTES.AUTH.LOGIN, credentials)
     return {
-      user: {
-        id: res.user.id,
-        email: res.user.email,
-        assignedId: res.user.assignedId,
-        name: res.user.name || "",
-        role: res.user.role.toLowerCase() as "admin" | "trader",
-        avatarUrl: res.user.avatarUrl ?? null,
-        createdAt: res.user.createdAt,
-      },
-      token: res.token,
+      user: mapAuthUser(res.user),
+      token: res.accessToken,
+      expiresAt: res.expiresAt,
     }
   },
 
   async me(): Promise<AuthSession> {
-    const res = await get<{ user: { id: string; email: string; assignedId?: string; name: string; role: string; avatarUrl?: string | null; createdAt?: string } }>(ROUTES.AUTH.ME)
+    const user = await get<AuthApiUser>(ROUTES.AUTH.ME)
     const token = useAuthStore.getState().session?.token
     return {
-      user: {
-        id: res.user.id,
-        email: res.user.email,
-        assignedId: res.user.assignedId,
-        name: res.user.name || "",
-        role: res.user.role.toLowerCase() as "admin" | "trader",
-        avatarUrl: res.user.avatarUrl ?? null,
-        createdAt: res.user.createdAt,
-      },
+      user: mapAuthUser(user),
       token,
+      expiresAt: useAuthStore.getState().session?.expiresAt,
     }
   },
 
   async forgotPassword(email: string): Promise<ForgotPasswordResponse> {
-    return post<ForgotPasswordResponse>(ROUTES.AUTH.FORGOT_PASSWORD, {
+    await post<null>(ROUTES.AUTH.FORGOT_PASSWORD, {
       email: email.trim().toLowerCase(),
     })
+    return {
+      success: true,
+      message: "If that email is registered, a reset link has been sent.",
+    }
   },
 
   async resetPassword(input: ResetPasswordInput): Promise<ResetPasswordResponse> {
-    return post<ResetPasswordResponse>(ROUTES.AUTH.RESET_PASSWORD, input)
+    await post<null>(ROUTES.AUTH.RESET_PASSWORD, {
+      ...input,
+      confirmPassword: input.confirmPassword ?? input.password,
+    })
+    return {
+      success: true,
+      message: "Password updated. You can sign in now.",
+    }
   },
 
   async signout(): Promise<void> {
-    useAuthStore.getState().clearToken()
+    try {
+      await post<null>("/api/auth/logout")
+    } finally {
+      useAuthStore.getState().clearToken()
+    }
   },
 }
