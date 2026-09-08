@@ -1,8 +1,9 @@
-import { ROUTES } from "@/constant/routes";
 import { get } from "@/lib/utils/api";
-import type { MarketChartResponse, MarketQuoteResponse } from "@/types/market";
+import { V2_TIMEFRAME_INTERVAL_MAP } from "@/constants/v2-market";
+import type { MarketQuoteResponse } from "@/types/market";
 import type { ChartMarketDataResponse, EodhdAssetQuote, EodhdQuotesResponse } from "@/types/eodhd";
 import type { TradingTimeframe } from "@/types/trading-filter-bar";
+import type { V2Candle, V2MarketSnapshot } from "@/types/v2-market";
 
 function mapQuote(quote: MarketQuoteResponse["quotes"][number]): EodhdAssetQuote {
   return {
@@ -22,18 +23,48 @@ function mapQuote(quote: MarketQuoteResponse["quotes"][number]): EodhdAssetQuote
 
 export const chartMarketApi = {
   async getQuotes(symbols: string[]) {
-    const response = await get<MarketQuoteResponse>(ROUTES.MARKET.QUOTES, {
-      params: { symbols: symbols.join(",") },
-    });
+    const quotes = await Promise.all(
+      symbols.map(async (symbol) => {
+        const candles = await get<V2Candle[]>("/api/market/candles", {
+          params: { symbol, interval: "M1", limit: 2 },
+        });
+        const latest = candles.at(-1);
+        const previous = candles.at(-2);
+
+        if (!latest) {
+          return null;
+        }
+
+        const change = previous ? latest.close - previous.close : 0;
+        const changePercent = previous?.close ? (change / previous.close) * 100 : 0;
+
+        const quote: MarketQuoteResponse["quotes"][number] = {
+          symbol,
+          price: latest.close,
+          bid: latest.close,
+          ask: latest.close,
+          change,
+          changePercent,
+          timestamp: latest.openTime,
+          source: latest.live ? "eodhd-ws" : "eodhd-db",
+        };
+
+        return quote;
+      }),
+    );
 
     return {
-      quotes: Object.fromEntries(response.quotes.map((quote) => [quote.symbol.toUpperCase(), mapQuote(quote)])),
+      quotes: Object.fromEntries(
+        quotes
+          .filter((quote): quote is MarketQuoteResponse["quotes"][number] => quote !== null)
+          .map((quote) => [quote.symbol.toUpperCase(), mapQuote(quote)]),
+      ),
     } satisfies EodhdQuotesResponse;
   },
 
   async getCandles(symbol: string, timeframe: TradingTimeframe) {
-    const response = await get<MarketChartResponse>(ROUTES.MARKET.CHART_DATA, {
-      params: { symbol, timeframe },
+    const response = await get<V2MarketSnapshot>("/api/market/snapshot", {
+      params: { symbol, interval: V2_TIMEFRAME_INTERVAL_MAP[timeframe], limit: 500 },
     });
 
     return {
@@ -41,14 +72,14 @@ export const chartMarketApi = {
       eodhdSymbol: response.symbol,
       timeframe,
       candles: response.candles.map((candle) => ({
-        time: Math.floor(new Date(candle.time).getTime() / 1000),
+        time: Math.floor(new Date(candle.openTime).getTime() / 1000),
         open: candle.open,
         high: candle.high,
         low: candle.low,
         close: candle.close,
-        volume: candle.volume ?? 0,
+        volume: candle.volume,
       })),
-      dataSource: response.dataSource === "mock" ? "eod" : response.dataSource,
+      dataSource: timeframe === "D" || timeframe === "W" ? "eod" : "intraday",
     } satisfies ChartMarketDataResponse;
   },
 };

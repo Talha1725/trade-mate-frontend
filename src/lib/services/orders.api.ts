@@ -36,8 +36,17 @@ export const ordersApi = {
     payload: TradeProtectionModification,
     authToken?: string,
   ): Promise<TradeProtectionModificationResponse> {
-    return patch<TradeProtectionModificationResponse>(ROUTES.TRADE.MODIFY, payload, {
+    return patch<unknown>(`${ROUTES.TRADE.LIST}/${encodeURIComponent(payload.positionId)}`, {
+      stopLoss: payload.stopLoss,
+      takeProfit: payload.takeProfit,
+    }, {
       headers: authToken ? { Authorization: `Bearer ${authToken}` } : undefined,
-    });
+    }).then(() => ({
+      sync: {
+        status: "SENT",
+        eventId: null,
+        lastError: null,
+      },
+    }));
   },
 };

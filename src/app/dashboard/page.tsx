@@ -14,6 +14,7 @@ import { dashboardApi } from "@/lib/services/dashboard.api";
 import { marketApi } from "@/lib/services/market.api";
 import { terminalApi } from "@/lib/services/terminal.api";
 import { ordersApi } from "@/lib/services/orders.api";
+import { wishlistApi } from "@/lib/services/wishlist.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { useMarketSelectionStore } from "@/lib/stores/market-selection-store";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
@@ -24,23 +25,21 @@ import {
 } from "@/lib/utils/trader-data";
 import { getSupplementalQuoteSymbol } from "@/lib/utils/instrument-spec";
 import { mergeStablePositions } from "@/lib/utils/stable-positions";
-import { mergeLivePositions, mergeLiveTrades } from "@/lib/utils/live-portfolio";
 import { normalizeTradingSymbol } from "@/lib/utils/market-symbol-icon";
 import { resolveMarketWatchIcon } from "@/lib/utils/market-symbol-icon";
 import { formatTradingPrice } from "@/components/shared/trading-table-cells";
 import type { AccountLedgerResponse, UserPortfolioResponse } from "@/types/dashboard";
 import type { MarketSnapshotChartSummary, MarketSnapshotData } from "@/types/market-snapshot";
-import type { MarketWatchItem } from "@/types/market-watch-card";
 import type { OpenPositionStripItem } from "@/types/open-positions-strip";
 import type { PortfolioPosition } from "@/types/dashboard";
-import type { PriceSocketPortfolioMessage, PriceSocketQuote } from "@/types";
+import type { PriceSocketAccountMessage, PriceSocketCandleMessage, PriceSocketQuote } from "@/types";
 import type { ChartCandle } from "@/types/eodhd";
+import type { AssetRecord } from "@/types/asset";
 import { usePriceStream } from "@/hooks/use-price-stream";
-import { useAccountWishlist } from "@/hooks/use-account-wishlist";
-import { useEodhdMarketQuotes } from "@/hooks/use-eodhd-market-quotes";
 import { useResolvedAccountNumber } from "@/hooks/use-resolved-account-number";
 import { useSyncedTradingAssets } from "@/hooks/use-synced-trading-assets";
 import { getTradingSymbolAliases } from "@/lib/utils/market-symbol-icon";
+import { mapWishlistAssetsToWatchItems } from "@/lib/utils/map-wishlist-items";
 
 export default function DashboardPage() {
   const [snapshot, setSnapshot] = React.useState<UserPortfolioResponse | null>(null);
@@ -48,6 +47,10 @@ export default function DashboardPage() {
   const [marketSnapshot, setMarketSnapshot] = React.useState<MarketSnapshotData | null>(null);
   const [marketChart, setMarketChart] = React.useState<MarketSnapshotChartSummary | null>(null);
   const [chartOhlcvCandle, setChartOhlcvCandle] = React.useState<ChartCandle | null>(null);
+  const [initialChartCandles, setInitialChartCandles] = React.useState<ChartCandle[] | undefined>();
+  const [initialCompareCandles, setInitialCompareCandles] = React.useState<ChartCandle[] | undefined>();
+  const [overviewSymbols, setOverviewSymbols] = React.useState<string[]>([]);
+  const [overviewWatchlistAssets, setOverviewWatchlistAssets] = React.useState<AssetRecord[]>([]);
   const [liveQuotes, setLiveQuotes] = React.useState<Record<string, PriceSocketQuote>>({});
   const livePositionMissingCountsRef = React.useRef(new Map<string, number>());
   const locallyClosedPositionIdsRef = React.useRef(new Set<string>());
@@ -67,13 +70,6 @@ export default function DashboardPage() {
     () => new Map(tradingAssets.map((asset) => [asset.symbol.toUpperCase(), asset.category])),
     [tradingAssets],
   );
-  const liveQuotePrices = React.useMemo(
-    () =>
-      Object.fromEntries(
-        Object.values(liveQuotes).map((quote) => [quote.symbol.toUpperCase(), quote.price]),
-      ) as Record<string, number>,
-    [liveQuotes],
-  );
 
   const resolvedAccountId = React.useMemo(() => {
     if (!hasHydrated) {
@@ -84,7 +80,7 @@ export default function DashboardPage() {
   }, [hasHydrated, selectedAccountId]);
 
   React.useEffect(() => {
-    if (!token) {
+    if (!token || !hasHydrated) {
       return;
     }
 
@@ -92,10 +88,9 @@ export default function DashboardPage() {
 
     const refreshDashboard = async () => {
       try {
-        const accountSnapshot = await dashboardApi.getPortfolioSnapshot(
-          token,
-          resolvedAccountId ?? undefined,
-        );
+        const overview = await dashboardApi.getOverview(token, resolvedAccountId ?? undefined);
+        const accountSnapshot = overview.snapshot;
+        const accountLedger = overview.ledger;
 
         if (!isMounted) {
           return;
@@ -121,12 +116,6 @@ export default function DashboardPage() {
           };
         });
 
-        const accountLedger = await dashboardApi.getAccountLedger(accountSnapshot.account.id, token);
-
-        if (!isMounted) {
-          return;
-        }
-
         setLedger((current) => {
           if (!current) {
             return {
@@ -146,6 +135,8 @@ export default function DashboardPage() {
             ).filter((position) => !locallyClosedPositionIdsRef.current.has(position.id)),
           };
         });
+        setOverviewSymbols(overview.symbols);
+        setOverviewWatchlistAssets(overview.watchlistAssets);
       } catch {
         // Keep the last successful snapshot/ledger visible if a refresh fails.
       }
@@ -156,9 +147,9 @@ export default function DashboardPage() {
     return () => {
       isMounted = false;
     };
-  }, [resolvedAccountId, token]);
+  }, [hasHydrated, resolvedAccountId, token]);
 
-  const dashboardData = snapshot ? buildDashboardData(snapshot, ledger ?? undefined, liveQuotePrices, liveQuotes) : null;
+  const dashboardData = snapshot ? buildDashboardData(snapshot, ledger ?? undefined) : null;
   const liveSymbol = dashboardData?.positions[0]?.symbol;
   const openPortfolioPositions = React.useMemo(
     () => dashboardData?.positions.filter((position) => position.status === "OPEN") ?? [],
@@ -183,22 +174,55 @@ export default function DashboardPage() {
       ),
     [openPortfolioPositions],
   );
-  const accountId = snapshot?.account.id ?? selectedAccountId ?? null;
-
   const accountNumber = useResolvedAccountNumber(snapshot?.account.accountNumber);
-  const {
-    watchlistItems: accountWatchlistItems,
-    toggleWishlistAsset,
-  } = useAccountWishlist(accountNumber, tradingAssets);
-  const [liveWatchlistItems, setLiveWatchlistItems] = React.useState<MarketWatchItem[]>([]);
-  const watchlistSymbols = React.useMemo(
-    () => accountWatchlistItems.map((item) => item.symbol),
-    [accountWatchlistItems],
+  const resolveQuoteForSymbol = React.useCallback((quotes: PriceSocketQuote[], symbol: string) => {
+    const normalizedSymbols = new Set(getTradingSymbolAliases(symbol));
+
+    return (
+      quotes.find((quote) => normalizedSymbols.has(normalizeTradingSymbol(quote.symbol))) ?? null
+    );
+  }, []);
+  const accountWatchlistItems = React.useMemo(
+    () => mapWishlistAssetsToWatchItems(overviewWatchlistAssets),
+    [overviewWatchlistAssets],
   );
-  const { data: watchlistQuoteResponse } = useEodhdMarketQuotes(watchlistSymbols, {
-    enabled: Boolean(token && watchlistSymbols.length > 0),
-    refetchInterval: 15_000,
-  });
+  const liveWatchlistItems = React.useMemo(() => {
+    const quotes = Object.values(liveQuotes);
+
+    return accountWatchlistItems.map((item) => {
+      const liveQuote = resolveQuoteForSymbol(quotes, item.symbol);
+
+      return {
+        ...item,
+        price: liveQuote?.price ?? item.price,
+        change: liveQuote?.change ?? item.change ?? null,
+        changePercent: liveQuote?.changePercent ?? item.changePercent,
+      };
+    });
+  }, [accountWatchlistItems, liveQuotes, resolveQuoteForSymbol]);
+  const toggleWishlistAsset = React.useCallback(async (assetId: string) => {
+    if (!token || !accountNumber) {
+      return;
+    }
+
+    const isInWishlist = overviewWatchlistAssets.some((asset) => asset.id === assetId);
+
+    try {
+      if (isInWishlist) {
+        await wishlistApi.removeFromWishlist(accountNumber, assetId);
+      } else {
+        await wishlistApi.addToWishlist(accountNumber, { assetId });
+      }
+
+      const overview = await dashboardApi.getOverview(token, resolvedAccountId ?? undefined);
+      setSnapshot(overview.snapshot);
+      setLedger(overview.ledger);
+      setOverviewSymbols(overview.symbols);
+      setOverviewWatchlistAssets(overview.watchlistAssets);
+    } catch {
+      toast.error("Unable to update watchlist.");
+    }
+  }, [accountNumber, overviewWatchlistAssets, resolvedAccountId, token]);
 
   const selectedWatchlistItem = liveWatchlistItems.find((item) => item.id === selectedMarketId);
   const selectedFilterAsset = tradingAssets.find((asset) => asset.id === selectedMarketId);
@@ -215,22 +239,11 @@ export default function DashboardPage() {
   const marketInterval = mapTimeframeToMarketInterval(timeframe);
 
   React.useEffect(() => {
-    setChartOhlcvCandle(null);
-  }, [chartSymbol, timeframe]);
-
-  React.useEffect(() => {
     if (compareAssetId && compareAssetId === selectedMarketId) {
       setCompareAssetId(null);
     }
-  }, [compareAssetId, selectedMarketId]);
+  }, [compareAssetId, selectedMarketId, setCompareAssetId]);
 
-  const resolveQuoteForSymbol = React.useCallback((quotes: PriceSocketQuote[], symbol: string) => {
-    const normalizedSymbols = new Set(getTradingSymbolAliases(symbol));
-
-    return (
-      quotes.find((quote) => normalizedSymbols.has(normalizeTradingSymbol(quote.symbol))) ?? null
-    );
-  }, []);
   const chartLiveQuote = React.useMemo(
     () => resolveQuoteForSymbol(Object.values(liveQuotes), chartSymbol),
     [chartSymbol, liveQuotes, resolveQuoteForSymbol],
@@ -241,43 +254,24 @@ export default function DashboardPage() {
   );
 
   React.useEffect(() => {
-    const quotes = Object.values(liveQuotes);
-    const nextItems = accountWatchlistItems.flatMap((item) => {
-      const liveQuote = resolveQuoteForSymbol(quotes, item.symbol);
-      const eodhdQuote = Object.values(watchlistQuoteResponse?.quotes ?? {}).find(
-        (quote) => normalizeTradingSymbol(quote.symbol) === normalizeTradingSymbol(item.symbol),
-      );
-
-      if (!liveQuote && !eodhdQuote) {
-        return [];
-      }
-
-      return [{
-        ...item,
-        price: liveQuote?.price ?? eodhdQuote?.price ?? item.price,
-        change: liveQuote?.change ?? eodhdQuote?.change ?? null,
-        changePercent: liveQuote?.changePercent ?? eodhdQuote?.changePercent ?? item.changePercent,
-        high: eodhdQuote?.high ?? null,
-        low: eodhdQuote?.low ?? null,
-        volume: eodhdQuote?.volume ?? null,
-      }];
-    });
-
-    setLiveWatchlistItems(nextItems);
-  }, [accountWatchlistItems, liveQuotes, resolveQuoteForSymbol, watchlistQuoteResponse]);
-
-  React.useEffect(() => {
     if (!token || !chartSymbol) {
       return;
     }
 
     let isMounted = true;
-    setMarketSnapshot(null);
-    setMarketChart(null);
 
     const refreshMarketSnapshot = async () => {
       try {
-        const response = await marketApi.getSnapshot(chartSymbol, marketInterval);
+        setChartOhlcvCandle(null);
+        setMarketSnapshot(null);
+        setMarketChart(null);
+        setInitialChartCandles(undefined);
+        setInitialCompareCandles(undefined);
+
+        const [response, compareResponse] = await Promise.all([
+          marketApi.getSnapshot(chartSymbol, marketInterval),
+          compareSymbol ? marketApi.getSnapshot(compareSymbol, marketInterval).catch(() => null) : Promise.resolve(null),
+        ]);
 
         if (!isMounted) {
           return;
@@ -295,10 +289,14 @@ export default function DashboardPage() {
           sparkline: initialSparkline,
         });
         setMarketChart(response.chart);
+        setInitialChartCandles(response.candles);
+        setInitialCompareCandles(compareResponse?.candles);
       } catch {
         if (!isMounted) {
           return;
         }
+        setInitialChartCandles([]);
+        setInitialCompareCandles(undefined);
       }
     };
 
@@ -307,17 +305,14 @@ export default function DashboardPage() {
     return () => {
       isMounted = false;
     };
-  }, [chartSymbol, marketInterval, token]);
+  }, [chartSymbol, compareSymbol, marketInterval, token]);
 
   const filterBarQuote = React.useMemo(
     () =>
       marketChart
         ? {
             price: marketSnapshot?.price ?? marketChart.close,
-            change:
-              marketSnapshot?.price != null
-                ? marketSnapshot.price * ((marketSnapshot.changePercent ?? 0) / 100)
-                : marketChart.change,
+            change: marketChart.change,
             changePercent: marketSnapshot?.changePercent ?? marketChart.changePercent,
           }
         : { price: 0, change: 0, changePercent: 0 },
@@ -359,14 +354,13 @@ export default function DashboardPage() {
     });
   }
 
-  function mapPositionToOpenStripItem(position: PortfolioPosition): OpenPositionStripItem {
+  const mapPositionToOpenStripItem = React.useCallback((position: PortfolioPosition): OpenPositionStripItem => {
     const isLong = position.direction === "BUY";
     const side = isLong ? "long" : "short";
-    const liveQuote = liveQuotes[position.symbol.toUpperCase()];
     const assetCategory = assetCategoryBySymbol.get(position.symbol.toUpperCase()) ?? null;
-    const portfolioRow = mapPortfolioPositionToPortfolioRow(position, liveQuote ?? null, assetCategory, liveQuotePrices);
+    const portfolioRow = mapPortfolioPositionToPortfolioRow(position, null, assetCategory, {});
     const entryPrice = Number(position.entryPrice);
-    const currentPrice = Number(liveQuote?.price ?? position.currentPrice ?? position.entryPrice);
+    const currentPrice = Number(position.currentPrice ?? position.entryPrice);
     const lots = Number(position.lots);
     const sizeUnit = position.symbol.replace(/USD$/i, "") || position.symbol;
     const entryLabelPrice =
@@ -394,21 +388,24 @@ export default function DashboardPage() {
       takeProfit: position.takeProfit == null ? null : Number(position.takeProfit),
       lots,
     };
-  }
+  }, [assetCategoryBySymbol]);
 
   const openPositionItems = React.useMemo(
     () => livePositions.slice(0, 4).map(mapPositionToOpenStripItem),
-    [livePositions, liveQuotes],
+    [livePositions, mapPositionToOpenStripItem],
   );
 
   const handleClosePosition = React.useCallback(async (positionId: string) => {
     if (!token) return;
-    const result = await terminalApi.closeTrade({ positionId }, token);
+    await terminalApi.closeTrade({ positionId }, token);
     locallyClosedPositionIdsRef.current.add(positionId);
-    setSnapshot((current) => current ? { ...current, account: result.account, positions: current.positions.filter((position) => position.id !== positionId) } : current);
-    setLedger((current) => current ? { ...current, account: result.account, positions: current.positions.filter((position) => position.id !== positionId) } : current);
+    const overview = await dashboardApi.getOverview(token, resolvedAccountId ?? undefined);
+    setSnapshot(overview.snapshot);
+    setLedger(overview.ledger);
+    setOverviewSymbols(overview.symbols);
+    setOverviewWatchlistAssets(overview.watchlistAssets);
     toast.success("Position closed.");
-  }, [token]);
+  }, [resolvedAccountId, token]);
 
   const handleModifyProtection = React.useCallback(async (input: { positionId: string; stopLoss: number | null; takeProfit: number | null }) => {
     if (!token) return { status: "FAILED" as const };
@@ -456,23 +453,6 @@ export default function DashboardPage() {
         };
       });
 
-      setLiveWatchlistItems((current) =>
-        current.map((item) => {
-          const quote = resolveQuoteForSymbol(quotes, item.symbol);
-
-          if (!quote) {
-            return item;
-          }
-
-          return {
-            ...item,
-            price: quote.price,
-            change: quote.change ?? item.change ?? null,
-            changePercent: quote.changePercent ?? item.changePercent,
-          };
-        }),
-      );
-
       setLiveQuotes((current) => {
         const nextQuotes = { ...current };
 
@@ -488,6 +468,111 @@ export default function DashboardPage() {
     [chartSymbol, resolveQuoteForSymbol],
   );
 
+  const mergeSocketCandle = React.useCallback((candles: ChartCandle[] | undefined, candle: ChartCandle) => {
+    const current = candles ?? [];
+    const index = current.findIndex((item) => item.time === candle.time);
+
+    if (index === -1) {
+      return [...current, candle];
+    }
+
+    return current.map((item, itemIndex) => itemIndex === index ? candle : item);
+  }, []);
+
+  const handleSocketCandle = React.useCallback(
+    (payload: PriceSocketCandleMessage) => {
+      const candle: ChartCandle = {
+        time: payload.openTime > 1_000_000_000_000
+          ? Math.floor(payload.openTime / 1000)
+          : payload.openTime,
+        open: payload.open,
+        high: payload.high,
+        low: payload.low,
+        close: payload.close,
+        volume: payload.volume,
+      };
+      const normalizedSymbol = normalizeTradingSymbol(payload.symbol);
+
+      if (getTradingSymbolAliases(chartSymbol).includes(normalizedSymbol)) {
+        setInitialChartCandles((current) => mergeSocketCandle(current, candle));
+        setChartOhlcvCandle(candle);
+        setMarketChart((current) => current ? {
+          ...current,
+          open: candle.open,
+          high: candle.high,
+          low: candle.low,
+          close: candle.close,
+          volume: candle.volume,
+        } : current);
+        return;
+      }
+
+      if (compareSymbol && getTradingSymbolAliases(compareSymbol).includes(normalizedSymbol)) {
+        setInitialCompareCandles((current) => mergeSocketCandle(current, candle));
+      }
+    },
+    [chartSymbol, compareSymbol, mergeSocketCandle],
+  );
+
+  const handleSocketAccount = React.useCallback((payload: PriceSocketAccountMessage) => {
+    const tradeUpdates = new Map(payload.trades.map((trade) => [trade.id, trade]));
+
+    const updatePosition = (position: PortfolioPosition): PortfolioPosition => {
+      const update = tradeUpdates.get(position.tradeId ?? position.id) ?? tradeUpdates.get(position.id);
+
+      if (!update) {
+        return position;
+      }
+
+      return {
+        ...position,
+        currentPrice: String(update.currentPrice),
+        floatingPnl: String(update.floatingPnl),
+      };
+    };
+
+    setSnapshot((current) => {
+      if (!current || current.account.id !== payload.accountId) {
+        return current;
+      }
+
+      return {
+        ...current,
+        account: {
+          ...current.account,
+          balance: String(payload.balance),
+          equity: String(payload.equity),
+          floatingPnl: String(payload.floatingPnl),
+          marginUsed: String(payload.marginUsed),
+        },
+        positions: current.positions.map(updatePosition),
+      };
+    });
+
+    setLedger((current) => {
+      if (!current || current.account.id !== payload.accountId) {
+        return current;
+      }
+
+      return {
+        ...current,
+        account: {
+          ...current.account,
+          balance: String(payload.balance),
+          equity: String(payload.equity),
+          floatingPnl: String(payload.floatingPnl),
+          marginUsed: String(payload.marginUsed),
+        },
+        positions: current.positions.map(updatePosition),
+        trades: current.trades.map((trade) => {
+          const update = tradeUpdates.get(trade.id);
+
+          return update ? { ...trade, pnl: String(update.floatingPnl) } : trade;
+        }),
+      };
+    });
+  }, []);
+
   const supplementalQuoteSymbols = React.useMemo(
     () =>
       Array.from(
@@ -498,111 +583,18 @@ export default function DashboardPage() {
   const subscriptionMarketSymbols = React.useMemo(
     () =>
       Array.from(
-        new Set([chartSymbol, compareSymbol, ...openSymbols, ...supplementalQuoteSymbols].filter(Boolean) as string[]),
+        new Set([...overviewSymbols, chartSymbol, compareSymbol, ...openSymbols, ...supplementalQuoteSymbols].filter(Boolean) as string[]),
       ),
-    [chartSymbol, compareSymbol, openSymbols, supplementalQuoteSymbols],
-  );
-  const watchlistMarketSymbols = React.useMemo(
-    () => accountWatchlistItems.map((item) => item.symbol),
-    [accountWatchlistItems],
-  );
-
-  const resolvePortfolioAccount = React.useCallback(
-    (payload: PriceSocketPortfolioMessage) => {
-      if (accountId) {
-        const matchedAccount = payload.accounts.find((item) => item.id === accountId);
-
-        if (matchedAccount) {
-          return matchedAccount;
-        }
-
-        return null;
-      }
-
-      return payload.accounts[0] ?? null;
-    },
-    [accountId],
+    [chartSymbol, compareSymbol, openSymbols, overviewSymbols, supplementalQuoteSymbols],
   );
 
   usePriceStream({
-    enabled: !!token && (subscriptionMarketSymbols.length > 0 || watchlistMarketSymbols.length > 0),
-    symbols: Array.from(new Set([...subscriptionMarketSymbols, ...watchlistMarketSymbols])),
-    accountIds: accountId ? [accountId] : [],
+    enabled: !!token && subscriptionMarketSymbols.length > 0,
+    symbols: subscriptionMarketSymbols,
     onQuotes: handleMarketQuotes,
-    onPortfolio: (payload: PriceSocketPortfolioMessage) => {
-      const account = resolvePortfolioAccount(payload);
-
-      if (!account) {
-        return;
-      }
-
-      const closedIds = new Set(
-        payload.trades
-          .filter((trade) => trade.status === "CLOSED" && trade.positionId)
-          .map((trade) => trade.positionId as string),
-      );
-      for (const positionId of locallyClosedPositionIdsRef.current) {
-        closedIds.add(positionId);
-      }
-
-      setSnapshot((current) => {
-        if (!current) {
-          return {
-            account: {
-              ...account,
-            },
-            positions: payload.positions.filter(
-              (position) => !locallyClosedPositionIdsRef.current.has(position.id),
-            ),
-          };
-        }
-
-        return {
-          ...current,
-          account: {
-            ...account,
-          },
-          positions: mergeLivePositions(
-            current.positions,
-            payload.positions,
-            { closedIds },
-          ),
-        };
-      });
-
-      setLedger((current) => {
-        if (!current) {
-          return {
-            account: {
-              ...account,
-            },
-            positions: payload.positions.filter(
-              (position) => !locallyClosedPositionIdsRef.current.has(position.id),
-            ),
-            trades: payload.trades,
-            tradePagination: {
-              page: 1,
-              limit: payload.trades.length || 1,
-              total: payload.trades.length,
-              pageCount: 1,
-            },
-          };
-        }
-
-        return {
-          ...current,
-          account: {
-            ...account,
-          },
-          positions: mergeLivePositions(
-            current.positions,
-            payload.positions,
-            { closedIds },
-          ),
-          trades: mergeLiveTrades(current.trades, payload.trades),
-        };
-      });
-    },
+    onCandle: handleSocketCandle,
+    onAccount: handleSocketAccount,
+    onError: (message) => toast.error(message),
   });
 
   return (
@@ -635,6 +627,8 @@ export default function DashboardPage() {
               compareLiveQuote={compareLiveQuote}
               trades={ledger?.trades ?? []}
               tradePositions={snapshot?.positions ?? []}
+              initialCandles={initialChartCandles}
+              initialCompareCandles={initialCompareCandles}
               onOhlcvChange={setChartOhlcvCandle}
               className="h-[420px] min-h-0 xl:h-[560px]"
             />

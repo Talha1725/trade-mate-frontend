@@ -4,10 +4,14 @@ import * as React from "react";
 import { unstable_batchedUpdates } from "react-dom";
 
 import { createLatestValueBuffer, getPriceSocketUrl } from "@/lib/utils/price-stream";
+import { useAuthStore } from "@/lib/stores/auth-store";
 import { useLivePriceStore } from "@/lib/stores/live-price-store";
 import type {
+  PriceSocketAccountMessage,
+  PriceSocketCandleMessage,
   PriceSocketPortfolioMessage,
   PriceSocketQuote,
+  PriceSocketRawPrice,
   PriceSocketServerMessage,
   PriceStreamOptions,
 } from "@/types/price";
@@ -18,36 +22,36 @@ function normalize(values?: string[]) {
 
 export function usePriceStream({
   symbols,
-  accountIds,
   enabled = true,
   onQuotes,
   onPortfolio,
+  onCandle,
+  onAccount,
   onError,
 }: PriceStreamOptions) {
-  const callbacksRef = React.useRef({ onQuotes, onPortfolio, onError });
+  const token = useAuthStore((state) => state.session?.token ?? null);
+  const callbacksRef = React.useRef({ onQuotes, onPortfolio, onCandle, onAccount, onError });
   const subscription = React.useMemo(() => {
     const resolvedSymbols = normalize(symbols);
-    const resolvedAccountIds = normalize(accountIds);
 
     return {
-      key: `${resolvedSymbols.join("|")}::${resolvedAccountIds.join("|")}`,
+      key: resolvedSymbols.join("|"),
       resolvedSymbols,
-      resolvedAccountIds,
     };
-  }, [accountIds, symbols]);
+  }, [symbols]);
 
   React.useEffect(() => {
-    callbacksRef.current = { onQuotes, onPortfolio, onError };
-  }, [onQuotes, onPortfolio, onError]);
+    callbacksRef.current = { onQuotes, onPortfolio, onCandle, onAccount, onError };
+  }, [onQuotes, onPortfolio, onCandle, onAccount, onError]);
 
   React.useEffect(() => {
     if (!enabled) {
       return;
     }
 
-    const { resolvedSymbols, resolvedAccountIds } = subscription;
+    const { resolvedSymbols } = subscription;
 
-    if (resolvedSymbols.length === 0 && resolvedAccountIds.length === 0) {
+    if (!token || resolvedSymbols.length === 0) {
       return;
     }
 
@@ -113,13 +117,40 @@ export function usePriceStream({
 
       return latestQuotes;
     };
+    const timestampFromProvider = (providerTs: number) => {
+      const milliseconds = providerTs > 1_000_000_000_000 ? providerTs : providerTs * 1000;
+      return new Date(milliseconds).toISOString();
+    };
+    const mapRawPriceToQuote = (price: PriceSocketRawPrice): PriceSocketQuote => ({
+      symbol: price.symbol,
+      price: price.last,
+      bid: price.bid,
+      ask: price.ask,
+      change: null,
+      changePercent: null,
+      timestamp: timestampFromProvider(price.providerTs),
+      source: "eodhd-ws",
+    });
+    const pushQuotes = (quotes: PriceSocketQuote[]) => {
+      const latestQuotes = onlyLatestQuotes(quotes);
+      latestQuotes.forEach((quote) => quoteBuffer.push(quote));
+    };
+    const handleAuthError = (message: string) => {
+      callbacksRef.current.onError?.(message);
+
+      if (/session|sign in|token|auth/i.test(message)) {
+        window.dispatchEvent(new CustomEvent("trade-mate:authentication-failed"));
+      }
+    };
 
     const connect = () => {
       if (isDisposed) {
         return;
       }
 
-      socket = new WebSocket(getPriceSocketUrl());
+      const socketUrl = new URL(getPriceSocketUrl());
+      socketUrl.searchParams.set("token", token);
+      socket = new WebSocket(socketUrl.toString());
 
       socket.onopen = () => {
         if (!socket || socket.readyState !== WebSocket.OPEN) {
@@ -136,7 +167,6 @@ export function usePriceStream({
           JSON.stringify({
             type: "subscribe",
             symbols: resolvedSymbols,
-            accountIds: resolvedAccountIds.length > 0 ? resolvedAccountIds : undefined,
           }),
         );
       };
@@ -146,9 +176,33 @@ export function usePriceStream({
           const payload = JSON.parse(event.data as string) as PriceSocketServerMessage;
 
           unstable_batchedUpdates(() => {
-            if (payload.type === "snapshot" || payload.type === "update") {
-              const latestQuotes = onlyLatestQuotes(payload.quotes);
-              latestQuotes.forEach((quote) => quoteBuffer.push(quote));
+            if (payload.type === "snapshot") {
+              if ("prices" in payload) {
+                pushQuotes(payload.prices.map(mapRawPriceToQuote));
+                return;
+              }
+
+              pushQuotes(payload.quotes);
+              return;
+            }
+
+            if (payload.type === "price") {
+              pushQuotes([mapRawPriceToQuote(payload)]);
+              return;
+            }
+
+            if (payload.type === "update") {
+              pushQuotes(payload.quotes);
+              return;
+            }
+
+            if (payload.type === "candle") {
+              callbacksRef.current.onCandle?.(payload as PriceSocketCandleMessage);
+              return;
+            }
+
+            if (payload.type === "account") {
+              callbacksRef.current.onAccount?.(payload as PriceSocketAccountMessage);
               return;
             }
 
@@ -158,7 +212,7 @@ export function usePriceStream({
             }
 
             if (payload.type === "error") {
-              callbacksRef.current.onError?.(payload.message);
+              handleAuthError(payload.message);
             }
           });
         } catch {
@@ -210,12 +264,11 @@ export function usePriceStream({
           JSON.stringify({
             type: "unsubscribe",
             symbols: resolvedSymbols,
-            accountIds: resolvedAccountIds.length > 0 ? resolvedAccountIds : undefined,
           }),
         );
       }
 
       socket?.close();
     };
-  }, [enabled, subscription.key]);
+  }, [enabled, subscription, token]);
 }

@@ -1,5 +1,3 @@
-import type { TradingTimeframe } from "@/types/trading-filter-bar";
-
 export type V2Candle = {
   openTime: string;
   open: number;
@@ -11,8 +9,6 @@ export type V2Candle = {
 };
 
 export type V2CandleInterval = "M1" | "M5" | "M15" | "H1" | "H4" | "D1" | "W1";
-
-export type V2TimeframeMap = Record<TradingTimeframe, V2CandleInterval>;
 
 export type V2MarketSnapshot = {
   symbol: string;
