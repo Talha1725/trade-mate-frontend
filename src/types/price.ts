@@ -2,12 +2,10 @@ export type PriceSocketClientMessage =
   | {
       type: "subscribe";
       symbols: string[];
-      accountIds?: string[];
     }
   | {
       type: "unsubscribe";
       symbols: string[];
-      accountIds?: string[];
     }
   | {
       type: "ping";
@@ -85,7 +83,56 @@ export type PriceSocketPortfolioMessage = {
   }[];
 };
 
+export type PriceSocketRawPrice = {
+  type?: "price";
+  symbol: string;
+  bid: number;
+  ask: number;
+  last: number;
+  providerTs: number;
+};
+
+export type PriceSocketCandleMessage = {
+  type: "candle";
+  symbol: string;
+  openTime: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+};
+
+export type PriceSocketAccountMessage = {
+  type: "account";
+  accountId: string;
+  balance: number;
+  equity: number;
+  marginUsed: number;
+  floatingPnl: number;
+  stale: boolean;
+  trades: {
+    id: string;
+    currentPrice: number;
+    floatingPnl: number;
+  }[];
+};
+
 export type PriceSocketServerMessage =
+  | {
+      type: "snapshot";
+      prices: PriceSocketRawPrice[];
+    }
+  | {
+      type: "price";
+      symbol: string;
+      bid: number;
+      ask: number;
+      last: number;
+      providerTs: number;
+    }
+  | PriceSocketCandleMessage
+  | PriceSocketAccountMessage
   | {
       type: "welcome";
       message: string;
@@ -131,5 +178,7 @@ export type PriceStreamOptions = {
   enabled?: boolean;
   onQuotes?: (quotes: PriceSocketQuote[]) => void;
   onPortfolio?: (payload: PriceSocketPortfolioMessage) => void;
+  onCandle?: (payload: PriceSocketCandleMessage) => void;
+  onAccount?: (payload: PriceSocketAccountMessage) => void;
   onError?: (message: string) => void;
 };

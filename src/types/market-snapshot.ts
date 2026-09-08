@@ -1,4 +1,5 @@
 import type { SparklineDatum } from "@/types/sparkline-chart";
+import type { ChartCandle } from "@/types/eodhd";
 
 export type MarketSnapshotBadgeIcon = "momentum" | "risk";
 
@@ -44,6 +45,7 @@ export type MarketSnapshotResponse = {
   interval: string;
   chart: MarketSnapshotChartSummary;
   snapshot: MarketSnapshotData;
+  candles: ChartCandle[];
 };
 
 export type MarketSnapshotCardProps = {

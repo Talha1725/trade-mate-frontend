@@ -91,5 +91,4 @@ export type EodhdQuotesResponse = {
 
 export type UseEodhdMarketQuotesOptions = {
   enabled?: boolean;
-  refetchInterval?: number;
 };

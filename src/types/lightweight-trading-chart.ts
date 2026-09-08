@@ -9,6 +9,8 @@ export type LightweightTradingChartProps = {
   timeframe?: TradingTimeframe;
   liveQuote?: ChartLiveQuote | null;
   compareLiveQuote?: ChartLiveQuote | null;
+  initialCandles?: ChartCandle[];
+  initialCompareCandles?: ChartCandle[];
   trades?: PortfolioTrade[];
   tradePositions?: PortfolioPosition[];
   markers?: TradeMarker[];
