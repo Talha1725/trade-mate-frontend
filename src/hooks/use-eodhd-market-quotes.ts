@@ -25,6 +25,6 @@ export function useEodhdMarketQuotes(
     enabled,
     queryFn: () => chartMarketApi.getQuotes(normalizedSymbols),
     staleTime: 15_000,
-    refetchInterval: options?.refetchInterval ?? 30_000,
+    refetchOnWindowFocus: false,
   });
 }

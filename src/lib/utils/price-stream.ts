@@ -54,7 +54,7 @@ function getBackendBaseUrl() {
 export function getPriceSocketUrl() {
   const backend = new URL(getBackendBaseUrl());
   backend.protocol = backend.protocol === "https:" ? "wss:" : "ws:";
-  backend.pathname = "/ws/prices";
+  backend.pathname = "/ws";
   backend.search = "";
   backend.hash = "";
   return backend.toString();

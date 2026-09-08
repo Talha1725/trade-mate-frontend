@@ -16,7 +16,6 @@ export function useChartMarketData(
     enabled,
     queryFn: () => chartMarketApi.getCandles(symbol, timeframe),
     staleTime: 60_000,
-    refetchInterval: 15_000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
   });
 }

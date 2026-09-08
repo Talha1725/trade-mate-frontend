@@ -9,7 +9,6 @@ export const ROUTES = {
 
   /** Market Module */
   MARKET: {
-    QUOTES:         `/api/market/quotes`,
     HISTORY:        `/api/market/history`,
     CHART_DATA:     `/api/market/chart`,
     SYMBOLS:        `/api/market/symbols`,
@@ -50,7 +49,8 @@ export const ROUTES = {
 
   /** Dashboard Module */
   DASHBOARD: {
-    SUMMARY:        `/api/dashboard/summary`,
+    OVERVIEW:       `/api/dashboard/overview`,
+    SUMMARY:        `/api/dashboard/overview`,
     EQUITY_CURVE:   `/api/dashboard/equity-curve`,
     BREAKDOWN:      `/api/dashboard/breakdown`,
     RECENT_ACTIVITY:`/api/dashboard/recent-activity`,
