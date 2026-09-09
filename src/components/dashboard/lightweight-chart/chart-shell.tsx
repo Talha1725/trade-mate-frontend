@@ -11,7 +11,7 @@ import type { FibonacciDrawing } from "@/types/lightweight-trading-chart";
 import type { ChartShellContext } from "@/types/chart/chart-shell";
 
 export function ChartShell({ context }: { context: ChartShellContext }) {
-  const { className, activeTool = "crosshair", setActiveTool = () => undefined, setDraftPoints = () => undefined, setIsDrawing = () => undefined, draggingTrendlineRef, draggingDraftTrendlineRef, draftTrendlineAnchorRef, draftTrendlineMovedRef, draftTrendlinePointerStartRef, draftTrendlinePendingClickPointRef, draggingTextRef, setTextEditor = () => undefined, magnetMode = "off", enabledIndicators = [], setMagnetMode = () => undefined, setMagnetLastEnabledMode = () => undefined, toggleIndicator = () => undefined, zoomIn = () => undefined, zoomOut = () => undefined, resetView = () => undefined, undoDrawing = () => undefined, redoDrawing = () => undefined, redoDrawings = [], isChartLoading = false, isError = false, mainContainerRef, drawingOverlayRef, overlayRevision = 0, renderedDrawings = [], snapPixel, allTradeMarkers = [], displayCandles = [], tradeMarkerBucketSeconds = 0, showTradeMarkers = true, toPixelPoint = () => null, onTradeMarkerClick, indicatorPeriods, setIndicatorPeriods, vwapSettings, setVwapSettings, latestVwapPoint, isVwapSettingsOpen, setIsVwapSettingsOpen, vwapSettingsTab, setVwapSettingsTab, textEditor, textEditorPixel, commitTextEditor = () => undefined, selectedFibonacci, updateSelectedFibonacci = () => undefined, deleteSelectedDrawing = () => undefined, lastDisplayedClose, priceLabelRef, subContainerRef, handleDrawingPointerDown = () => undefined, handleDrawingPointerMove = () => undefined, handleDrawingPointerUp = () => undefined } = context;
+  const { className, activeTool = "crosshair", setActiveTool = () => undefined, setDraftPoints = () => undefined, setIsDrawing = () => undefined, draggingTrendlineRef, draggingDraftTrendlineRef, draftTrendlineAnchorRef, draftTrendlineMovedRef, draftTrendlinePointerStartRef, draftTrendlinePendingClickPointRef, draggingTextRef, setTextEditor = () => undefined, magnetMode = "off", enabledIndicators = [], setMagnetMode = () => undefined, setMagnetLastEnabledMode = () => undefined, toggleIndicator = () => undefined, zoomIn = () => undefined, zoomOut = () => undefined, resetView = () => undefined, undoDrawing = () => undefined, redoDrawing = () => undefined, redoDrawings = [], isChartLoading = false, isLoadingOlderCandles = false, isError = false, mainContainerRef, drawingOverlayRef, overlayRevision = 0, renderedDrawings = [], snapPixel, allTradeMarkers = [], displayCandles = [], tradeMarkerBucketSeconds = 0, showTradeMarkers = true, toPixelPoint = () => null, onTradeMarkerClick, indicatorPeriods, setIndicatorPeriods, vwapSettings, setVwapSettings, latestVwapPoint, isVwapSettingsOpen, setIsVwapSettingsOpen, vwapSettingsTab, setVwapSettingsTab, textEditor, textEditorPixel, commitTextEditor = () => undefined, selectedFibonacci, updateSelectedFibonacci = () => undefined, deleteSelectedDrawing = () => undefined, lastDisplayedClose, priceLabelRef, subContainerRef, handleDrawingPointerDown = () => undefined, handleDrawingPointerMove = () => undefined, handleDrawingPointerUp = () => undefined } = context;
   return (
     <div
       className={cn(
@@ -58,6 +58,31 @@ export function ChartShell({ context }: { context: ChartShellContext }) {
             <div className="absolute inset-0 z-20 flex items-center justify-center gap-2 text-sm text-white/60">
               <Loader2 className="size-4 animate-spin text-primary" />
               Loading chart data...
+            </div>
+          ) : null}
+
+          {isLoadingOlderCandles ? (
+            <div
+              className="absolute inset-0 z-10 cursor-wait bg-black/20 backdrop-blur-[1px]"
+              onPointerDown={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+              }}
+              onPointerMove={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+              }}
+              onWheel={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+              }}
+            />
+          ) : null}
+
+          {isLoadingOlderCandles ? (
+            <div className="pointer-events-none absolute left-4 top-4 z-20 flex items-center gap-2 rounded-md border border-white/10 bg-black/75 px-3 py-1.5 text-xs font-medium text-white/80 shadow-lg backdrop-blur">
+              <Loader2 className="size-3.5 animate-spin text-primary" />
+              Loading older candles...
             </div>
           ) : null}
 

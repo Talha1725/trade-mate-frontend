@@ -88,12 +88,16 @@ export function getV2MarketSnapshot(params: {
 export function getV2MarketCandles(params: {
   symbol: string;
   interval: V2CandleInterval;
+  from?: string;
+  to?: string;
   limit?: number;
   authToken?: string;
 }) {
   const normalizedParams = {
     symbol: params.symbol.toUpperCase(),
     interval: params.interval,
+    from: params.from,
+    to: params.to,
     limit: params.limit,
   };
   const key = cacheKey(normalizedParams);

@@ -3,10 +3,10 @@
 import * as React from "react";
 import { CandlestickSeries, ColorType, CrosshairMode, LineSeries, LineStyle, createChart, type IChartApi, type ISeriesApi, type UTCTimestamp } from "lightweight-charts";
 import { buildIndicatorSeries, calculateEma, calculateVwap, type VwapCalculationSettings } from "@/lib/utils/chart-indicators";
-import { getBucketSeconds, mergeLiveQuoteIntoCandles } from "@/lib/utils/merge-live-quote-candles";
+import { mergeLiveQuoteIntoCandles } from "@/lib/utils/merge-live-quote-candles";
 import type { ChartCandle, ChartLiveQuote } from "@/types/eodhd";
 import type { TradingTimeframe } from "@/types/trading-filter-bar";
-import { CANDLE_DOWN, CANDLE_UP, CHART_BACKGROUND, COMPARE_LINE_COLOR, EMA50_COLOR, GRID_COLOR, SUB_CHART_AXIS_COLOR, SUB_CHART_X_AXIS_FONT_SIZE, TEXT_COLOR, VWAP_BAND_COLORS, VWAP_COLOR } from "@/constants/chart/lightweight-chart";
+import { CANDLE_DOWN, CANDLE_UP, CHART_BACKGROUND, COMPARE_LINE_COLOR, EMA50_COLOR, GRID_COLOR, SUB_CHART_AXIS_COLOR, SUB_CHART_X_AXIS_FONT_SIZE, TEXT_COLOR, VWAP_BAND_COLORS, VWAP_COLOR, getDefaultVisibleBars } from "@/constants/chart/lightweight-chart";
 import { formatChartPrice, getChartPriceFormat } from "@/lib/utils/chart/formatters";
 
 function toSeriesTime(time: number) { return time as UTCTimestamp; }
@@ -29,12 +29,15 @@ export interface ChartInstanceOptions {
   effectiveLiveQuote: ChartLiveQuote | null; candles: ChartCandle[]; chartDataKey: string; overlayRevision: React.Dispatch<React.SetStateAction<number>>; indicatorPeriods: { ema: number };
   syncLastPriceLabel: (series: ISeriesApi<"Candlestick">, price: number, label: HTMLDivElement | null, symbol: string) => void;
   onOhlcvChange?: (candle: ChartCandle | null) => void;
+  onLoadMoreCandles?: () => Promise<number>;
+  isLoadingOlderCandles?: boolean;
 }
 
 export function useChartInstance(options: ChartInstanceOptions) {
-  const { mainContainerRef, subContainerRef, mainChartRef, subChartRef, mainSeriesRef, subSeriesRef, candleSeriesRef, emaSeriesRef, vwapSeriesRef, vwapUpperSeriesRefs: vwapUpperSeriesRefsRef, vwapLowerSeriesRefs: vwapLowerSeriesRefsRef, priceLineRef, priceLabelRef, lastCloseRef, initialViewKeyRef, symbol, timeframe, normalizedCompareSymbol, displayCandles, displayCompareCandles, compareTrack, enabledIndicators, vwap, vwapSettings, ema, effectiveLiveQuote, candles, chartDataKey, overlayRevision, indicatorPeriods, syncLastPriceLabel, onOhlcvChange } = options;
+  const { mainContainerRef, subContainerRef, mainChartRef, subChartRef, mainSeriesRef, subSeriesRef, candleSeriesRef, emaSeriesRef, vwapSeriesRef, vwapUpperSeriesRefs: vwapUpperSeriesRefsRef, vwapLowerSeriesRefs: vwapLowerSeriesRefsRef, priceLineRef, priceLabelRef, lastCloseRef, initialViewKeyRef, symbol, timeframe, normalizedCompareSymbol, displayCandles, displayCompareCandles, compareTrack, enabledIndicators, vwap, vwapSettings, ema, effectiveLiveQuote, candles, chartDataKey, overlayRevision, indicatorPeriods, syncLastPriceLabel, onOhlcvChange, onLoadMoreCandles, isLoadingOlderCandles = false } = options;
   const [chartReady, setChartReady] = React.useState(false);
   const hoveredCandleTimeRef = React.useRef<number | null>(null);
+  const isLoadingMoreRef = React.useRef(false);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -429,6 +432,39 @@ export function useChartInstance(options: ChartInstanceOptions) {
 
     mainChart.subscribeCrosshairMove(handleCrosshairMove);
 
+    const maybeLoadMoreCandles = (range: { from: number; to: number } | null) => {
+      if (!range || !onLoadMoreCandles || isLoadingMoreRef.current || isLoadingOlderCandles) {
+        return;
+      }
+
+      if (range.from > 0 || displayCandles.length === 0) {
+        return;
+      }
+
+      isLoadingMoreRef.current = true;
+      void onLoadMoreCandles()
+        .then((addedCount) => {
+          if (addedCount <= 0) {
+            return;
+          }
+
+          window.requestAnimationFrame(() => {
+            const nextRange = {
+              from: range.from + addedCount,
+              to: range.to + addedCount,
+            };
+
+            mainChartRef.current?.timeScale().setVisibleLogicalRange(nextRange);
+            subChartRef.current?.timeScale().setVisibleLogicalRange(nextRange);
+          });
+        })
+        .finally(() => {
+          isLoadingMoreRef.current = false;
+        });
+    };
+
+    mainChart.timeScale().subscribeVisibleLogicalRangeChange(maybeLoadMoreCandles);
+
     const selectedCandle = hoveredCandleTimeRef.current == null
       ? latestCandle
       : candleByTime.get(hoveredCandleTimeRef.current) ?? latestCandle;
@@ -437,9 +473,7 @@ export function useChartInstance(options: ChartInstanceOptions) {
     const viewKey = `${symbol}|${timeframe}`;
 
     if (initialViewKeyRef.current !== viewKey && candles.length > 0) {
-      const bucketSeconds = getBucketSeconds(timeframe);
-      const sixDays = 6 * 24 * 60 * 60;
-      const visibleBars = Math.max(1, Math.ceil(sixDays / bucketSeconds));
+      const visibleBars = getDefaultVisibleBars(timeframe);
       const lastIndex = displayCandles.length - 1;
       const from = Math.max(0, lastIndex - visibleBars + 1);
       const to = Math.max(lastIndex + 2, from + visibleBars);
@@ -452,9 +486,10 @@ export function useChartInstance(options: ChartInstanceOptions) {
     return () => {
       cancelAnimationFrame(labelFrameId);
       mainChart.timeScale().unsubscribeVisibleLogicalRangeChange(updateLastPriceLabel);
+      mainChart.timeScale().unsubscribeVisibleLogicalRangeChange(maybeLoadMoreCandles);
       mainChart.unsubscribeCrosshairMove(handleCrosshairMove);
     };
-  }, [candles.length, chartDataKey, chartReady, displayCompareCandles, enabledIndicators, indicatorPeriods, normalizedCompareSymbol, displayCandles, vwapSettings, onOhlcvChange]);
+  }, [candles.length, chartDataKey, chartReady, displayCompareCandles, enabledIndicators, indicatorPeriods, normalizedCompareSymbol, displayCandles, vwapSettings, onOhlcvChange, onLoadMoreCandles, isLoadingOlderCandles, timeframe]);
 
 
 

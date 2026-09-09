@@ -209,6 +209,8 @@ export function LightweightTradingChart({
     latestVwapPoint,
     chartDataKey,
     isChartLoading,
+    isLoadingOlderCandles,
+    loadOlderCandles,
     isError,
     lastDisplayedClose,
   } = useChartData({
@@ -1141,7 +1143,7 @@ export function LightweightTradingChart({
     return () => window.cancelAnimationFrame(frame);
   }, [activeTool, draftPoints, draftPreviewPoint, drawings, overlayRevision, renderDrawing]);
 
-  useChartInstance({ mainContainerRef, subContainerRef, mainChartRef, subChartRef, mainSeriesRef, subSeriesRef, candleSeriesRef, emaSeriesRef, vwapSeriesRef, vwapUpperSeriesRefs, vwapLowerSeriesRefs, priceLineRef, priceLabelRef, lastCloseRef, initialViewKeyRef, symbol, timeframe, normalizedCompareSymbol, displayCandles, displayCompareCandles, compareTrack, enabledIndicators, vwap, vwapSettings, ema, effectiveLiveQuote, candles, chartDataKey, overlayRevision: setOverlayRevision, indicatorPeriods, syncLastPriceLabel, onOhlcvChange });
+  useChartInstance({ mainContainerRef, subContainerRef, mainChartRef, subChartRef, mainSeriesRef, subSeriesRef, candleSeriesRef, emaSeriesRef, vwapSeriesRef, vwapUpperSeriesRefs, vwapLowerSeriesRefs, priceLineRef, priceLabelRef, lastCloseRef, initialViewKeyRef, symbol, timeframe, normalizedCompareSymbol, displayCandles, displayCompareCandles, compareTrack, enabledIndicators, vwap, vwapSettings, ema, effectiveLiveQuote, candles, chartDataKey, overlayRevision: setOverlayRevision, indicatorPeriods, syncLastPriceLabel, onOhlcvChange, onLoadMoreCandles: loadOlderCandles, isLoadingOlderCandles });
   const selectedFibonacci = selectedDrawingId
     ? drawings.find((drawing): drawing is FibonacciDrawing => drawing.id === selectedDrawingId && drawing.tool === "fibonacci")
     : null;
@@ -1154,5 +1156,5 @@ export function LightweightTradingChart({
   const derivedTradeMarkers = React.useMemo(() => deriveTradeMarkers(symbol, trades, tradePositions), [symbol, tradePositions, trades]);
   const allTradeMarkers = React.useMemo(() => [...derivedTradeMarkers, ...markers], [derivedTradeMarkers, markers]);
   const tradeMarkerBucketSeconds = getBucketSeconds(timeframe);
-  return <ChartShell context={{ className, symbol, activeTool, setActiveTool, setDraftPoints, setIsDrawing, draggingTrendlineRef, draggingDraftTrendlineRef, draftTrendlineAnchorRef, draftTrendlineMovedRef, draftTrendlinePointerStartRef, draftTrendlinePendingClickPointRef, draggingTextRef, setTextEditor, magnetMode, enabledIndicators, setMagnetMode, setMagnetLastEnabledMode, toggleIndicator, zoomIn, zoomOut, resetView, undoDrawing, redoDrawing, redoDrawings, isChartLoading, isError, mainContainerRef, drawingOverlayRef, overlayRevision, renderedDrawings, snapPixel, allTradeMarkers, displayCandles, tradeMarkerBucketSeconds, showTradeMarkers, toPixelPoint, onTradeMarkerClick, indicatorPeriods, setIndicatorPeriods, vwapSettings, setVwapSettings, latestVwapPoint, isVwapSettingsOpen, setIsVwapSettingsOpen, vwapSettingsTab, setVwapSettingsTab, textEditor, textEditorPixel, commitTextEditor, selectedFibonacci, updateSelectedFibonacci, deleteSelectedDrawing, lastDisplayedClose, priceLabelRef, subContainerRef, handleDrawingPointerDown, handleDrawingPointerMove, handleDrawingPointerUp }} />;
+  return <ChartShell context={{ className, symbol, activeTool, setActiveTool, setDraftPoints, setIsDrawing, draggingTrendlineRef, draggingDraftTrendlineRef, draftTrendlineAnchorRef, draftTrendlineMovedRef, draftTrendlinePointerStartRef, draftTrendlinePendingClickPointRef, draggingTextRef, setTextEditor, magnetMode, enabledIndicators, setMagnetMode, setMagnetLastEnabledMode, toggleIndicator, zoomIn, zoomOut, resetView, undoDrawing, redoDrawing, redoDrawings, isChartLoading, isLoadingOlderCandles, isError, mainContainerRef, drawingOverlayRef, overlayRevision, renderedDrawings, snapPixel, allTradeMarkers, displayCandles, tradeMarkerBucketSeconds, showTradeMarkers, toPixelPoint, onTradeMarkerClick, indicatorPeriods, setIndicatorPeriods, vwapSettings, setVwapSettings, latestVwapPoint, isVwapSettingsOpen, setIsVwapSettingsOpen, vwapSettingsTab, setVwapSettingsTab, textEditor, textEditorPixel, commitTextEditor, selectedFibonacci, updateSelectedFibonacci, deleteSelectedDrawing, lastDisplayedClose, priceLabelRef, subContainerRef, handleDrawingPointerDown, handleDrawingPointerMove, handleDrawingPointerUp }} />;
 }

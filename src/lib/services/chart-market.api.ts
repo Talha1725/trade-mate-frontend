@@ -64,16 +64,16 @@ export const chartMarketApi = {
   },
 
   async getCandles(symbol: string, timeframe: TradingTimeframe) {
-    const response = await getV2MarketSnapshot({
+    const candles = await getV2MarketCandles({
       symbol,
       interval: V2_TIMEFRAME_INTERVAL_MAP[timeframe],
     });
 
     return {
-      symbol: response.symbol,
-      eodhdSymbol: response.symbol,
+      symbol,
+      eodhdSymbol: symbol,
       timeframe,
-      candles: response.candles.map((candle) => ({
+      candles: candles.map((candle) => ({
         time: Math.floor(new Date(candle.openTime).getTime() / 1000),
         open: candle.open,
         high: candle.high,
@@ -83,5 +83,22 @@ export const chartMarketApi = {
       })),
       dataSource: timeframe === "D" || timeframe === "W" ? "eod" : "intraday",
     } satisfies ChartMarketDataResponse;
+  },
+
+  async getOlderCandles(symbol: string, timeframe: TradingTimeframe, beforeTime: number) {
+    const candles = await getV2MarketCandles({
+      symbol,
+      interval: V2_TIMEFRAME_INTERVAL_MAP[timeframe],
+      to: new Date((beforeTime * 1000) - 1).toISOString(),
+    });
+
+    return candles.map((candle) => ({
+      time: Math.floor(new Date(candle.openTime).getTime() / 1000),
+      open: candle.open,
+      high: candle.high,
+      low: candle.low,
+      close: candle.close,
+      volume: candle.volume,
+    }));
   },
 };

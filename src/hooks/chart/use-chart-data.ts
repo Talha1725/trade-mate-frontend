@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import { useChartMarketData } from "@/hooks/use-chart-market-data";
+import { chartMarketApi } from "@/lib/services/chart-market.api";
 import {
   buildIndicatorSeries,
   buildAlignedCompareSeries,
@@ -14,6 +15,19 @@ import type { ChartIndicatorId } from "@/types/lightweight-trading-chart";
 import type { TradingTimeframe } from "@/types/trading-filter-bar";
 
 const EMPTY_CANDLES: ChartCandle[] = [];
+const MIN_OLDER_CANDLE_LOADER_MS = 500;
+
+function mergeCandles(...candleGroups: Array<ChartCandle[] | undefined>) {
+  const candlesByTime = new Map<number, ChartCandle>();
+
+  for (const candles of candleGroups) {
+    for (const candle of candles ?? []) {
+      candlesByTime.set(candle.time, candle);
+    }
+  }
+
+  return [...candlesByTime.values()].sort((left, right) => left.time - right.time);
+}
 
 type UseChartDataOptions = {
   symbol: string;
@@ -40,13 +54,76 @@ export function useChartData({
   emaPeriod,
   vwapSettings,
 }: UseChartDataOptions) {
-  const hasInitialCandles = initialCandles !== undefined;
-  const hasInitialCompareCandles = initialCompareCandles !== undefined;
-  const { data, isLoading, isError } = useChartMarketData(symbol, timeframe, { enabled: !hasInitialCandles });
-  const { data: compareData, isLoading: isCompareLoading } = useChartMarketData(compareSymbol ?? "", timeframe, { enabled: !!compareSymbol && !hasInitialCompareCandles });
-  const candles = initialCandles ?? data?.candles ?? EMPTY_CANDLES;
+  const { data, isLoading, isError } = useChartMarketData(symbol, timeframe);
+  const { data: compareData, isLoading: isCompareLoading } = useChartMarketData(compareSymbol ?? "", timeframe, { enabled: !!compareSymbol });
+  const [olderCandles, setOlderCandles] = React.useState<ChartCandle[]>(EMPTY_CANDLES);
+  const [olderCompareCandles, setOlderCompareCandles] = React.useState<ChartCandle[]>(EMPTY_CANDLES);
+  const [hasOlderCandles, setHasOlderCandles] = React.useState(true);
+  const [isLoadingOlderCandles, setIsLoadingOlderCandles] = React.useState(false);
+  const olderLoadKeyRef = React.useRef<string | null>(null);
+  const candles = React.useMemo(
+    () => mergeCandles(olderCandles, initialCandles, data?.candles),
+    [data?.candles, initialCandles, olderCandles],
+  );
   const effectiveLiveQuote = liveQuote;
-  const compareCandles = initialCompareCandles ?? compareData?.candles ?? EMPTY_CANDLES;
+  const compareCandles = React.useMemo(
+    () => mergeCandles(olderCompareCandles, initialCompareCandles, compareData?.candles),
+    [compareData?.candles, initialCompareCandles, olderCompareCandles],
+  );
+
+  React.useEffect(() => {
+    setOlderCandles(EMPTY_CANDLES);
+    setOlderCompareCandles(EMPTY_CANDLES);
+    setHasOlderCandles(true);
+    setIsLoadingOlderCandles(false);
+    olderLoadKeyRef.current = null;
+  }, [symbol, compareSymbol, timeframe]);
+
+  const loadOlderCandles = React.useCallback(async () => {
+    const oldestTime = candles[0]?.time;
+
+    if (!oldestTime || isLoadingOlderCandles || !hasOlderCandles) {
+      return 0;
+    }
+
+    const loadKey = `${symbol}|${compareSymbol ?? ""}|${timeframe}|${oldestTime}`;
+    if (olderLoadKeyRef.current === loadKey) {
+      return 0;
+    }
+
+    olderLoadKeyRef.current = loadKey;
+    setIsLoadingOlderCandles(true);
+
+    try {
+      const [nextCandles, nextCompareCandles] = await Promise.all([
+        chartMarketApi.getOlderCandles(symbol, timeframe, oldestTime),
+        compareSymbol ? chartMarketApi.getOlderCandles(compareSymbol, timeframe, oldestTime).catch(() => EMPTY_CANDLES) : Promise.resolve(EMPTY_CANDLES),
+      ]);
+      const existingTimes = new Set(candles.map((candle) => candle.time));
+      const additions = nextCandles.filter((candle) => candle.time < oldestTime && !existingTimes.has(candle.time));
+
+      if (additions.length === 0) {
+        setHasOlderCandles(false);
+        return 0;
+      }
+
+      setOlderCandles((current) => mergeCandles(additions, current));
+
+      if (compareSymbol) {
+        setOlderCompareCandles((current) => mergeCandles(
+          nextCompareCandles.filter((candle) => candle.time < oldestTime),
+          current,
+        ));
+      }
+
+      return additions.length;
+    } finally {
+      window.setTimeout(() => {
+        setIsLoadingOlderCandles(false);
+        olderLoadKeyRef.current = null;
+      }, MIN_OLDER_CANDLE_LOADER_MS);
+    }
+  }, [candles, compareSymbol, hasOlderCandles, isLoadingOlderCandles, symbol, timeframe]);
 
   const displayCandles = React.useMemo(
     () => effectiveLiveQuote ? mergeLiveQuoteIntoCandles(candles, effectiveLiveQuote, timeframe) : candles,
@@ -91,7 +168,9 @@ export function useChartData({
     vwap,
     latestVwapPoint,
     chartDataKey,
-    isChartLoading: isLoading || (!!compareSymbol && isCompareLoading),
+    isChartLoading: candles.length === 0 && (isLoading || (!!compareSymbol && isCompareLoading)),
+    isLoadingOlderCandles,
+    loadOlderCandles,
     isError,
     lastDisplayedClose: displayCandles[displayCandles.length - 1]?.close ?? null,
   };
