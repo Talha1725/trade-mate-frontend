@@ -1,17 +1,14 @@
 import * as React from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 
 import { wishlistApi } from "@/lib/services/wishlist.api";
 import { mapAssetRecordsToTradingFilterAssets } from "@/lib/utils/map-trading-assets";
 import { mapWishlistAssetsToWatchItems } from "@/lib/utils/map-wishlist-items";
 import { useAuthStore } from "@/lib/stores/auth-store";
+import { useWishlistStore } from "@/lib/stores/wishlist-store";
 import type { AssetRecord } from "@/types/asset";
 import type { TradingFilterBarAsset } from "@/types/trading-filter-bar";
 import type { WishlistResponse } from "@/types/wishlist";
-
-function getWishlistQueryKey(accountNumber: string) {
-  return ["accounts", accountNumber, "wishlist"] as const;
-}
 
 function toWishlistAssetRecord(
   asset: TradingFilterBarAsset,
@@ -19,37 +16,32 @@ function toWishlistAssetRecord(
 ): AssetRecord {
   const timestamp = new Date().toISOString();
 
-    return {
-      id: asset.id,
-      label: asset.label,
-      symbol: asset.symbol,
-      category: asset.category,
-      isActive: true,
-      sortOrder,
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    };
+  return {
+    id: asset.id,
+    label: asset.label,
+    symbol: asset.symbol,
+    category: asset.category,
+    isActive: true,
+    sortOrder,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  };
 }
 
 export function useAccountWishlist(
   accountNumber: string | null,
   availableAssets: TradingFilterBarAsset[] = [],
 ) {
-  const queryClient = useQueryClient();
   const token = useAuthStore((state) => state.session?.token ?? null);
-
-  const wishlistQuery = useQuery({
-    queryKey: accountNumber ? getWishlistQueryKey(accountNumber) : ["accounts", "wishlist", "disabled"],
-    enabled: !!token && !!accountNumber,
-    queryFn: () => wishlistApi.getWishlist(accountNumber!),
-    staleTime: Infinity,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  });
+  const cachedWishlist = useWishlistStore((state) =>
+    accountNumber ? state.wishlistsByAccountNumber[accountNumber] : undefined,
+  );
+  const setWishlist = useWishlistStore((state) => state.setWishlist);
+  const wishlistData = cachedWishlist;
 
   const wishlistAssets = React.useMemo(
-    () => mapAssetRecordsToTradingFilterAssets(wishlistQuery.data?.assets ?? []),
-    [wishlistQuery.data?.assets],
+    () => mapAssetRecordsToTradingFilterAssets(wishlistData?.assets ?? []),
+    [wishlistData?.assets],
   );
 
   const wishlistAssetIds = React.useMemo(
@@ -58,8 +50,8 @@ export function useAccountWishlist(
   );
 
   const watchlistItems = React.useMemo(
-    () => mapWishlistAssetsToWatchItems(wishlistQuery.data?.assets ?? []),
-    [wishlistQuery.data?.assets],
+    () => mapWishlistAssetsToWatchItems(wishlistData?.assets ?? []),
+    [wishlistData?.assets],
   );
 
   const setWishlistCache = React.useCallback(
@@ -68,20 +60,10 @@ export function useAccountWishlist(
         return;
       }
 
-      queryClient.setQueryData(getWishlistQueryKey(accountNumber), data);
+      setWishlist(accountNumber, data);
     },
-    [accountNumber, queryClient],
+    [accountNumber, setWishlist],
   );
-
-  const invalidateWishlist = React.useCallback(async () => {
-    if (!accountNumber) {
-      return;
-    }
-
-    await queryClient.invalidateQueries({
-      queryKey: getWishlistQueryKey(accountNumber),
-    });
-  }, [accountNumber, queryClient]);
 
   const addMutation = useMutation({
     mutationFn: (assetId: string) =>
@@ -91,10 +73,7 @@ export function useAccountWishlist(
         return;
       }
 
-      const queryKey = getWishlistQueryKey(accountNumber);
-      await queryClient.cancelQueries({ queryKey });
-
-      const previous = queryClient.getQueryData<WishlistResponse>(queryKey);
+      const previous = cachedWishlist;
       const asset = availableAssets.find((item) => item.id === assetId);
 
       if (!previous || !asset || previous.assets.some((item) => item.id === assetId)) {
@@ -108,7 +87,7 @@ export function useAccountWishlist(
         ],
       };
 
-      queryClient.setQueryData(queryKey, nextData);
+      setWishlist(accountNumber, nextData);
 
       return { previous };
     },
@@ -120,10 +99,7 @@ export function useAccountWishlist(
         return;
       }
 
-      queryClient.setQueryData(getWishlistQueryKey(accountNumber), context.previous);
-    },
-    onSettled: () => {
-      void invalidateWishlist();
+      setWishlist(accountNumber, context.previous);
     },
   });
 
@@ -135,18 +111,17 @@ export function useAccountWishlist(
         return;
       }
 
-      const queryKey = getWishlistQueryKey(accountNumber);
-      await queryClient.cancelQueries({ queryKey });
-
-      const previous = queryClient.getQueryData<WishlistResponse>(queryKey);
+      const previous = cachedWishlist;
 
       if (!previous) {
         return { previous };
       }
 
-      queryClient.setQueryData(queryKey, {
+      const nextData = {
         assets: previous.assets.filter((asset) => asset.id !== assetId),
-      });
+      };
+
+      setWishlist(accountNumber, nextData);
 
       return { previous };
     },
@@ -158,10 +133,7 @@ export function useAccountWishlist(
         return;
       }
 
-      queryClient.setQueryData(getWishlistQueryKey(accountNumber), context.previous);
-    },
-    onSettled: () => {
-      void invalidateWishlist();
+      setWishlist(accountNumber, context.previous);
     },
   });
 
@@ -171,9 +143,7 @@ export function useAccountWishlist(
         return;
       }
 
-      const current = queryClient.getQueryData<WishlistResponse>(
-        getWishlistQueryKey(accountNumber),
-      );
+      const current = wishlistData;
       const isInWishlist = current?.assets.some((asset) => asset.id === assetId) ?? false;
 
       if (isInWishlist) {
@@ -183,7 +153,7 @@ export function useAccountWishlist(
 
       addMutation.mutate(assetId);
     },
-    [accountNumber, addMutation, queryClient, removeMutation],
+    [accountNumber, addMutation, removeMutation, wishlistData],
   );
 
   return {
@@ -191,8 +161,8 @@ export function useAccountWishlist(
     wishlistAssetIds,
     wishlistAssets,
     toggleWishlistAsset,
-    isLoading: wishlistQuery.isLoading,
-    isFetching: wishlistQuery.isFetching,
+    isLoading: !!token && !!accountNumber && !wishlistData,
+    isFetching: false,
     isMutating: addMutation.isPending || removeMutation.isPending,
   };
 }

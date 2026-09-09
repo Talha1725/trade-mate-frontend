@@ -18,6 +18,7 @@ import { wishlistApi } from "@/lib/services/wishlist.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { useMarketSelectionStore } from "@/lib/stores/market-selection-store";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
+import { useWishlistStore } from "@/lib/stores/wishlist-store";
 import { mapTimeframeToMarketInterval } from "@/lib/utils/trading-view";
 import {
   buildDashboardData,
@@ -175,6 +176,7 @@ export default function DashboardPage() {
     [openPortfolioPositions],
   );
   const accountNumber = useResolvedAccountNumber(snapshot?.account.accountNumber);
+  const setWishlist = useWishlistStore((state) => state.setWishlist);
   const resolveQuoteForSymbol = React.useCallback((quotes: PriceSocketQuote[], symbol: string) => {
     const normalizedSymbols = new Set(getTradingSymbolAliases(symbol));
 
@@ -198,11 +200,11 @@ export default function DashboardPage() {
     const isInWishlist = overviewWatchlistAssets.some((asset) => asset.id === assetId);
 
     try {
-      if (isInWishlist) {
-        await wishlistApi.removeFromWishlist(accountNumber, assetId);
-      } else {
-        await wishlistApi.addToWishlist(accountNumber, { assetId });
-      }
+      const updatedWishlist = isInWishlist
+        ? await wishlistApi.removeFromWishlist(accountNumber, assetId)
+        : await wishlistApi.addToWishlist(accountNumber, { assetId });
+
+      setWishlist(accountNumber, updatedWishlist);
 
       const overview = await dashboardApi.getOverview(token, resolvedAccountId ?? undefined);
       setSnapshot(overview.snapshot);
@@ -212,7 +214,7 @@ export default function DashboardPage() {
     } catch {
       toast.error("Unable to update watchlist.");
     }
-  }, [accountNumber, overviewWatchlistAssets, resolvedAccountId, token]);
+  }, [accountNumber, overviewWatchlistAssets, resolvedAccountId, setWishlist, token]);
 
   const selectedWatchlistItem = liveWatchlistItems.find((item) => item.id === selectedMarketId);
   const selectedFilterAsset = tradingAssets.find((asset) => asset.id === selectedMarketId);

@@ -10,6 +10,7 @@ import { useAuthStore } from "@/lib/stores/auth-store";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
 import { useLiveAccountSnapshotStore } from "@/lib/stores/live-account-snapshot-store";
 import { useAccountSummary } from "@/hooks/use-trades";
+import { useAccountWishlistPreload } from "@/hooks/use-account-wishlist-preload";
 import {
   Drawer,
   DrawerContent,
@@ -36,6 +37,9 @@ export function AppShell({
     selectedAccountId,
     shouldFetchSidebarSummary,
   );
+  const selectedAccountNumber = cachedSummary?.accountNumber ?? sidebarSummary?.accountNumber ?? null;
+
+  useAccountWishlistPreload(selectedAccountNumber);
 
   React.useEffect(() => {
     if (sidebarSummary) {

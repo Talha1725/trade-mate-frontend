@@ -1,4 +1,5 @@
 import { del, get, post } from "@/lib/utils/api";
+import { dedupeInFlight } from "@/lib/utils/in-flight-request";
 import type { V2WishlistItem } from "@/types/v2-wishlist";
 import type { AddToWishlistPayload, WishlistResponse } from "@/types/wishlist";
 
@@ -22,7 +23,10 @@ function mapWishlistResponse(response: WishlistResponse | V2WishlistItem[]): Wis
 
 export const wishlistApi = {
   async getWishlist(accountNumber: string): Promise<WishlistResponse> {
-    const response = await get<WishlistResponse | V2WishlistItem[]>(wishlistRoute(accountNumber));
+    const response = await dedupeInFlight(
+      `wishlist:${accountNumber}`,
+      () => get<WishlistResponse | V2WishlistItem[]>(wishlistRoute(accountNumber)),
+    );
     return mapWishlistResponse(response);
   },
 
