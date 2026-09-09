@@ -7,6 +7,9 @@ import { Menu, Bell, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sidebar } from "@/components/sidebar";
 import { useAuthStore } from "@/lib/stores/auth-store";
+import { useSelectedAccountStore } from "@/lib/stores/account-store";
+import { useLiveAccountSnapshotStore } from "@/lib/stores/live-account-snapshot-store";
+import { useAccountSummary } from "@/hooks/use-trades";
 import {
   Drawer,
   DrawerContent,
@@ -22,6 +25,40 @@ export function AppShell({
   className,
 }: AppShellProps) {
   const signOut = useAuthStore((state) => state.signOut);
+  const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
+  const cachedSummary = useLiveAccountSnapshotStore((state) =>
+    selectedAccountId ? state.summariesByAccountId[selectedAccountId] ?? null : null,
+  );
+  const setAccountSummary = useLiveAccountSnapshotStore((state) => state.setAccountSummary);
+  const shouldFetchSidebarSummary =
+    !!selectedAccountId && (!cachedSummary || cachedSummary.dailyTrades == null);
+  const { data: sidebarSummary, refetch: refetchSidebarSummary } = useAccountSummary(
+    selectedAccountId,
+    shouldFetchSidebarSummary,
+  );
+
+  React.useEffect(() => {
+    if (sidebarSummary) {
+      setAccountSummary(sidebarSummary);
+    }
+  }, [setAccountSummary, sidebarSummary]);
+
+  React.useEffect(() => {
+    const refreshSidebarSummary = () => {
+      if (!selectedAccountId) {
+        return;
+      }
+
+      void refetchSidebarSummary();
+    };
+
+    window.addEventListener("trade-mate:account-summary-refresh", refreshSidebarSummary);
+    window.addEventListener("trade-mate:positions-changed", refreshSidebarSummary);
+    return () => {
+      window.removeEventListener("trade-mate:account-summary-refresh", refreshSidebarSummary);
+      window.removeEventListener("trade-mate:positions-changed", refreshSidebarSummary);
+    };
+  }, [refetchSidebarSummary, selectedAccountId]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -88,4 +125,3 @@ export function AppShell({
     </div>
   );
 }
-

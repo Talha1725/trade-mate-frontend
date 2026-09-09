@@ -17,7 +17,7 @@ import Image from "next/image";
 import { AssetIcon } from "@/components/shared/asset-icon";
 import type { SidebarItemProps, CardRowProps } from "@/types/components";
 import type { AccountMetricsSummary } from "@/types";
-import { useAccountSummary, usePositions } from "@/hooks/use-trades";
+import { usePositions } from "@/hooks/use-trades";
 import { SIDEBAR_ICONS } from "@/lib/mock-data/sidebar-icons";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
 import { useLiveAccountSnapshotStore } from "@/lib/stores/live-account-snapshot-store";
@@ -250,7 +250,6 @@ export function Sidebar({ className }: { className?: string }) {
   const queryClient = useQueryClient();
   const [showBalance, setShowBalance] = React.useState(true);
   const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
-  const { data: accountSummary, refetch: refetchAccountSummary } = useAccountSummary(selectedAccountId);
   const liveSummariesByAccountId = useLiveAccountSnapshotStore((state) => state.summariesByAccountId);
   const liveOpenOrderCountsByAccountId = useLiveAccountSnapshotStore((state) => state.openOrderCountsByAccountId);
   const setAccountSummary = useLiveAccountSnapshotStore((state) => state.setAccountSummary);
@@ -264,7 +263,7 @@ export function Sidebar({ className }: { className?: string }) {
   const cachedOpenOrdersCount = selectedAccountId
     ? liveOpenOrderCountsByAccountId[selectedAccountId] ?? queryCachedOpenOrdersCount
     : 0;
-  const activeSummary = mergeSidebarSummary(accountSummary ?? null, cachedSummary);
+  const activeSummary = mergeSidebarSummary(null, cachedSummary);
   const bestAssetSymbol = activeSummary?.bestAsset?.symbol ?? null;
 
   const { data: openPositions, isFetching: isOpenPositionsFetching } = usePositions(selectedAccountId);
@@ -385,12 +384,11 @@ export function Sidebar({ className }: { className?: string }) {
       livePositionsByAccountIdRef.current[selectedAccountId] = [];
       setLiveSidebarPositions(null);
       void queryClient.invalidateQueries({ queryKey: ["positions", selectedAccountId] });
-      void refetchAccountSummary();
     };
 
     window.addEventListener("trade-mate:positions-changed", handlePositionsChanged);
     return () => window.removeEventListener("trade-mate:positions-changed", handlePositionsChanged);
-  }, [queryClient, refetchAccountSummary, selectedAccountId]);
+  }, [queryClient, selectedAccountId]);
 
   const activeBalance = activeSummary?.balance ?? 0;
   const displayedOpenPnlValue = displayedOpenPnl ?? 0;
@@ -423,7 +421,7 @@ export function Sidebar({ className }: { className?: string }) {
       const tradesChanged = didTradeIdsChange(knownOpenTradeIdsRef.current, nextTradeIds);
       knownOpenTradeIdsRef.current = nextTradeIds;
 
-      const currentSummary = useLiveAccountSnapshotStore.getState().summariesByAccountId[selectedAccountId] ?? accountSummary ?? null;
+      const currentSummary = useLiveAccountSnapshotStore.getState().summariesByAccountId[selectedAccountId] ?? null;
       const nextSummary = buildLiveAccountSummaryFromAccount(payload, currentSummary);
 
       if (nextSummary) {
@@ -435,7 +433,7 @@ export function Sidebar({ className }: { className?: string }) {
         livePositionsByAccountIdRef.current[selectedAccountId] = [];
         setLiveSidebarPositions(null);
         void queryClient.invalidateQueries({ queryKey: ["positions", selectedAccountId] });
-        void refetchAccountSummary();
+        window.dispatchEvent(new Event("trade-mate:account-summary-refresh"));
       }
     },
     onPortfolio: (payload) => {
@@ -462,7 +460,7 @@ export function Sidebar({ className }: { className?: string }) {
       const tradesChanged = didTradeIdsChange(knownOpenTradeIdsRef.current, nextTradeIds);
       knownOpenTradeIdsRef.current = nextTradeIds;
 
-      const currentSummary = useLiveAccountSnapshotStore.getState().summariesByAccountId[selectedAccountId] ?? accountSummary ?? null;
+      const currentSummary = useLiveAccountSnapshotStore.getState().summariesByAccountId[selectedAccountId] ?? null;
       const nextSummary = buildLiveAccountSummary(payload, selectedAccountId, currentSummary);
 
       if (nextSummary) {
@@ -472,7 +470,7 @@ export function Sidebar({ className }: { className?: string }) {
       if (tradesChanged) {
         forcePositionRefreshRef.current = true;
         void queryClient.invalidateQueries({ queryKey: ["positions", selectedAccountId] });
-        void refetchAccountSummary();
+        window.dispatchEvent(new Event("trade-mate:account-summary-refresh"));
       }
     },
   });

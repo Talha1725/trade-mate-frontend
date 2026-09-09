@@ -43,12 +43,12 @@ export function useCloseTrade() {
   });
 }
 
-export function useAccountSummary(accountId?: string | null) {
+export function useAccountSummary(accountId?: string | null, enabled = true) {
   const token = useAuthStore((state) => state.session?.token ?? null);
 
   return useQuery({
     queryKey: ["account", "summary", accountId],
-    enabled: !!token && !!accountId,
+    enabled: enabled && !!token && !!accountId,
     queryFn: () => accountSummaryApi.getAccountSummary(token ?? undefined, accountId ?? undefined),
     staleTime: Infinity,
     placeholderData: keepPreviousData,
