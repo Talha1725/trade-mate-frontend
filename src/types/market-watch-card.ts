@@ -13,8 +13,9 @@ export type MarketWatchItem = {
   symbol: string;
   name: string;
   category?: "CRYPTO" | "FOREX" | "COMMODITIES" | "INDICES" | "STOCK";
-  price: number;
-  changePercent: number;
+  price: number | null;
+  open?: number | null;
+  changePercent: number | null;
   change?: number | null;
   high?: number | null;
   low?: number | null;

@@ -7,7 +7,6 @@ import type {
   TradeOpenResponse,
   UserPortfolioResponse,
 } from "@/types/dashboard";
-import type { AssetRecord } from "@/types/asset";
 import type {
   DashboardOverviewViewModel,
   V2Account,
@@ -17,6 +16,7 @@ import type {
   V2Trade,
   V2TradeListResponse,
 } from "@/types/v2-dashboard";
+import type { MarketWatchItem } from "@/types/market-watch-card";
 
 export function mapV2Account(account: V2Account): PortfolioAccount {
   return {
@@ -162,18 +162,19 @@ function mapDashboardAccount(overview: V2DashboardOverview): PortfolioAccount {
   };
 }
 
-function mapDashboardWatchlistItem(item: V2DashboardWatchlistItem, sortOrder: number): AssetRecord {
-  const timestamp = new Date().toISOString();
-
+function mapDashboardWatchlistItem(item: V2DashboardWatchlistItem): MarketWatchItem {
   return {
     id: item.assetId,
-    label: item.label,
     symbol: item.symbol,
+    name: item.label,
     category: item.category,
-    isActive: true,
-    sortOrder,
-    createdAt: timestamp,
-    updatedAt: timestamp,
+    price: item.last,
+    open: item.open,
+    high: item.high,
+    low: item.low,
+    volume: item.volume,
+    change: item.change,
+    changePercent: item.changePercent,
   };
 }
 

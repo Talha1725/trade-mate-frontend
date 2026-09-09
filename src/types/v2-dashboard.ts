@@ -1,5 +1,6 @@
 import type { AssetCategory, AssetRecord } from "@/types/asset";
 import type { PortfolioAccount, PortfolioTrade, UserPortfolioResponse } from "@/types/dashboard";
+import type { MarketWatchItem } from "@/types/market-watch-card";
 import type { PortfolioSummary } from "@/types/portfolio-overview";
 
 export type V2Account = PortfolioAccount & {
@@ -43,6 +44,13 @@ export type V2DashboardWatchlistItem = {
   symbol: string;
   label: string;
   category: AssetCategory;
+  last: number | null;
+  open: number | null;
+  high: number | null;
+  low: number | null;
+  volume: number | null;
+  change: number | null;
+  changePercent: number | null;
 };
 
 export type V2DashboardOverview = {
@@ -89,6 +97,6 @@ export type DashboardOverviewViewModel = {
   snapshot: UserPortfolioResponse;
   ledger: import("@/types/dashboard").AccountLedgerResponse;
   summary: PortfolioSummary;
-  watchlistAssets: AssetRecord[];
+  watchlistAssets: MarketWatchItem[];
   symbols: string[];
 };

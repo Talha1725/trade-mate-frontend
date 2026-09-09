@@ -18,6 +18,7 @@ export type PriceSocketQuote = {
   ask?: number | null;
   change?: number | null;
   changePercent?: number | null;
+  volume?: number | null;
   timestamp: string;
   source: string;
 };
@@ -89,6 +90,7 @@ export type PriceSocketRawPrice = {
   bid: number;
   ask: number;
   last: number;
+  volume?: number | null;
   providerTs: number;
 };
 
@@ -129,6 +131,7 @@ export type PriceSocketServerMessage =
       bid: number;
       ask: number;
       last: number;
+      volume?: number | null;
       providerTs: number;
     }
   | PriceSocketCandleMessage

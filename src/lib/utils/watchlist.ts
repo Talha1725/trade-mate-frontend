@@ -11,8 +11,8 @@ export function tradingFilterAssetToWatchlistItem(
     symbol: asset.symbol,
     name: asset.label,
     category: asset.category,
-    price: 0,
-    changePercent: 0,
+    price: null,
+    changePercent: null,
   };
 }
 

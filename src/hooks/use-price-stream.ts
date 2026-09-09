@@ -128,6 +128,7 @@ export function usePriceStream({
       ask: price.ask,
       change: null,
       changePercent: null,
+      volume: price.volume ?? null,
       timestamp: timestampFromProvider(price.providerTs),
       source: "eodhd-ws",
     });

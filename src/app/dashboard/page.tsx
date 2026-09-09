@@ -30,16 +30,16 @@ import { resolveMarketWatchIcon } from "@/lib/utils/market-symbol-icon";
 import { formatTradingPrice } from "@/components/shared/trading-table-cells";
 import type { AccountLedgerResponse, UserPortfolioResponse } from "@/types/dashboard";
 import type { MarketSnapshotChartSummary, MarketSnapshotData } from "@/types/market-snapshot";
+import type { MarketWatchItem } from "@/types/market-watch-card";
 import type { OpenPositionStripItem } from "@/types/open-positions-strip";
 import type { PortfolioPosition } from "@/types/dashboard";
 import type { PriceSocketAccountMessage, PriceSocketCandleMessage, PriceSocketQuote } from "@/types";
 import type { ChartCandle } from "@/types/eodhd";
-import type { AssetRecord } from "@/types/asset";
 import { usePriceStream } from "@/hooks/use-price-stream";
 import { useResolvedAccountNumber } from "@/hooks/use-resolved-account-number";
 import { useSyncedTradingAssets } from "@/hooks/use-synced-trading-assets";
 import { getTradingSymbolAliases } from "@/lib/utils/market-symbol-icon";
-import { mapWishlistAssetsToWatchItems } from "@/lib/utils/map-wishlist-items";
+import { applyLiveQuoteToWatchItem } from "@/lib/utils/live-watchlist";
 
 export default function DashboardPage() {
   const [snapshot, setSnapshot] = React.useState<UserPortfolioResponse | null>(null);
@@ -50,7 +50,7 @@ export default function DashboardPage() {
   const [initialChartCandles, setInitialChartCandles] = React.useState<ChartCandle[] | undefined>();
   const [initialCompareCandles, setInitialCompareCandles] = React.useState<ChartCandle[] | undefined>();
   const [overviewSymbols, setOverviewSymbols] = React.useState<string[]>([]);
-  const [overviewWatchlistAssets, setOverviewWatchlistAssets] = React.useState<AssetRecord[]>([]);
+  const [overviewWatchlistAssets, setOverviewWatchlistAssets] = React.useState<MarketWatchItem[]>([]);
   const [liveQuotes, setLiveQuotes] = React.useState<Record<string, PriceSocketQuote>>({});
   const livePositionMissingCountsRef = React.useRef(new Map<string, number>());
   const locallyClosedPositionIdsRef = React.useRef(new Set<string>());
@@ -182,24 +182,14 @@ export default function DashboardPage() {
       quotes.find((quote) => normalizedSymbols.has(normalizeTradingSymbol(quote.symbol))) ?? null
     );
   }, []);
-  const accountWatchlistItems = React.useMemo(
-    () => mapWishlistAssetsToWatchItems(overviewWatchlistAssets),
-    [overviewWatchlistAssets],
-  );
   const liveWatchlistItems = React.useMemo(() => {
     const quotes = Object.values(liveQuotes);
 
-    return accountWatchlistItems.map((item) => {
+    return overviewWatchlistAssets.map((item) => {
       const liveQuote = resolveQuoteForSymbol(quotes, item.symbol);
-
-      return {
-        ...item,
-        price: liveQuote?.price ?? item.price,
-        change: liveQuote?.change ?? item.change ?? null,
-        changePercent: liveQuote?.changePercent ?? item.changePercent,
-      };
+      return applyLiveQuoteToWatchItem(item, liveQuote);
     });
-  }, [accountWatchlistItems, liveQuotes, resolveQuoteForSymbol]);
+  }, [liveQuotes, overviewWatchlistAssets, resolveQuoteForSymbol]);
   const toggleWishlistAsset = React.useCallback(async (assetId: string) => {
     if (!token || !accountNumber) {
       return;
@@ -635,7 +625,7 @@ export default function DashboardPage() {
             <MarketWatchCard
               items={liveWatchlistItems}
               selectedItemId={selectedMarketId}
-              isLoading={accountWatchlistItems.length > 0 && liveWatchlistItems.length < accountWatchlistItems.length}
+              isLoading={overviewWatchlistAssets.length > 0 && liveWatchlistItems.length < overviewWatchlistAssets.length}
               onItemSelect={setSelectedMarketId}
               onWatchlistToggle={toggleWishlistAsset}
               className="min-h-[340px] xl:h-[390px]"

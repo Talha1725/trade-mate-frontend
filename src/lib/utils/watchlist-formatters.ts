@@ -1,7 +1,11 @@
 import { formatTradingPrice } from "@/components/shared/trading-table-cells";
 import type { MarketWatchItem } from "@/types/market-watch-card";
 
-export function formatWatchlistPercent(value: number) {
+export function formatWatchlistPercent(value: number | null | undefined) {
+  if (value == null) {
+    return "—";
+  }
+
   const prefix = value >= 0 ? "+" : "";
   return `${prefix}${value.toFixed(2)}%`;
 }
@@ -21,6 +25,10 @@ export function formatWatchlistChange(item: MarketWatchItem) {
 }
 
 export function formatWatchlistValue(value: number | null | undefined, symbol: string) {
+  return value == null ? "—" : formatTradingPrice(value, symbol);
+}
+
+export function formatWatchlistPrice(value: number | null | undefined, symbol: string) {
   return value == null ? "—" : formatTradingPrice(value, symbol);
 }
 

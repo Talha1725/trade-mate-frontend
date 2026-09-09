@@ -4,17 +4,16 @@ import { Star, Loader2 } from "lucide-react";
 
 import { AssetIcon } from "@/components/shared/asset-icon";
 import { SymbolSelector } from "@/components/symbol-selector";
-import { formatTradingPrice } from "@/components/shared/trading-table-cells";
 import { cn } from "@/lib/utils";
 import {
   formatWatchlistChange,
   formatWatchlistPercent,
+  formatWatchlistPrice,
   formatWatchlistValue,
   formatWatchlistVolume,
 } from "@/lib/utils/watchlist-formatters";
 import type {
   MarketWatchCardProps,
-  MarketWatchItem,
   WatchlistRowProps,
 } from "@/types/market-watch-card";
 
@@ -24,7 +23,12 @@ function WatchlistRow({
   onSelect,
   onWatchlistToggle,
 }: WatchlistRowProps) {
-  const isPositive = item.changePercent >= 0;
+  const isPositive = item.changePercent != null && item.changePercent >= 0;
+  const changeToneClass = item.changePercent == null
+    ? "text-white/60"
+    : isPositive
+      ? "text-primary"
+      : "text-destructive";
 
   return (
     <div
@@ -53,12 +57,12 @@ function WatchlistRow({
       </button>
 
       <span className="text-left text-sm font-medium text-white">
-        {formatTradingPrice(item.price, item.symbol)}
+        {formatWatchlistPrice(item.price, item.symbol)}
       </span>
-      <span className={cn("text-left text-sm font-medium", isPositive ? "text-primary" : "text-destructive")}>
+      <span className={cn("text-left text-sm font-medium", changeToneClass)}>
         {formatWatchlistChange(item)}
       </span>
-      <span className={cn("text-left text-sm font-medium", isPositive ? "text-primary" : "text-destructive")}>
+      <span className={cn("text-left text-sm font-medium", changeToneClass)}>
         {formatWatchlistPercent(item.changePercent)}
       </span>
       <span className="text-left text-sm text-white/80">{formatWatchlistValue(item.high, item.symbol)}</span>
