@@ -147,6 +147,22 @@ async function getReleaseFromManifestFallback() {
   return isDesktopReleaseManifest(manifest) ? manifest : null;
 }
 
+async function getDesktopRelease() {
+  let data: DesktopReleaseManifest | null = null;
+
+  try {
+    data = getReleaseFromApiResponse(await get("/api/desktop-releases/latest"));
+  } catch {
+    data = await getReleaseFromManifestFallback();
+  }
+
+  if (!data) {
+    data = await getReleaseFromManifestFallback();
+  }
+
+  return data;
+}
+
 function getUserInitials(userLabel?: string | null) {
   if (!userLabel) {
     return "TM";
@@ -173,41 +189,32 @@ export function PageHeader({
   const avatarUrl = user?.avatarUrl ?? null;
   const userInitials = getUserInitials(userName);
   const [desktopRelease, setDesktopRelease] = React.useState<DesktopReleaseManifest | null>(null);
+  const [isDesktopReleaseLoading, setIsDesktopReleaseLoading] = React.useState(false);
+  const isDesktopReleaseLoadingRef = React.useRef(false);
 
-  React.useEffect(() => {
-    let isActive = true;
-
-    async function loadDesktopRelease() {
-      try {
-        let data: DesktopReleaseManifest | null = null;
-
-        try {
-          data = getReleaseFromApiResponse(await get("/api/desktop-releases/latest"));
-        } catch {
-          data = await getReleaseFromManifestFallback();
-        }
-
-        if (!data) {
-          data = await getReleaseFromManifestFallback();
-        }
-
-        if (!isActive || !data) {
-          return;
-        }
-
-        setDesktopRelease(data);
-
-      } catch {
-        // Keep existing local download links if release metadata is unavailable.
+  const handleDesktopDropdownOpenChange = React.useCallback(
+    (open: boolean) => {
+      if (!open || isDesktopReleaseLoadingRef.current) {
+        return;
       }
-    }
 
-    void loadDesktopRelease();
+      isDesktopReleaseLoadingRef.current = true;
+      setIsDesktopReleaseLoading(true);
 
-    return () => {
-      isActive = false;
-    };
-  }, []);
+      getDesktopRelease()
+        .then((release) => {
+          setDesktopRelease(release);
+        })
+        .catch(() => {
+          setDesktopRelease(null);
+        })
+        .finally(() => {
+          isDesktopReleaseLoadingRef.current = false;
+          setIsDesktopReleaseLoading(false);
+        });
+    },
+    [],
+  );
 
   const desktopDownloadLinks = React.useMemo(
     () =>
@@ -253,7 +260,7 @@ export function PageHeader({
           </button>
         </PlaceOrderDialog>
 
-        <DropdownMenu>
+        <DropdownMenu onOpenChange={handleDesktopDropdownOpenChange}>
           <DropdownMenuTrigger className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-border/20 px-4 py-[9px] text-sm font-medium text-white outline-none transition-colors hover:bg-white/5 whitespace-nowrap lg:max-xl:size-10 lg:max-xl:px-0">
             <DownloadIcon className="size-4" />
             <span className="lg:max-xl:hidden">Desktop App</span>
@@ -266,6 +273,15 @@ export function PageHeader({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuGroup>
+              {isDesktopReleaseLoading ? (
+                <DropdownMenuItem disabled className="gap-3 px-3 py-2.5">
+                  <DownloadIcon className="size-4 animate-pulse text-primary" />
+                  <span className="flex min-w-0 flex-col">
+                    <span className="truncate text-sm font-medium">Checking latest version</span>
+                    <span className="truncate text-xs text-white/50">Please wait...</span>
+                  </span>
+                </DropdownMenuItem>
+              ) : null}
               {desktopDownloadLinks.map((item) => {
                 const Icon = item.icon;
 
