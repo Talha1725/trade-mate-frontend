@@ -67,7 +67,7 @@ function readThroughCache<T>(
 export function getV2MarketSnapshot(params: {
   symbol: string;
   interval: V2CandleInterval;
-  limit: number;
+  limit?: number;
   authToken?: string;
 }) {
   const normalizedParams = {
@@ -88,7 +88,7 @@ export function getV2MarketSnapshot(params: {
 export function getV2MarketCandles(params: {
   symbol: string;
   interval: V2CandleInterval;
-  limit: number;
+  limit?: number;
   authToken?: string;
 }) {
   const normalizedParams = {

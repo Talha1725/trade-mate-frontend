@@ -67,7 +67,6 @@ export const chartMarketApi = {
     const response = await getV2MarketSnapshot({
       symbol,
       interval: V2_TIMEFRAME_INTERVAL_MAP[timeframe],
-      limit: 500,
     });
 
     return {
