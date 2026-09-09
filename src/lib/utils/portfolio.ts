@@ -1,7 +1,8 @@
 import type { PortfolioMetricCard } from "@/types/portfolio-metric-card";
 import type { PortfolioChartResponse, PortfolioOverviewResponse } from "@/types/portfolio-overview";
-import type { PortfolioExposureItem, PortfolioAllocationItem } from "@/types/portfolio-overview";
+import type { PortfolioExposureItem, PortfolioAllocationItem, PortfolioTopMoverItem } from "@/types/portfolio-overview";
 import type { PortfolioAccount, PortfolioPosition } from "@/types/dashboard";
+import type { PortfolioOpenPositionRow } from "@/types/portfolio-open-positions";
 import { resolveUrfxPlanKey } from "@/lib/utils/urfx-pricing";
 import type { UrfxPricingPlanKey } from "@/types/urfx-pricing";
 import { calculateNotionalUsd, getInstrumentSpec, type QuotePriceMap } from "@/lib/utils/instrument-spec";
@@ -83,6 +84,15 @@ function getAssetGroup(symbol: string) {
 const DECORATIVE_CHART = [41, 44, 47, 50, 53, 55, 52, 54, 57, 60, 58, 61, 64, 62, 65, 63, 66, 69, 67, 70, 72, 74, 75];
 const DECORATIVE_DOWN_CHART = [58, 57, 56, 55, 54, 52, 51, 50, 49, 48, 47, 46, 45];
 
+const PORTFOLIO_ALLOCATION_STYLES: Record<string, { label: string; color: string }> = {
+  CRYPTO: { label: "Crypto", color: "#22E0A2" },
+  FOREX: { label: "Forex", color: "#3B82F6" },
+  CASH: { label: "Cash", color: "#FF8000" },
+  COMMODITIES: { label: "Commodities", color: "#03D5D5" },
+  INDICES: { label: "Indices", color: "#A855F7" },
+  STOCK: { label: "Stock", color: "#F59E0B" },
+};
+
 function toNumber(value: string | number | null | undefined) {
   if (value == null) {
     return 0;
@@ -98,6 +108,25 @@ function resolvePlanKey(fundingType: string | null | undefined) {
 function getProfitTargetPercent(fundingType: string | null | undefined) {
   const planKey = resolvePlanKey(fundingType);
   return planKey ? PROFIT_TARGET_PERCENT_BY_PLAN[planKey] ?? 10 : 10;
+}
+
+export function buildPortfolioAllocationItem(
+  category: string,
+  value: number,
+  percent: number,
+): PortfolioAllocationItem {
+  const style = PORTFOLIO_ALLOCATION_STYLES[category.toUpperCase()] ?? {
+    label: category.charAt(0).toUpperCase() + category.slice(1).toLowerCase(),
+    color: "#94A3B8",
+  };
+
+  return {
+    id: category.toLowerCase(),
+    label: style.label,
+    value,
+    percent,
+    color: style.color,
+  };
 }
 
 export function buildPortfolioAllocationItems(
@@ -127,10 +156,10 @@ export function buildPortfolioAllocationItems(
   const total = Math.max(1, Math.max(equity, positionValueSum));
 
   return [
-    { id: "crypto", label: "Crypto", value: Number(groups.crypto.toFixed(2)), percent: Number(((groups.crypto / total) * 100).toFixed(1)), color: "#22E0A2" },
-    { id: "forex", label: "Forex", value: Number(groups.forex.toFixed(2)), percent: Number(((groups.forex / total) * 100).toFixed(1)), color: "#3B82F6" },
-    { id: "cash", label: "Cash", value: Number(groups.cash.toFixed(2)), percent: Number(((groups.cash / total) * 100).toFixed(1)), color: "#FF8000" },
-    { id: "commodities", label: "Commodities", value: Number(groups.commodities.toFixed(2)), percent: Number(((groups.commodities / total) * 100).toFixed(1)), color: "#03D5D5" },
+    buildPortfolioAllocationItem("CRYPTO", Number(groups.crypto.toFixed(2)), Number(((groups.crypto / total) * 100).toFixed(1))),
+    buildPortfolioAllocationItem("FOREX", Number(groups.forex.toFixed(2)), Number(((groups.forex / total) * 100).toFixed(1))),
+    buildPortfolioAllocationItem("CASH", Number(groups.cash.toFixed(2)), Number(((groups.cash / total) * 100).toFixed(1))),
+    buildPortfolioAllocationItem("COMMODITIES", Number(groups.commodities.toFixed(2)), Number(((groups.commodities / total) * 100).toFixed(1))),
   ];
 }
 
@@ -208,6 +237,19 @@ export function buildPortfolioExposureItems(positions: PortfolioPosition[]): Por
     .filter((item) => item.percent > 0);
 }
 
+export function buildPortfolioTopMoverItems(positions: PortfolioOpenPositionRow[]): PortfolioTopMoverItem[] {
+  return [...positions]
+    .sort((left, right) => Math.abs(right.pnl) - Math.abs(left.pnl))
+    .slice(0, 4)
+    .map((position) => ({
+      id: position.id,
+      symbol: position.symbol,
+      icon: position.icon,
+      changeAmount: Number(position.pnl.toFixed(2)),
+      changePercent: Number(position.pnlPercent.toFixed(2)),
+    }));
+}
+
 const ZERO_ACCOUNT = { balance: "0", equity: "0", floatingPnl: "0", marginUsed: "0", accountSize: "0", fundingType: null };
 const ZERO_OVERVIEW = { summary: undefined, chart: { defaultTimeframe: "4H" as const, dataByTimeframe: {} as PortfolioChartResponse["dataByTimeframe"] } };
 
@@ -218,7 +260,7 @@ export function buildPortfolioMetricCards(
 ): PortfolioMetricCard[] {
   const acc = account ?? ZERO_ACCOUNT;
   const ov = overview ?? ZERO_OVERVIEW;
-  const walletBalance = Math.max(0, Number(acc.balance));
+  const walletBalance = Number(acc.balance);
   const accountSize = Math.max(1, Number(ov.summary?.accountSize ?? acc.accountSize ?? walletBalance));
   const availableMargin = Number(acc.equity) - Number(acc.marginUsed);
   const marginUsagePercent = Number(acc.marginUsed) > 0 ? (Number(acc.marginUsed) / accountSize) * 100 : 0;

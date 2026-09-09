@@ -55,6 +55,7 @@ export function PortfolioValueChart({
   showExportButton = false,
   exportLabel = "Export Report",
   onExport,
+  onTimeframeChange,
   emptyStateMessage = "No portfolio value data available.",
   className,
 }: PortfolioValueChartProps) {
@@ -84,7 +85,10 @@ export function PortfolioValueChart({
                 key={interval}
                 interval={interval}
                 isActive={interval === timeframe}
-                onSelect={() => setTimeframe(interval)}
+                onSelect={() => {
+                  setTimeframe(interval);
+                  onTimeframeChange?.(interval);
+                }}
               />
             ))}
           </div>

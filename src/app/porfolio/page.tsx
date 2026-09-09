@@ -23,6 +23,7 @@ import {
     buildPortfolioAllocationItems,
     buildPortfolioExposureItems,
     buildPortfolioMetricCards,
+    buildPortfolioTopMoverItems,
 } from "@/lib/utils/portfolio";
 import { calculateLiveFloatingPnl, mapPortfolioPositionToPortfolioRow } from "@/lib/utils/trader-data";
 import { getSupplementalQuoteSymbol } from "@/lib/utils/instrument-spec";
@@ -39,7 +40,9 @@ import { useLivePriceStore } from "@/lib/stores/live-price-store";
 
 export default function PortfolioPage() {
     const [snapshot, setSnapshot] = React.useState<UserPortfolioResponse | null>(null);
-    const [overview, setOverview] = React.useState<PortfolioOverviewResponse | null>(null);
+    const [summaryData, setSummaryData] = React.useState<Pick<PortfolioOverviewResponse, "summary"> | null>(null);
+    const [allocationData, setAllocationData] = React.useState<Pick<PortfolioOverviewResponse, "allocation"> | null>(null);
+    const [chartData, setChartData] = React.useState<Pick<PortfolioOverviewResponse, "chart"> | null>(null);
     const [isClosingAll, setIsClosingAll] = React.useState(false);
     const token = useAuthStore((state) => state.session?.token ?? null);
     const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
@@ -49,6 +52,7 @@ export default function PortfolioPage() {
     const { data: tradingAssets = [] } = useSyncedTradingAssets();
     const positionOrderRef = React.useRef(new Map<string, number>());
     const positionOrderCounterRef = React.useRef(0);
+    const loadedChartTimeframesRef = React.useRef(new Set(["1m", "5m", "15m", "1H", "4H"]));
     const liveQuotes = useLivePriceStore((state) => state.quotes);
     const liveQuotePrices = React.useMemo(
         () =>
@@ -103,9 +107,12 @@ export default function PortfolioPage() {
 
     React.useEffect(() => {
         setSnapshot(null);
-        setOverview(null);
+        setSummaryData(null);
+        setAllocationData(null);
+        setChartData(null);
         positionOrderRef.current.clear();
         positionOrderCounterRef.current = 0;
+        loadedChartTimeframesRef.current = new Set(["1m", "5m", "15m", "1H", "4H"]);
     }, [resolvedAccountId, token]);
 
     const normalizeOpenPositions = React.useCallback(
@@ -127,14 +134,22 @@ export default function PortfolioPage() {
         },
         [resolvedAccountId],
     );
-    const refreshOverview = React.useCallback(async () => {
+    const refreshPortfolioData = React.useCallback(async () => {
         if (!token || !accountListLoaded || !resolvedAccountId) return;
 
         try {
-            const nextOverview = await portfolioApi.getOverview(resolvedAccountId);
-            setOverview(nextOverview);
+            const [nextSummary, nextAllocation, nextChart] = await Promise.all([
+                portfolioApi.getSummary(resolvedAccountId),
+                portfolioApi.getAllocation(resolvedAccountId),
+                portfolioApi.getChart(resolvedAccountId, "4H"),
+            ]);
+            setSummaryData({ summary: nextSummary.summary });
+            setAllocationData({ allocation: nextAllocation.allocation });
+            setChartData({ chart: nextChart.chart });
         } catch {
-            setOverview(null);
+            setSummaryData(null);
+            setAllocationData(null);
+            setChartData(null);
         }
     }, [accountListLoaded, resolvedAccountId, token]);
 
@@ -159,17 +174,17 @@ export default function PortfolioPage() {
     }, [refreshSnapshot]);
 
     React.useEffect(() => {
-        void refreshOverview();
-    }, [refreshOverview]);
+        void refreshPortfolioData();
+    }, [refreshPortfolioData]);
 
     React.useEffect(() => {
         window.addEventListener("trade-mate:positions-changed", refreshSnapshot);
-        window.addEventListener("trade-mate:positions-changed", refreshOverview);
+        window.addEventListener("trade-mate:positions-changed", refreshPortfolioData);
         return () => {
             window.removeEventListener("trade-mate:positions-changed", refreshSnapshot);
-            window.removeEventListener("trade-mate:positions-changed", refreshOverview);
+            window.removeEventListener("trade-mate:positions-changed", refreshPortfolioData);
         };
-    }, [refreshOverview, refreshSnapshot]);
+    }, [refreshPortfolioData, refreshSnapshot]);
 
     const positions = React.useMemo(() => {
         const nextPositions =
@@ -204,7 +219,7 @@ export default function PortfolioPage() {
     );
 
     const liveMetricOverview = React.useMemo(() => {
-        if (!overview) {
+        if (!summaryData || !chartData) {
             return null;
         }
 
@@ -213,14 +228,14 @@ export default function PortfolioPage() {
         const losingPositionsCount = liveOpenPositions.filter((position) => Number(position.floatingPnl) < 0).length;
 
         return {
-            ...overview,
+            chart: chartData.chart,
             summary: {
-                ...overview.summary,
+                ...summaryData.summary,
                 winningPositionsCount,
                 losingPositionsCount,
             },
         };
-    }, [overview, snapshot?.positions]);
+    }, [chartData, snapshot?.positions, summaryData]);
 
     const metricCards = React.useMemo(
         () => buildPortfolioMetricCards(
@@ -233,11 +248,11 @@ export default function PortfolioPage() {
 
     const allocationItems = React.useMemo(() => {
         if (!snapshot?.account) {
-            return overview?.allocation.items ?? [];
+            return allocationData?.allocation.items ?? [];
         }
 
         return buildPortfolioAllocationItems(snapshot.account, snapshot.positions, liveQuotePrices);
-    }, [liveQuotePrices, overview?.allocation.items, snapshot?.account, snapshot?.positions]);
+    }, [allocationData?.allocation.items, liveQuotePrices, snapshot?.account, snapshot?.positions]);
 
     const exposureItems = React.useMemo(() => {
         if (!snapshot?.positions) {
@@ -246,6 +261,36 @@ export default function PortfolioPage() {
 
         return buildPortfolioExposureItems(snapshot.positions);
     }, [snapshot?.positions]);
+
+    const topMoverItems = React.useMemo(() => buildPortfolioTopMoverItems(positions), [positions]);
+
+    const handleChartTimeframeChange = React.useCallback(
+        async (timeframe: PortfolioOverviewResponse["chart"]["defaultTimeframe"]) => {
+            if (!resolvedAccountId || loadedChartTimeframesRef.current.has(timeframe)) {
+                return;
+            }
+
+            try {
+                const response = await portfolioApi.getChart(resolvedAccountId, timeframe);
+                loadedChartTimeframesRef.current.add(timeframe);
+                setChartData((current) => current
+                    ? {
+                        ...current,
+                        chart: {
+                            ...current.chart,
+                            dataByTimeframe: {
+                                ...current.chart.dataByTimeframe,
+                                ...response.chart.dataByTimeframe,
+                            },
+                        },
+                    }
+                    : current);
+            } catch (error) {
+                toast.error(error instanceof Error ? error.message : "Unable to load chart range.");
+            }
+        },
+        [resolvedAccountId],
+    );
 
     const accountId = resolvedAccountId;
     const supplementalQuoteSymbols = React.useMemo(
@@ -357,25 +402,25 @@ export default function PortfolioPage() {
                 toast.success("Position closed.");
                 window.dispatchEvent(new Event("trade-mate:positions-changed"));
                 await refreshSnapshot();
-                await refreshOverview();
+                await refreshPortfolioData();
             } catch (error) {
                 toast.error(error instanceof Error ? error.message : "Unable to close position.");
             }
         },
-        [refreshOverview, refreshSnapshot, token],
+        [refreshPortfolioData, refreshSnapshot, token],
     );
 
     const handleModifyProtection = React.useCallback(
         async (input: { positionId: string; stopLoss: number | null; takeProfit: number | null }) => {
             if (!token) throw new Error("You must be signed in to modify protection.");
-      const result = await ordersApi.modifyProtection(input, token);
-      toast.success("Trade updated successfully");
+            const result = await ordersApi.modifyProtection(input, token);
+            toast.success("Trade updated successfully");
             window.dispatchEvent(new Event("trade-mate:positions-changed"));
             await refreshSnapshot();
-            await refreshOverview();
+            await refreshPortfolioData();
             return { status: result.sync.status };
         },
-        [refreshOverview, refreshSnapshot, token],
+        [refreshPortfolioData, refreshSnapshot, token],
     );
 
     const handleCloseAll = React.useCallback(async () => {
@@ -387,13 +432,13 @@ export default function PortfolioPage() {
             toast.success("All open positions closed.");
             window.dispatchEvent(new Event("trade-mate:positions-changed"));
             await refreshSnapshot();
-            await refreshOverview();
+            await refreshPortfolioData();
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "Unable to close all positions.");
         } finally {
             setIsClosingAll(false);
         }
-    }, [positions, refreshOverview, refreshSnapshot, token]);
+    }, [positions, refreshPortfolioData, refreshSnapshot, token]);
 
     const handleExport = React.useCallback(() => {
         if (positions.length === 0) return;
@@ -405,7 +450,7 @@ export default function PortfolioPage() {
         downloadTextFile("portfolio-open-positions.csv", csv, "text/csv");
     }, [positions]);
 
-    if (!snapshot || !overview) {
+    if (!snapshot || !summaryData || !allocationData || !chartData) {
         return (
             <AppShell>
                 <div className="flex h-[80vh] w-full items-center justify-center">
@@ -429,8 +474,9 @@ export default function PortfolioPage() {
                     <div className="flex xl:min-h-0 xl:col-span-6">
                         <PortfolioValueChart
                             className="w-full h-[400px] xl:h-auto"
-                            dataByTimeframe={overview?.chart.dataByTimeframe ?? {}}
-                            defaultTimeframe={overview?.chart.defaultTimeframe ?? "4H"}
+                            dataByTimeframe={chartData.chart.dataByTimeframe}
+                            defaultTimeframe={chartData.chart.defaultTimeframe}
+                            onTimeframeChange={handleChartTimeframeChange}
                         />
                     </div>
                     <div className="flex xl:min-h-0 xl:col-span-4">
@@ -443,10 +489,10 @@ export default function PortfolioPage() {
                 {/* 2 grid card  */}
                 <div className="grid grid-cols-1 gap-5 md:gap-6  xl:grid-cols-2">
                     <PortfolioExposureBreakdownCard
-                        badgeLabel={overview?.exposure.badgeLabel}
+                        badgeLabel="Asset Class"
                         items={exposureItems}
                     />
-                    <PortfolioTopMoversCard items={overview?.topMovers.items ?? []} />
+                    <PortfolioTopMoversCard items={topMoverItems} />
                 </div>
 
                 {/* Open Positions Table */}
