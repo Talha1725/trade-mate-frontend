@@ -64,12 +64,9 @@ export const ROUTES = {
 
   /** Portfolio Module */
   PORTFOLIO: {
-    OVERVIEW:       `/api/portfolio/overview`,
     SUMMARY:        `/api/portfolio/summary`,
     CHART:          `/api/portfolio/chart`,
     ALLOCATION:     `/api/portfolio/allocation`,
-    EXPOSURE:       `/api/portfolio/exposure`,
-    TOP_MOVERS:     `/api/portfolio/top-movers`,
   },
 
   /** Settings Module */

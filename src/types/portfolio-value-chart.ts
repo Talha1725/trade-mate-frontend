@@ -14,6 +14,7 @@ export type PortfolioValueChartProps = {
   showExportButton?: boolean;
   exportLabel?: string;
   onExport?: () => void;
+  onTimeframeChange?: (timeframe: TradingTimeframe) => void;
   emptyStateMessage?: string;
   className?: string;
 };

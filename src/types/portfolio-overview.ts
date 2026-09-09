@@ -61,6 +61,60 @@ export type PortfolioChartResponse = {
   dataByTimeframe: Partial<Record<TradingTimeframe, PortfolioValuePoint[]>>;
 };
 
+export type V2PortfolioSummaryResponse = {
+  accountId: string;
+  currency: string;
+  accountSize: number;
+  challenge: {
+    plan: string;
+    label: string;
+    profitTargetPercent: number;
+    progressPercent: number;
+    reached: boolean;
+  } | null;
+  balance: number;
+  equity: number;
+  floatingPnl: number;
+  marginUsed: number;
+  availableMargin: number;
+  marginUsagePercent: number;
+  riskLevel: "LOW" | "MEDIUM" | "HIGH";
+  openTrades: number;
+  winningTrades: number;
+  losingTrades: number;
+  closedTrades: number;
+  realizedPnl: number;
+  winRate: number;
+};
+
+export type V2PortfolioAllocationResponse = {
+  accountId: string;
+  equity: number;
+  invested: number;
+  cash: number;
+  items: {
+    category: "CRYPTO" | "FOREX" | "COMMODITIES" | "INDICES" | "STOCK" | "CASH";
+    value: number;
+    percent: number;
+    trades: number;
+  }[];
+};
+
+export type V2PortfolioChartRange = "1D" | "1W" | "1M" | "3M";
+
+export type V2PortfolioChartResponse = {
+  accountId: string;
+  range: V2PortfolioChartRange;
+  from: string;
+  to: string;
+  points: {
+    at: string;
+    balance: number;
+    equity: number;
+    floatingPnl: number;
+  }[];
+};
+
 export type PortfolioOverviewResponse = {
   accountId: string;
   accountNumber: string | null;
