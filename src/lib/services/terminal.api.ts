@@ -1,5 +1,6 @@
 import { ROUTES } from "@/constant/routes";
 import { get, post } from "@/lib/utils/api";
+import { getV2MarketSnapshot } from "@/lib/services/v2-market-snapshot.api";
 import {
   getTradesFromV2Response,
   mapV2AccountToPortfolioSnapshot,
@@ -20,7 +21,6 @@ import type {
   V2OpenTradeResponse,
   V2TradeListResponse,
 } from "@/types/v2-dashboard";
-import type { V2MarketSnapshot } from "@/types/v2-market";
 
 function resolveAccount(response: V2AccountListResponse, accountId?: string) {
   const accounts = Array.isArray(response) ? response : response.accounts;
@@ -31,9 +31,11 @@ export const terminalApi = {
   async getMarketQuotes(symbols: string[], authToken?: string): Promise<MarketQuoteResponse> {
     const snapshots = await Promise.all(
       symbols.map((symbol) =>
-        get<V2MarketSnapshot>(ROUTES.MARKET.SNAPSHOT, {
-          params: { symbol, interval: "M1", limit: 1 },
-          headers: authToken ? { Authorization: `Bearer ${authToken}` } : undefined,
+        getV2MarketSnapshot({
+          symbol,
+          interval: "M1",
+          limit: 1,
+          authToken,
         }).catch(() => null),
       ),
     );

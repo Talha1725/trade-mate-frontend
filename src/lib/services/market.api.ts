@@ -1,8 +1,7 @@
 import { MARKET_INTERVAL_TO_V2_INTERVAL_MAP } from "@/constants/v2-market";
-import { get } from "@/lib/utils/api";
+import { getV2MarketSnapshot } from "@/lib/services/v2-market-snapshot.api";
 import type { ChartCandle } from "@/types/eodhd";
 import type { MarketSnapshotResponse } from "@/types/market-snapshot";
-import type { V2MarketSnapshot } from "@/types/v2-market";
 
 function mapCandleTime(openTime: string) {
   const parsed = Date.parse(openTime);
@@ -12,8 +11,10 @@ function mapCandleTime(openTime: string) {
 
 export const marketApi = {
   async getSnapshot(symbol: string, interval: string = "1d"): Promise<MarketSnapshotResponse> {
-    const response = await get<V2MarketSnapshot>("/api/market/snapshot", {
-      params: { symbol, interval: MARKET_INTERVAL_TO_V2_INTERVAL_MAP[interval] ?? "D1", limit: 200 },
+    const response = await getV2MarketSnapshot({
+      symbol,
+      interval: MARKET_INTERVAL_TO_V2_INTERVAL_MAP[interval] ?? "D1",
+      limit: 200,
     });
 
     const latest = response.candles.at(-1);

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { buildAccountMetricsSummaryFromV2 } from "@/lib/utils/live-account-summary";
-import type { V2DashboardOverview, V2Trade } from "@/types/v2-dashboard";
+import type { V2DashboardOverview } from "@/types/v2-dashboard";
 
 const overview: V2DashboardOverview = {
   account: {
@@ -40,46 +40,20 @@ const overview: V2DashboardOverview = {
   openTrades: [],
   recentTrades: [],
   watchlist: [],
+  dailyPnl: 300,
+  dailyTrades: 2,
+  winRate30d: 75,
+  bestAsset30d: {
+    symbol: "XAUUSD",
+    pnl: 650,
+    tradeCount: 2,
+  },
   symbols: [],
 };
 
-function closedTrade(id: string, symbol: string, pnl: string, closedAt: string): V2Trade {
-  return {
-    id,
-    accountId: "account-1",
-    userId: "user-1",
-    symbol,
-    internalSymbol: symbol,
-    direction: "BUY",
-    lots: "1",
-    entryPrice: "100",
-    exitPrice: "110",
-    stopLoss: null,
-    takeProfit: null,
-    currentPrice: "110",
-    floatingPnl: "0",
-    pnl,
-    status: "CLOSED",
-    exitStatus: "MANUAL",
-    source: "USER",
-    notes: null,
-    openedAt: "2026-09-08T12:00:00.000Z",
-    closedAt,
-  };
-}
-
 describe("buildAccountMetricsSummaryFromV2", () => {
-  it("maps v2 dashboard summary and derives closed-trade metrics for the sidebar", () => {
-    const summary = buildAccountMetricsSummaryFromV2(
-      overview,
-      [
-        closedTrade("trade-1", "XAUUSD", "400", "2026-09-09T01:00:00.000Z"),
-        closedTrade("trade-2", "EURUSD", "-100", "2026-09-09T03:00:00.000Z"),
-        closedTrade("trade-3", "XAUUSD", "250", "2026-09-01T03:00:00.000Z"),
-        closedTrade("trade-4", "BTCUSD", "999", "2026-07-01T03:00:00.000Z"),
-      ],
-      new Date("2026-09-09T12:00:00.000Z"),
-    );
+  it("maps v2 dashboard overview metrics for the sidebar", () => {
+    const summary = buildAccountMetricsSummaryFromV2(overview);
 
     expect(summary).toMatchObject({
       accountId: "account-1",
@@ -89,7 +63,8 @@ describe("buildAccountMetricsSummaryFromV2", () => {
       equity: 101900,
       floatingPnl: 650,
       dailyPnl: 300,
-      winRate: 66.67,
+      dailyTrades: 2,
+      winRate: 75,
       bestAsset: {
         symbol: "XAUUSD",
         pnl: 650,

@@ -1,9 +1,8 @@
-import { get } from "@/lib/utils/api";
+import { getV2MarketCandles, getV2MarketSnapshot } from "@/lib/services/v2-market-snapshot.api";
 import { V2_TIMEFRAME_INTERVAL_MAP } from "@/constants/v2-market";
 import type { MarketQuoteResponse } from "@/types/market";
 import type { ChartMarketDataResponse, EodhdAssetQuote, EodhdQuotesResponse } from "@/types/eodhd";
 import type { TradingTimeframe } from "@/types/trading-filter-bar";
-import type { V2Candle, V2MarketSnapshot } from "@/types/v2-market";
 
 function mapQuote(quote: MarketQuoteResponse["quotes"][number]): EodhdAssetQuote {
   return {
@@ -25,8 +24,10 @@ export const chartMarketApi = {
   async getQuotes(symbols: string[]) {
     const quotes = await Promise.all(
       symbols.map(async (symbol) => {
-        const candles = await get<V2Candle[]>("/api/market/candles", {
-          params: { symbol, interval: "M1", limit: 2 },
+        const candles = await getV2MarketCandles({
+          symbol,
+          interval: "M1",
+          limit: 2,
         });
         const latest = candles.at(-1);
         const previous = candles.at(-2);
@@ -63,8 +64,10 @@ export const chartMarketApi = {
   },
 
   async getCandles(symbol: string, timeframe: TradingTimeframe) {
-    const response = await get<V2MarketSnapshot>("/api/market/snapshot", {
-      params: { symbol, interval: V2_TIMEFRAME_INTERVAL_MAP[timeframe], limit: 500 },
+    const response = await getV2MarketSnapshot({
+      symbol,
+      interval: V2_TIMEFRAME_INTERVAL_MAP[timeframe],
+      limit: 500,
     });
 
     return {

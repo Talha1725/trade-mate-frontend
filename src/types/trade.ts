@@ -59,6 +59,7 @@ export type AccountMetricsSummary = {
   equity: number;
   floatingPnl: number;
   dailyPnl: number;
+  dailyTrades?: number;
   winRate?: number;
   bestAsset: {
     symbol: string;

@@ -53,6 +53,12 @@ export type V2DashboardWatchlistItem = {
   changePercent: number | null;
 };
 
+export type V2DashboardBestAsset30d = {
+  symbol: string;
+  pnl: number;
+  tradeCount: number;
+};
+
 export type V2DashboardOverview = {
   account: {
     id: string;
@@ -90,6 +96,10 @@ export type V2DashboardOverview = {
   openTrades: V2Trade[];
   recentTrades: V2Trade[];
   watchlist: V2DashboardWatchlistItem[];
+  dailyPnl: number;
+  dailyTrades: number;
+  winRate30d: number;
+  bestAsset30d: V2DashboardBestAsset30d | null;
   symbols: string[];
 };
 
