@@ -59,8 +59,6 @@ function EditProfileView({ onClose, profile }: SettingsViewProps) {
   const [email] = React.useState(profile?.email ?? "");
   const [avatarUrl, setAvatarUrl] = React.useState<string | null>(profile?.avatarUrl ?? null);
   const [isSaving, setIsSaving] = React.useState(false);
-  const [isUploading, setIsUploading] = React.useState(false);
-  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
 
   React.useEffect(() => {
     setFullName(profile?.fullName ?? "");
@@ -78,52 +76,6 @@ function EditProfileView({ onClose, profile }: SettingsViewProps) {
   async function refreshProfile() {
     await useAuthStore.getState().loadSession();
     await queryClient.invalidateQueries({ queryKey: ["settings", "overview"] });
-  }
-
-  async function handleAvatarChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-
-    event.target.value = "";
-
-    if (!file) {
-      return;
-    }
-
-    if (!/^image\/(png|jpe?g|webp)$/i.test(file.type)) {
-      toast.error("Please upload a PNG, JPG, or WEBP image.");
-      return;
-    }
-
-    setIsUploading(true);
-
-    try {
-      const presign = await settingsApi.createAvatarPresign({
-        fileName: file.name,
-        contentType: file.type,
-      });
-
-      const uploadResponse = await fetch(presign.uploadUrl, {
-        method: presign.method,
-        headers: presign.headers,
-        body: file,
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error("Failed to upload avatar to S3.");
-      }
-
-      const updated = await settingsApi.updateProfile({
-        avatarUrl: presign.publicUrl,
-      });
-
-      setAvatarUrl(updated.user.avatarUrl ?? presign.publicUrl);
-      await refreshProfile();
-      toast.success("Profile image updated.");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Unable to upload profile image.");
-    } finally {
-      setIsUploading(false);
-    }
   }
 
   async function handleSave() {
@@ -165,20 +117,12 @@ function EditProfileView({ onClose, profile }: SettingsViewProps) {
           <div>
             <div className="mb-1 text-sm font-medium text-white">Upload Image</div>
             <div className="mb-2 text-sm font-normal text-white/60">Min 400x400px, PNG or JPEG</div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/png,image/jpeg,image/jpg,image/webp"
-              className="hidden"
-              onChange={handleAvatarChange}
-            />
             <button
               type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-              className="gradient-btn-upload cursor-pointer rounded-[10px] border border-white/3 px-3.5 py-1.75 text-sm font-medium text-white transition-colors hover:bg-[#333] disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={() => toast.info("Profile image upload is not available in backend v2 yet.")}
+              className="gradient-btn-upload cursor-pointer rounded-[10px] border border-white/3 px-3.5 py-1.75 text-sm font-medium text-white transition-colors hover:bg-[#333]"
             >
-              {isUploading ? "Uploading..." : "Upload"}
+              Upload
             </button>
           </div>
         </div>

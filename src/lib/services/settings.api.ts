@@ -1,9 +1,11 @@
 import { ROUTES } from "@/constant/routes";
-import { get, patch, post } from "@/lib/utils/api";
+import { get, patch } from "@/lib/utils/api";
+import type { AuthApiUser } from "@/types/auth";
 import type {
   SettingsOverviewResponse,
-  SettingsAvatarPresignResponse,
+  SettingsOverviewAccount,
 } from "@/types/settings";
+import type { V2Account, V2AccountListResponse } from "@/types/v2-dashboard";
 
 export type UpdateSettingsProfilePayload = {
   name?: string;
@@ -16,16 +18,53 @@ export type UpdateSettingsPasswordPayload = {
   confirmPassword?: string;
 };
 
-export type CreateSettingsAvatarPresignPayload = {
-  fileName: string;
-  contentType: string;
-};
+function resolveAccount(response: V2AccountListResponse, accountId?: string | null) {
+  const accounts = Array.isArray(response) ? response : response.accounts;
+  return accountId ? accounts.find((account) => account.id === accountId) ?? null : accounts[0] ?? null;
+}
+
+function mapSettingsUser(user: AuthApiUser): SettingsOverviewResponse["user"] {
+  return {
+    id: user.id,
+    email: user.email,
+    assignedId: user.assignedId ?? null,
+    name: user.name,
+    avatarUrl: user.avatarUrl ?? null,
+    role: user.role === "admin" ? "ADMIN" : user.role === "trader" ? "TRADER" : user.role,
+    isActive: user.isActive ?? true,
+    createdAt: user.createdAt ?? new Date().toISOString(),
+  };
+}
+
+function mapSettingsAccount(account: V2Account): SettingsOverviewResponse["account"] {
+  return {
+    id: account.id,
+    accountNumber: account.accountNumber,
+    fundingType: account.fundingType,
+    name: account.name,
+    type: account.type as SettingsOverviewAccount["type"],
+    status: account.status as SettingsOverviewAccount["status"],
+    balance: account.balance,
+    equity: account.equity,
+    floatingPnl: account.floatingPnl,
+    marginUsed: account.marginUsed,
+    currency: account.currency,
+    openPositionsCount: account.trades?.filter((trade) => trade.status === "OPEN").length ?? 0,
+  };
+}
 
 export const settingsApi = {
-  getOverview(accountId?: string | null): Promise<SettingsOverviewResponse> {
-    return get(ROUTES.SETTINGS.OVERVIEW, {
-      params: accountId ? { accountId } : undefined,
-    });
+  async getOverview(accountId?: string | null): Promise<SettingsOverviewResponse> {
+    const [user, accountsResponse] = await Promise.all([
+      get<AuthApiUser>(ROUTES.AUTH.ME),
+      get<V2AccountListResponse>(ROUTES.ACCOUNT.LIST),
+    ]);
+    const account = resolveAccount(accountsResponse, accountId);
+
+    return {
+      user: mapSettingsUser(user),
+      account: account ? mapSettingsAccount(account) : null,
+    };
   },
 
   updateProfile(payload: UpdateSettingsProfilePayload) {
@@ -37,9 +76,5 @@ export const settingsApi = {
       ...payload,
       confirmPassword: payload.confirmPassword ?? payload.newPassword,
     }).then(() => ({ success: true as const }));
-  },
-
-  createAvatarPresign(payload: CreateSettingsAvatarPresignPayload) {
-    return post<SettingsAvatarPresignResponse>(ROUTES.SETTINGS.AVATAR_PRESIGN, payload);
   },
 };
