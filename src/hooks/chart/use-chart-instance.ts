@@ -38,6 +38,7 @@ export function useChartInstance(options: ChartInstanceOptions) {
   const [chartReady, setChartReady] = React.useState(false);
   const hoveredCandleTimeRef = React.useRef<number | null>(null);
   const isLoadingMoreRef = React.useRef(false);
+  const pendingOlderCandleViewRef = React.useRef<{ span: number } | null>(null);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -444,19 +445,11 @@ export function useChartInstance(options: ChartInstanceOptions) {
       isLoadingMoreRef.current = true;
       void onLoadMoreCandles()
         .then((addedCount) => {
-          if (addedCount <= 0) {
-            return;
-          }
-
-          window.requestAnimationFrame(() => {
-            const nextRange = {
-              from: range.from + addedCount,
-              to: range.to + addedCount,
+          if (addedCount > 0) {
+            pendingOlderCandleViewRef.current = {
+              span: Math.max(range.to - range.from, 10),
             };
-
-            mainChartRef.current?.timeScale().setVisibleLogicalRange(nextRange);
-            subChartRef.current?.timeScale().setVisibleLogicalRange(nextRange);
-          });
+          }
         })
         .finally(() => {
           isLoadingMoreRef.current = false;
@@ -481,6 +474,19 @@ export function useChartInstance(options: ChartInstanceOptions) {
       mainChart.timeScale().setVisibleLogicalRange({ from, to });
       initialViewKeyRef.current = viewKey;
     }
+
+    const pendingOlderCandleView = pendingOlderCandleViewRef.current;
+    if (pendingOlderCandleView) {
+      const range = {
+        from: 0,
+        to: pendingOlderCandleView.span,
+      };
+
+      mainChart.timeScale().setVisibleLogicalRange(range);
+      subChart.timeScale().setVisibleLogicalRange(range);
+      pendingOlderCandleViewRef.current = null;
+    }
+
     window.requestAnimationFrame(() => overlayRevision((current) => current + 1));
 
     return () => {

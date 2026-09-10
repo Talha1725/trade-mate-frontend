@@ -63,19 +63,12 @@ export function ChartShell({ context }: { context: ChartShellContext }) {
 
           {isLoadingOlderCandles ? (
             <div
-              className="absolute inset-0 z-10 cursor-wait bg-black/20 backdrop-blur-[1px]"
+              className="absolute inset-0 z-10"
               onPointerDown={(event) => {
                 event.preventDefault();
                 event.stopPropagation();
               }}
-              onPointerMove={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-              }}
-              onWheel={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-              }}
+          
             />
           ) : null}
 
