@@ -433,7 +433,7 @@ export function PlaceOrderDialog({
             )}
           >
             <div className="text-xs text-white/50 mb-1">Sell / Bid</div>
-            <div className="text-sm font-semibold text-[#ff7a7a]">
+            <div className="inline-block min-w-[6.5rem] text-sm font-semibold tabular-nums text-[#ff7a7a]">
               {displayBidPrice != null ? formatMarketPrice(displayBidPrice, symbol) : "—"}
             </div>
           </div>
@@ -444,7 +444,7 @@ export function PlaceOrderDialog({
             )}
           >
             <div className="text-xs text-white/50 mb-1">Buy / Ask</div>
-            <div className="text-sm font-semibold text-[#0CE9A0]">
+            <div className="inline-block min-w-[6.5rem] text-sm font-semibold tabular-nums text-[#0CE9A0]">
               {displayAskPrice != null ? formatMarketPrice(displayAskPrice, symbol) : "—"}
             </div>
           </div>
@@ -456,7 +456,8 @@ export function PlaceOrderDialog({
             onClick={() => setSide("Buy")}
             disabled={Boolean(modification)}
             className={cn(
-              "flex-1 rounded-lg py-2 cursor-pointer text-sm font-medium transition-colors",
+              "flex-1 rounded-lg py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60",
+              !modification && "cursor-pointer",
               side === "Buy" ? "btn-green text-white" : "text-white/50 hover:text-white"
             )}
           >
@@ -466,7 +467,8 @@ export function PlaceOrderDialog({
             onClick={() => setSide("Sell")}
             disabled={Boolean(modification)}
             className={cn(
-              "flex-1 rounded-lg py-2 text-sm cursor-pointer font-medium transition-colors",
+              "flex-1 rounded-lg py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60",
+              !modification && "cursor-pointer",
               side === "Sell" ? "btn-red text-white" : "text-white/50 hover:text-white"
             )}
           >
