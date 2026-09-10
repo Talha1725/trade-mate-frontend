@@ -20,6 +20,20 @@ export type OrderDepthChartResponse = {
   axisTicks: number[];
 };
 
+export type TradeProtectionModification = {
+  positionId: string;
+  stopLoss: number | null;
+  takeProfit: number | null;
+};
+
+export type TradeProtectionModificationResponse = {
+  sync: {
+    status: "PENDING" | "SENT" | "FAILED" | "SKIPPED";
+    eventId: string | null;
+    lastError?: string | null;
+  };
+};
+
 export type OrderOverviewResponse = {
   account: PortfolioAccount;
   selectedAsset: MarketSymbolRecord;
