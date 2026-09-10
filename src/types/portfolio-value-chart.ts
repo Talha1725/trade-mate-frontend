@@ -1,5 +1,7 @@
 import type { TradingTimeframe } from "@/types/trading-filter-bar";
 
+export type PortfolioValueChartTimeframe = TradingTimeframe | "1D" | "1W" | "1M" | "3M";
+
 export type PortfolioValuePoint = {
   timestamp: number;
   label: string;
@@ -8,13 +10,13 @@ export type PortfolioValuePoint = {
 
 export type PortfolioValueChartProps = {
   title?: string;
-  dataByTimeframe?: Partial<Record<TradingTimeframe, PortfolioValuePoint[]>>;
-  defaultTimeframe?: TradingTimeframe;
-  timeframes?: TradingTimeframe[];
+  dataByTimeframe?: Partial<Record<PortfolioValueChartTimeframe, PortfolioValuePoint[]>>;
+  defaultTimeframe?: PortfolioValueChartTimeframe;
+  timeframes?: PortfolioValueChartTimeframe[];
   showExportButton?: boolean;
   exportLabel?: string;
   onExport?: () => void;
-  onTimeframeChange?: (timeframe: TradingTimeframe) => void;
+  onTimeframeChange?: (timeframe: PortfolioValueChartTimeframe) => void;
   emptyStateMessage?: string;
   className?: string;
 };

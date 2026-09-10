@@ -251,7 +251,7 @@ export function buildPortfolioTopMoverItems(positions: PortfolioOpenPositionRow[
 }
 
 const ZERO_ACCOUNT = { balance: "0", equity: "0", floatingPnl: "0", marginUsed: "0", accountSize: "0", fundingType: null };
-const ZERO_OVERVIEW = { summary: undefined, chart: { defaultTimeframe: "4H" as const, dataByTimeframe: {} as PortfolioChartResponse["dataByTimeframe"] } };
+const ZERO_OVERVIEW = { summary: undefined, chart: { defaultTimeframe: "1D" as const, dataByTimeframe: {} as PortfolioChartResponse["dataByTimeframe"] } };
 
 export function buildPortfolioMetricCards(
   account: Pick<PortfolioAccount, "balance" | "equity" | "floatingPnl" | "marginUsed" | "accountSize" | "fundingType"> | null,
@@ -294,7 +294,7 @@ export function buildPortfolioMetricCards(
   const profitTargetProgress = clampDisplayPercent(summary.profitTarget.progressPercent);
   const remaining = Math.max(0, summary.profitTarget.targetAmount - currentProfit);
   const thirtyDayHigh =
-    ov.chart.dataByTimeframe["D"]?.reduce((max, point) => Math.max(max, Number(point.value)), 0) ??
+    ov.chart.dataByTimeframe["1M"]?.reduce((max, point) => Math.max(max, Number(point.value)), 0) ??
     summary.accountSize;
 
   return [

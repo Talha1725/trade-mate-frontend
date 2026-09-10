@@ -12,8 +12,7 @@ import {
 } from "@/lib/mock-data/portfolio-value-chart";
 import { formatPortfolioValueTimestamp } from "@/lib/utils/portfolio-chart";
 import { cn } from "@/lib/utils";
-import type { PortfolioValueChartProps } from "@/types/portfolio-value-chart";
-import type { TradingTimeframe } from "@/types/trading-filter-bar";
+import type { PortfolioValueChartProps, PortfolioValueChartTimeframe } from "@/types/portfolio-value-chart";
 
 const CHART_CONFIG = {
   value: {
@@ -27,7 +26,7 @@ function TimeframeButton({
   isActive,
   onSelect,
 }: {
-  interval: TradingTimeframe;
+  interval: PortfolioValueChartTimeframe;
   isActive: boolean;
   onSelect: () => void;
 }) {
@@ -60,7 +59,7 @@ export function PortfolioValueChart({
   className,
 }: PortfolioValueChartProps) {
   const gradientId = useId().replace(/:/g, "");
-  const [timeframe, setTimeframe] = useState<TradingTimeframe>(defaultTimeframe);
+  const [timeframe, setTimeframe] = useState<PortfolioValueChartTimeframe>(defaultTimeframe);
 
   const chartData = useMemo(() => dataByTimeframe[timeframe] ?? [], [dataByTimeframe, timeframe]);
   const yAxis = useMemo(
@@ -106,16 +105,16 @@ export function PortfolioValueChart({
         </div>
       </div>
 
-      <div className="relative min-h-0 flex-1">
+      <div className="relative h-[250px] min-h-0 w-full overflow-hidden md:h-[270px]">
         <ChartContainer
           config={CHART_CONFIG}
-          initialDimension={{ width: 520, height: 240 }}
+          initialDimension={{ width: 720, height: 270 }}
           className="relative aspect-auto h-full w-full [&_.recharts-cartesian-grid-horizontal_line]:stroke-white/10 [&_.recharts-cartesian-grid-vertical_line]:stroke-white/10"
         >
           {chartData.length > 0 ? (
             <AreaChart
               data={chartData}
-              margin={{ top: 8, right: 12, left: 8, bottom: 16 }}
+              margin={{ top: 8, right: 14, left: 4, bottom: 28 }}
             >
             <defs>
               <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
@@ -132,10 +131,11 @@ export function PortfolioValueChart({
               scale="time"
               domain={["dataMin", "dataMax"]}
               tickFormatter={(value) => formatPortfolioValueTimestamp(Number(value), timeframe)}
+              height={36}
               tickLine={false}
               axisLine={false}
-              tickMargin={8}
-              minTickGap={12}
+              tickMargin={10}
+              minTickGap={20}
               tick={{ fill: "rgba(255,255,255,0.6)", fontSize: 12 }}
             />
 
@@ -155,12 +155,7 @@ export function PortfolioValueChart({
               stroke="#0CE9A0"
               strokeWidth={2}
               fill={`url(#${gradientId})`}
-              dot={{
-                r: 3,
-                fill: "#0CE9A0",
-                stroke: "#0CE9A0",
-                strokeWidth: 0,
-              }}
+              dot={false}
               activeDot={{
                 r: 4,
                 fill: "#0CE9A0",

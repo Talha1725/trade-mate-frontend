@@ -1,5 +1,5 @@
 import type { MarketWatchIcon } from "@/types/market-watch-card";
-import type { TradingTimeframe } from "@/types/trading-filter-bar";
+import type { PortfolioValueChartTimeframe } from "@/types/portfolio-value-chart";
 
 export type PortfolioMetricTone = "green" | "orange" | "red" | "blue";
 
@@ -57,8 +57,8 @@ export type PortfolioSummary = {
 };
 
 export type PortfolioChartResponse = {
-  defaultTimeframe: TradingTimeframe;
-  dataByTimeframe: Partial<Record<TradingTimeframe, PortfolioValuePoint[]>>;
+  defaultTimeframe: PortfolioValueChartTimeframe;
+  dataByTimeframe: Partial<Record<PortfolioValueChartTimeframe, PortfolioValuePoint[]>>;
 };
 
 export type V2PortfolioSummaryResponse = {

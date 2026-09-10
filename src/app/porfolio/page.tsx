@@ -13,6 +13,7 @@ import { PortfolioOpenPositionsTable } from "@/components/portfolio/portfolio-op
 import { PortfolioTopMoversCard } from "@/components/portfolio/portfolio-top-movers-card";
 import { PortfolioValueChart } from "@/components/portfolio/portfolio-value-chart";
 import { portfolioApi } from "@/lib/services/portfolio.api";
+import { PORTFOLIO_CHART_TIMEFRAMES } from "@/constants/portfolio-chart-ranges";
 import { ordersApi } from "@/lib/services/orders.api";
 import { terminalApi } from "@/lib/services/terminal.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
@@ -141,7 +142,7 @@ export default function PortfolioPage() {
             const [nextSummary, nextAllocation, nextChart] = await Promise.all([
                 portfolioApi.getSummary(resolvedAccountId),
                 portfolioApi.getAllocation(resolvedAccountId),
-                portfolioApi.getChart(resolvedAccountId, "4H"),
+                portfolioApi.getChart(resolvedAccountId, "1D"),
             ]);
             setSummaryData({ summary: nextSummary.summary });
             setAllocationData({ allocation: nextAllocation.allocation });
@@ -476,6 +477,7 @@ export default function PortfolioPage() {
                             className="w-full h-[400px] xl:h-auto"
                             dataByTimeframe={chartData.chart.dataByTimeframe}
                             defaultTimeframe={chartData.chart.defaultTimeframe}
+                            timeframes={PORTFOLIO_CHART_TIMEFRAMES}
                             onTimeframeChange={handleChartTimeframeChange}
                         />
                     </div>

@@ -75,7 +75,7 @@ function mapCharts(charts: V2PortfolioChartResponse[]): PortfolioChartResponse {
   }
 
   return {
-    defaultTimeframe: "4H",
+    defaultTimeframe: "1D",
     dataByTimeframe,
   };
 }

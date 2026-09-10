@@ -1,8 +1,7 @@
-import type { PortfolioValuePoint } from "@/types/portfolio-value-chart";
-import type { TradingTimeframe } from "@/types/trading-filter-bar";
+import type { PortfolioValueChartTimeframe, PortfolioValuePoint } from "@/types/portfolio-value-chart";
 import { DISPLAY_TIME_ZONE } from "@/constant/timezone";
 
-export const PORTFOLIO_TIMEFRAME_SPANS_MS: Record<TradingTimeframe, number> = {
+export const PORTFOLIO_TIMEFRAME_SPANS_MS: Record<PortfolioValueChartTimeframe, number> = {
   "1m": 60 * 60 * 1000,
   "5m": 6 * 60 * 60 * 1000,
   "15m": 12 * 60 * 60 * 1000,
@@ -10,11 +9,15 @@ export const PORTFOLIO_TIMEFRAME_SPANS_MS: Record<TradingTimeframe, number> = {
   "4H": 7 * 24 * 60 * 60 * 1000,
   D: 30 * 24 * 60 * 60 * 1000,
   W: 90 * 24 * 60 * 60 * 1000,
+  "1D": 24 * 60 * 60 * 1000,
+  "1W": 7 * 24 * 60 * 60 * 1000,
+  "1M": 30 * 24 * 60 * 60 * 1000,
+  "3M": 90 * 24 * 60 * 60 * 1000,
 };
 
-const INTRADAY_TIMEFRAMES = new Set<TradingTimeframe>(["1m", "5m", "15m", "1H", "4H"]);
+const INTRADAY_TIMEFRAMES = new Set<PortfolioValueChartTimeframe>(["1m", "5m", "15m", "1H", "4H", "1D"]);
 
-export function formatPortfolioValueTimestamp(timestamp: number, timeframe: TradingTimeframe) {
+export function formatPortfolioValueTimestamp(timestamp: number, timeframe: PortfolioValueChartTimeframe) {
   const date = new Date(timestamp);
 
   if (INTRADAY_TIMEFRAMES.has(timeframe)) {
@@ -36,7 +39,7 @@ export function formatPortfolioValueTimestamp(timestamp: number, timeframe: Trad
 
 export function buildPortfolioValueSeries(
   values: number[],
-  timeframe: TradingTimeframe,
+  timeframe: PortfolioValueChartTimeframe,
   endTime = Date.now(),
 ): PortfolioValuePoint[] {
   const span = PORTFOLIO_TIMEFRAME_SPANS_MS[timeframe];
