@@ -52,6 +52,7 @@ export default function DashboardPage() {
   const [initialCompareCandles, setInitialCompareCandles] = React.useState<ChartCandle[] | undefined>();
   const [overviewSymbols, setOverviewSymbols] = React.useState<string[]>([]);
   const [overviewWatchlistAssets, setOverviewWatchlistAssets] = React.useState<MarketWatchItem[]>([]);
+  const [liveWatchlistItems, setLiveWatchlistItems] = React.useState<MarketWatchItem[]>([]);
   const [liveQuotes, setLiveQuotes] = React.useState<Record<string, PriceSocketQuote>>({});
   const livePositionMissingCountsRef = React.useRef(new Map<string, number>());
   const locallyClosedPositionIdsRef = React.useRef(new Set<string>());
@@ -184,14 +185,35 @@ export default function DashboardPage() {
       quotes.find((quote) => normalizedSymbols.has(normalizeTradingSymbol(quote.symbol))) ?? null
     );
   }, []);
-  const liveWatchlistItems = React.useMemo(() => {
-    const quotes = Object.values(liveQuotes);
 
-    return overviewWatchlistAssets.map((item) => {
-      const liveQuote = resolveQuoteForSymbol(quotes, item.symbol);
-      return applyLiveQuoteToWatchItem(item, liveQuote);
+  React.useEffect(() => {
+    setLiveWatchlistItems((currentItems) => {
+      if (overviewWatchlistAssets.length === 0) {
+        return [];
+      }
+
+      const currentById = new Map(currentItems.map((item) => [item.id, item]));
+
+      return overviewWatchlistAssets.map((item) => {
+        const current = currentById.get(item.id);
+
+        if (!current) {
+          return item;
+        }
+
+        return {
+          ...item,
+          price: current.price ?? item.price,
+          high: current.high ?? item.high,
+          low: current.low ?? item.low,
+          volume: current.volume ?? item.volume,
+          change: current.change ?? item.change,
+          changePercent: current.changePercent ?? item.changePercent,
+        };
+      });
     });
-  }, [liveQuotes, overviewWatchlistAssets, resolveQuoteForSymbol]);
+  }, [overviewWatchlistAssets]);
+
   const toggleWishlistAsset = React.useCallback(async (assetId: string) => {
     if (!token || !accountNumber) {
       return;
@@ -412,38 +434,36 @@ export default function DashboardPage() {
     (quotes: PriceSocketQuote[]) => {
       const liveQuote = resolveQuoteForSymbol(quotes, chartSymbol);
 
-      if (!liveQuote) {
-        return;
+      if (liveQuote) {
+        setMarketSnapshot((current) => {
+          if (!current) {
+            return current;
+          }
+
+          const nextSparkline =
+            current.sparkline.length > 0
+              ? [...current.sparkline.slice(1), { value: liveQuote.price }]
+              : current.sparkline;
+
+          return {
+            ...current,
+            price: liveQuote.price,
+            changePercent: liveQuote.changePercent ?? current.changePercent,
+            sparkline: nextSparkline,
+          };
+        });
+
+        setMarketChart((current) => {
+          if (!current) {
+            return current;
+          }
+
+          return {
+            ...current,
+            close: liveQuote.price,
+          };
+        });
       }
-
-      setMarketSnapshot((current) => {
-        if (!current) {
-          return current;
-        }
-
-        const nextSparkline =
-          current.sparkline.length > 0
-            ? [...current.sparkline.slice(1), { value: liveQuote.price }]
-            : current.sparkline;
-
-        return {
-          ...current,
-          price: liveQuote.price,
-          changePercent: liveQuote.changePercent ?? current.changePercent,
-          sparkline: nextSparkline,
-        };
-      });
-
-      setMarketChart((current) => {
-        if (!current) {
-          return current;
-        }
-
-        return {
-          ...current,
-          close: liveQuote.price,
-        };
-      });
 
       setLiveQuotes((current) => {
         const nextQuotes = { ...current };
@@ -456,6 +476,13 @@ export default function DashboardPage() {
 
         return nextQuotes;
       });
+
+      setLiveWatchlistItems((currentItems) =>
+        currentItems.map((item) => {
+          const quote = resolveQuoteForSymbol(quotes, item.symbol);
+          return quote ? applyLiveQuoteToWatchItem(item, quote) : item;
+        }),
+      );
     },
     [chartSymbol, resolveQuoteForSymbol],
   );

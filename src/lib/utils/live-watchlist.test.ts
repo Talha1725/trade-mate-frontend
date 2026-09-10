@@ -53,4 +53,19 @@ describe("applyLiveQuoteToWatchItem", () => {
     expect(result.low).toBe(79_310);
     expect(result.volume).toBe(1.25);
   });
+
+  it("keeps the last known volume when the next socket tick has no volume", () => {
+    const previous = applyLiveQuoteToWatchItem(
+      { ...item, volume: null },
+      quote,
+    );
+
+    const result = applyLiveQuoteToWatchItem(previous, {
+      ...quote,
+      price: 79_320,
+      volume: null,
+    });
+
+    expect(result.volume).toBe(1.25);
+  });
 });
