@@ -5,8 +5,7 @@ import type { PortfolioMetricCard } from "@/types/portfolio-metric-card";
 import type { PortfolioValuePoint } from "@/types/portfolio-value-chart";
 import type { StrategyPerformanceRow } from "@/types/strategy-performance";
 import type { TradingCalendarDay, TradingCalendarCardProps } from "@/types/trading-calendar-card";
-
-const ANALYTICS_RANGES: V2AnalyticsPerformanceRange[] = ["1W", "1M", "3M"];
+import { ANALYTICS_RANGES } from "@/constants/analytics";
 
 function formatCurrency(value: number, currency = "USD") {
   return new Intl.NumberFormat("en-US", {

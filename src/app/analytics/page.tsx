@@ -12,6 +12,7 @@ import { PageHeader } from "@/components/page-header";
 import { PortfolioMetricCards } from "@/components/portfolio/portfolio-metric-cards";
 import { PortfolioValueChart } from "@/components/portfolio/portfolio-value-chart";
 import { analyticsApi } from "@/lib/services/analytics.api";
+import { ANALYTICS_TIMEFRAMES, DEFAULT_ANALYTICS_RANGE } from "@/constants/analytics";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
 import { useUserAccounts } from "@/hooks/use-user-accounts";
@@ -20,9 +21,6 @@ import type {
   AnalyticsOverviewResponse,
   V2AnalyticsPerformanceRange,
 } from "@/types/analytics";
-
-const ANALYTICS_TIMEFRAMES: PortfolioValueChartTimeframe[] = ["1W", "1M", "3M"];
-const DEFAULT_ANALYTICS_RANGE: V2AnalyticsPerformanceRange = "1M";
 
 function isAnalyticsPerformanceRange(
   timeframe: PortfolioValueChartTimeframe,
