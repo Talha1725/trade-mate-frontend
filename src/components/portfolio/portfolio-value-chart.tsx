@@ -17,9 +17,11 @@ import type { PortfolioValueChartProps, PortfolioValueChartTimeframe } from "@/t
 const CHART_CONFIG = {
   value: {
     label: "Portfolio Value",
-    color: "#0CE9A0",
+    color: "var(--chart-green)",
   },
 } satisfies ChartConfig;
+
+const DENSE_DOT_THRESHOLD = 160;
 
 function TimeframeButton({
   interval,
@@ -35,7 +37,7 @@ function TimeframeButton({
       type="button"
       onClick={onSelect}
       className={cn(
-        "min-w-[40px] cursor-pointer rounded-lg px-2.5 py-2 text-sm font-medium transition-colors",
+        "min-w-10 shrink-0 cursor-pointer rounded-lg px-2.5 py-2 text-sm font-medium transition-colors",
         isActive
           ? "border border-primary bg-linear-to-r from-dark-blue via-teal-blue to-dark-blue text-primary"
           : "text-white/60 hover:text-white/80",
@@ -70,15 +72,15 @@ export function PortfolioValueChart({
   return (
     <article
       className={cn(
-        "flex h-full min-h-0 flex-col overflow-hidden rounded-[20px] border border-white/20 bg-white/5 p-4 md:p-6",
+        "flex h-full min-h-[360px] min-w-0 flex-col overflow-hidden rounded-[20px] border border-white/20 bg-white/5 p-4 sm:min-h-[400px] md:p-6",
         className,
       )}
     >
-      <div className="mb-4 flex shrink-0 flex-wrap items-center justify-between gap-3">
-        <h3 className="text-base font-semibold text-white md:text-lg">{title}</h3>
+      <div className="mb-4 flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h3 className="min-w-0 text-base font-semibold text-white md:text-lg">{title}</h3>
 
-        <div className="flex flex-wrap items-center gap-2 h-full">
-          <div className="flex items-center gap-0.5">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <div className="-mx-1 flex min-w-0 max-w-full items-center gap-0.5 overflow-x-auto px-1">
             {timeframes.map((interval) => (
               <TimeframeButton
                 key={interval}
@@ -96,7 +98,7 @@ export function PortfolioValueChart({
             <button
               type="button"
               onClick={onExport}
-              className="inline-flex cursor-pointer items-center gap-2 rounded-[10px] border border-white/5 bg-white/5 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10"
+              className="inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-[10px] border border-white/5 bg-white/5 px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10"
             >
               <PiDownloadFill className="size-4" />
               {exportLabel}
@@ -105,21 +107,21 @@ export function PortfolioValueChart({
         </div>
       </div>
 
-      <div className="relative h-[250px] min-h-0 w-full overflow-hidden md:h-[270px]">
+      <div className="relative min-h-[240px] flex-1 w-full overflow-hidden sm:min-h-[280px] lg:min-h-[320px]">
         <ChartContainer
           config={CHART_CONFIG}
-          initialDimension={{ width: 720, height: 270 }}
+          initialDimension={{ width: 720, height: 320 }}
           className="relative aspect-auto h-full w-full [&_.recharts-cartesian-grid-horizontal_line]:stroke-white/10 [&_.recharts-cartesian-grid-vertical_line]:stroke-white/10"
         >
           {chartData.length > 0 ? (
             <AreaChart
               data={chartData}
-              margin={{ top: 8, right: 14, left: 4, bottom: 28 }}
+              margin={{ top: 8, right: 10, left: 0, bottom: 18 }}
             >
             <defs>
               <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#0CE9A0" stopOpacity={0.35} />
-                <stop offset="100%" stopColor="#0CE9A0" stopOpacity={0} />
+                <stop offset="0%" stopColor="var(--chart-green)" stopOpacity={0.35} />
+                <stop offset="100%" stopColor="var(--chart-green)" stopOpacity={0} />
               </linearGradient>
             </defs>
 
@@ -132,17 +134,18 @@ export function PortfolioValueChart({
               domain={["dataMin", "dataMax"]}
               tickFormatter={(value) => formatPortfolioValueTimestamp(Number(value), timeframe)}
               height={36}
+              interval="preserveStartEnd"
               tickLine={false}
               axisLine={false}
-              tickMargin={10}
-              minTickGap={20}
+              tickMargin={8}
+              minTickGap={32}
               tick={{ fill: "rgba(255,255,255,0.6)", fontSize: 12 }}
             />
 
             <YAxis
               domain={yAxis.domain}
               ticks={yAxis.ticks}
-              width={56}
+              width={64}
               tickLine={false}
               axisLine={false}
               tickMargin={6}
@@ -152,14 +155,19 @@ export function PortfolioValueChart({
             <Area
               type="monotone"
               dataKey="value"
-              stroke="#0CE9A0"
+              stroke="var(--chart-green)"
               strokeWidth={2}
               fill={`url(#${gradientId})`}
-              dot={false}
+              dot={{
+                r: chartData.length > DENSE_DOT_THRESHOLD ? 2 : 4,
+                fill: "var(--chart-green)",
+                stroke: "var(--chart-green-dark)",
+                strokeWidth: chartData.length > DENSE_DOT_THRESHOLD ? 1 : 2,
+              }}
               activeDot={{
-                r: 4,
-                fill: "#0CE9A0",
-                stroke: "#108961",
+                r: 5,
+                fill: "var(--chart-green)",
+                stroke: "var(--chart-green-dark)",
                 strokeWidth: 2,
               }}
             />

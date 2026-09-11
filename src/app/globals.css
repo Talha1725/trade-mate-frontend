@@ -40,6 +40,8 @@
   --color-blue: var(--blue);
   --color-orange: var(--orange);
   --color-cyan: var(--cyan);
+  --color-chart-green: var(--chart-green);
+  --color-chart-green-dark: var(--chart-green-dark);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -62,6 +64,8 @@
   --popover-foreground: oklch(0.145 0 0);
   --primary: #22E0A2;
   --primary-foreground: #0c0c0e;
+  --chart-green: #0CE9A0;
+  --chart-green-dark: #108961;
   --teal-blue: #10896180;
   --dark-blue: #0F172A33;
   --blue: #3B82F6;
