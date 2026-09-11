@@ -60,6 +60,7 @@ export const ROUTES = {
   /** Analytics Module */
   ANALYTICS: {
     OVERVIEW:       `/api/analytics/overview`,
+    PERFORMANCE:    `/api/analytics/performance`,
   },
 
   /** Portfolio Module */

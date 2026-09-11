@@ -15,9 +15,9 @@ import { analyticsApi } from "@/lib/services/analytics.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
 import { useUserAccounts } from "@/hooks/use-user-accounts";
-import type { TradingTimeframe } from "@/types/trading-filter-bar";
+import type { PortfolioValueChartTimeframe } from "@/types/portfolio-value-chart";
 
-const ANALYTICS_TIMEFRAMES: TradingTimeframe[] = ["1m", "5m"];
+const ANALYTICS_TIMEFRAMES: PortfolioValueChartTimeframe[] = ["1W", "1M", "3M"];
 
 export default function AnalyticsPage() {
   const token = useAuthStore((state) => state.session?.token ?? null);
