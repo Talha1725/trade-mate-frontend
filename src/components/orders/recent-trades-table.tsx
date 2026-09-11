@@ -32,7 +32,11 @@ import type {
 import type { StrategyPerformanceRow } from "@/types/strategy-performance";
 import { SortableColumnHeader } from "@/components/sortable-column-header";
 
-function formatUsdPrice(value: number, symbol?: string) {
+function formatUsdPrice(value: number | null, symbol?: string) {
+  if (value == null) {
+    return "N/A";
+  }
+
   return `$${formatTradingPrice(value, symbol)}`;
 }
 

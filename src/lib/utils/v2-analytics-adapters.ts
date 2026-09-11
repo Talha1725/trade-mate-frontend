@@ -290,7 +290,7 @@ function buildStrategyRows(
   return overview.bySymbol.map((row) => ({
     id: row.symbol,
     symbol: row.symbol,
-    price: pricesBySymbol[row.symbol] ?? 0,
+    price: pricesBySymbol[row.symbol] ?? null,
     pnl: row.netPnl,
     pnlTone: pnlTone(row.netPnl),
     winRate: row.winRate,

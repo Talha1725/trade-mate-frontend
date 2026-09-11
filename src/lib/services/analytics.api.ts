@@ -1,6 +1,5 @@
 import { ROUTES } from "@/constant/routes";
 import { get } from "@/lib/utils/api";
-import { getV2MarketSnapshot } from "@/lib/services/v2-market-snapshot.api";
 import {
   mapV2AnalyticsOverview,
   mapV2AnalyticsPerformancePoints,
@@ -12,27 +11,6 @@ import type {
   V2AnalyticsPerformanceResponse,
 } from "@/types/analytics";
 import type { PortfolioValuePoint } from "@/types/portfolio-value-chart";
-
-async function getSymbolPrices(symbols: string[], authToken?: string) {
-  const entries = await Promise.all(
-    symbols.map(async (symbol) => {
-      try {
-        const snapshot = await getV2MarketSnapshot({
-          symbol,
-          interval: "M1",
-          limit: 1,
-          authToken,
-        });
-        const latest = snapshot.candles.at(-1);
-        return [symbol, snapshot.quote?.last ?? latest?.close ?? null] as const;
-      } catch {
-        return [symbol, null] as const;
-      }
-    }),
-  );
-
-  return Object.fromEntries(entries);
-}
 
 export const analyticsApi = {
   async getOverview(
@@ -51,15 +29,10 @@ export const analyticsApi = {
         headers,
       }).catch(() => null),
     ]);
-    const pricesBySymbol = await getSymbolPrices(
-      overview.bySymbol.map((row) => row.symbol),
-      authToken,
-    );
 
     return mapV2AnalyticsOverview({
       overview,
       performanceByRange: performance ? { [range]: performance } : {},
-      pricesBySymbol,
     });
   },
 
