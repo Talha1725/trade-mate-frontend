@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 
 import { AppShell } from "@/components/app-shell";
@@ -16,10 +16,22 @@ import { useAuthStore } from "@/lib/stores/auth-store";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
 import { useUserAccounts } from "@/hooks/use-user-accounts";
 import type { PortfolioValueChartTimeframe } from "@/types/portfolio-value-chart";
+import type {
+  AnalyticsOverviewResponse,
+  V2AnalyticsPerformanceRange,
+} from "@/types/analytics";
 
 const ANALYTICS_TIMEFRAMES: PortfolioValueChartTimeframe[] = ["1W", "1M", "3M"];
+const DEFAULT_ANALYTICS_RANGE: V2AnalyticsPerformanceRange = "1M";
+
+function isAnalyticsPerformanceRange(
+  timeframe: PortfolioValueChartTimeframe,
+): timeframe is V2AnalyticsPerformanceRange {
+  return timeframe === "1W" || timeframe === "1M" || timeframe === "3M";
+}
 
 export default function AnalyticsPage() {
+  const queryClient = useQueryClient();
   const token = useAuthStore((state) => state.session?.token ?? null);
   const selectedAccountId = useSelectedAccountStore((state) => state.selectedAccountId);
   const hasHydrated = useSelectedAccountStore((state) => state.hasHydrated);
@@ -51,13 +63,52 @@ export default function AnalyticsPage() {
     }
   }, [accountListLoaded, hasHydrated, resolvedAccountId, selectedAccountId, setSelectedAccountId]);
 
+  const analyticsQueryKey = React.useMemo(
+    () => ["analytics", resolvedAccountId, token] as const,
+    [resolvedAccountId, token],
+  );
+
   const analyticsQuery = useQuery({
-    queryKey: ["analytics", resolvedAccountId, token],
+    queryKey: analyticsQueryKey,
     enabled: !!token && !!resolvedAccountId,
-    queryFn: () => analyticsApi.getOverview(resolvedAccountId ?? "", token ?? undefined),
+    queryFn: () => analyticsApi.getOverview(resolvedAccountId ?? "", token ?? undefined, DEFAULT_ANALYTICS_RANGE),
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   const analytics = analyticsQuery.data;
+
+  const handleChartTimeframeChange = React.useCallback(
+    async (timeframe: PortfolioValueChartTimeframe) => {
+      if (!token || !resolvedAccountId || !isAnalyticsPerformanceRange(timeframe)) {
+        return;
+      }
+
+      const cached = queryClient.getQueryData<AnalyticsOverviewResponse>(analyticsQueryKey);
+      if (cached?.equityCurve.dataByTimeframe[timeframe]?.length) {
+        return;
+      }
+
+      const points = await analyticsApi.getPerformance(resolvedAccountId, timeframe, token);
+      queryClient.setQueryData<AnalyticsOverviewResponse>(analyticsQueryKey, (current) => {
+        if (!current) {
+          return current;
+        }
+
+        return {
+          ...current,
+          equityCurve: {
+            ...current.equityCurve,
+            dataByTimeframe: {
+              ...current.equityCurve.dataByTimeframe,
+              [timeframe]: points,
+            },
+          },
+        };
+      });
+    },
+    [analyticsQueryKey, queryClient, resolvedAccountId, token],
+  );
 
   if (analyticsQuery.isLoading || !analytics) {
     return (
@@ -96,6 +147,9 @@ export default function AnalyticsPage() {
               dataByTimeframe={analytics.equityCurve.dataByTimeframe}
               timeframes={ANALYTICS_TIMEFRAMES}
               defaultTimeframe={analytics.equityCurve.defaultTimeframe}
+              onTimeframeChange={(timeframe) => {
+                void handleChartTimeframeChange(timeframe);
+              }}
               showExportButton
               emptyStateMessage="No equity curve data available."
               className="h-[400px] w-full xl:h-auto"
