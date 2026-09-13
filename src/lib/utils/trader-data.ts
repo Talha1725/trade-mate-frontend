@@ -22,11 +22,10 @@ import {
   calculateMarginUsd,
   calculateNotionalUsd,
   getInstrumentSpec,
-  type QuotePriceMap,
 } from "@/lib/utils/instrument-spec";
 import { formatNewYorkDate, formatNewYorkDateTime } from "@/lib/utils/date-time";
-
-export type LiveQuoteMap = Record<string, PriceSocketQuote>;
+import type { QuotePriceMap } from "@/types/instrument-spec";
+import type { LiveQuoteMap } from "@/types/trader-data";
 
 function toNumber(value: string | number | null | undefined) {
   if (value == null) {

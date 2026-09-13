@@ -7,12 +7,10 @@ import {
   buildAlignedCompareSeries,
   calculateEma,
   calculateVwap,
-  type VwapCalculationSettings,
 } from "@/lib/utils/chart-indicators";
 import { mergeLiveQuoteIntoCandles } from "@/lib/utils/merge-live-quote-candles";
-import type { ChartCandle, ChartLiveQuote } from "@/types/eodhd";
-import type { ChartIndicatorId } from "@/types/lightweight-trading-chart";
-import type { TradingTimeframe } from "@/types/trading-filter-bar";
+import type { ChartCandle } from "@/types/eodhd";
+import type { UseChartDataOptions } from "@/types/chart/chart-component-props";
 
 const EMPTY_CANDLES: ChartCandle[] = [];
 const MIN_OLDER_CANDLE_LOADER_MS = 500;
@@ -28,19 +26,6 @@ function mergeCandles(...candleGroups: Array<ChartCandle[] | undefined>) {
 
   return [...candlesByTime.values()].sort((left, right) => left.time - right.time);
 }
-
-type UseChartDataOptions = {
-  symbol: string;
-  compareSymbol: string | null;
-  timeframe: TradingTimeframe;
-  liveQuote: ChartLiveQuote | null;
-  compareLiveQuote: ChartLiveQuote | null;
-  initialCandles?: ChartCandle[];
-  initialCompareCandles?: ChartCandle[];
-  enabledIndicators: ChartIndicatorId[];
-  emaPeriod: number;
-  vwapSettings: VwapCalculationSettings;
-};
 
 export function useChartData({
   symbol,

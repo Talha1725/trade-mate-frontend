@@ -29,6 +29,17 @@ export type SettingsOverviewResponse = {
   account: SettingsOverviewAccount | null;
 };
 
+export type UpdateSettingsProfilePayload = {
+  name?: string;
+  avatarUrl?: string | null;
+};
+
+export type UpdateSettingsPasswordPayload = {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword?: string;
+};
+
 export type SettingsAvatarPresignResponse = {
   key: string;
   uploadUrl: string;

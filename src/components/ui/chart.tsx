@@ -5,27 +5,12 @@ import * as RechartsPrimitive from "recharts"
 import type { TooltipValueType } from "recharts"
 
 import { cn } from "@/lib/utils"
+import type { ChartConfig, ChartContextProps, TooltipNameType } from "@/types/ui-chart"
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const
 
 const INITIAL_DIMENSION = { width: 320, height: 200 } as const
-type TooltipNameType = number | string
-
-export type ChartConfig = Record<
-  string,
-  {
-    label?: React.ReactNode
-    icon?: React.ComponentType
-  } & (
-    | { color?: string; theme?: never }
-    | { color?: never; theme: Record<keyof typeof THEMES, string> }
-  )
->
-
-type ChartContextProps = {
-  config: ChartConfig
-}
 
 const ChartContext = React.createContext<ChartContextProps | null>(null)
 
@@ -364,6 +349,7 @@ function getPayloadConfigFromPayload(
 }
 
 export {
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,

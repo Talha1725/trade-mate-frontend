@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import type { TradingSide } from "@/types/trading-table-cells";
 
 export const TRADING_TABLE_ROW_CLASS =
   "border-white/10 hover:bg-white/5 data-[state=selected]:bg-white/5 has-aria-expanded:!bg-muted/10";
@@ -67,8 +68,6 @@ export function formatSignedCurrency(value: number) {
     maximumFractionDigits: 2,
   })}`;
 }
-
-type TradingSide = "Buy" | "Sell" | "buy" | "sell";
 
 export function TradingSideBadge({ side }: { side: TradingSide }) {
   const isBuy = side === "Buy" || side === "buy";

@@ -115,6 +115,5 @@ export const PUBLIC_PATHS = new Set([
   "/reset-password",
 ])
 
-export type RoutesType = typeof ROUTES
 
 export default ROUTES

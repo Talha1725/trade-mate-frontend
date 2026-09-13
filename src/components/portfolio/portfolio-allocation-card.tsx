@@ -3,7 +3,8 @@
 import Image from "next/image";
 import { Cell, Pie, PieChart } from "recharts";
 
-import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
+import { ChartContainer } from "@/components/ui/chart";
+import type { ChartConfig } from "@/types/ui-chart";
 import {
   mockPortfolioAllocationItems,
   PORTFOLIO_ALLOCATION_BACKGROUND_IMAGE,

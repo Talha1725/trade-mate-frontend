@@ -2,15 +2,7 @@
 
 import { create } from "zustand";
 
-import type { AccountMetricsSummary } from "@/types";
-
-type LiveAccountSnapshotStore = {
-  summariesByAccountId: Record<string, AccountMetricsSummary>;
-  openOrderCountsByAccountId: Record<string, number>;
-  setAccountSummary: (summary: AccountMetricsSummary) => void;
-  setOpenOrderCount: (accountId: string, count: number) => void;
-  clearAccountSnapshot: (accountId?: string | null) => void;
-};
+import type { LiveAccountSnapshotStore } from "@/types/live-account-snapshot-store";
 
 export const useLiveAccountSnapshotStore = create<LiveAccountSnapshotStore>()(
   (set) => ({

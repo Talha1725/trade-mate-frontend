@@ -4,19 +4,10 @@ import type { AuthApiUser } from "@/types/auth";
 import type {
   SettingsOverviewResponse,
   SettingsOverviewAccount,
+  UpdateSettingsPasswordPayload,
+  UpdateSettingsProfilePayload,
 } from "@/types/settings";
 import type { V2Account, V2AccountListResponse } from "@/types/v2-dashboard";
-
-export type UpdateSettingsProfilePayload = {
-  name?: string;
-  avatarUrl?: string | null;
-};
-
-export type UpdateSettingsPasswordPayload = {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword?: string;
-};
 
 function resolveAccount(response: V2AccountListResponse, accountId?: string | null) {
   const accounts = Array.isArray(response) ? response : response.accounts;

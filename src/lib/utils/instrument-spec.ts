@@ -1,14 +1,4 @@
-import type { AssetCategory } from "@/types/asset";
-
-export type InstrumentSpec = {
-  symbol: string;
-  assetClass: AssetCategory;
-  contractSize: number;
-  quoteCurrency: string;
-  leverage: number;
-};
-
-export type QuotePriceMap = Record<string, number | null | undefined>;
+import type { InstrumentSpec, QuotePriceMap } from "@/types/instrument-spec";
 
 const FOREX_PREFIXES = ["AUD", "CAD", "CHF", "EUR", "GBP", "JPY", "NZD", "USD"];
 

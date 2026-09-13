@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import type { PageHeaderProps } from "@/types";
+import type { DesktopDownloadPlatform, DesktopReleaseManifest } from "@/types/page-header";
 import { PlaceOrderDialog } from "@/components/place-order-dialog";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { get } from "@/lib/utils/api";
@@ -54,34 +55,6 @@ const DESKTOP_DOWNLOAD_LINKS = [
     icon: MonitorIcon,
   },
 ] as const;
-
-type DesktopDownloadPlatform = (typeof DESKTOP_DOWNLOAD_LINKS)[number]["platform"];
-
-type DesktopReleaseManifest = {
-  version?: string;
-  releasedAt?: string;
-  notes?: string;
-  macUrl?: string;
-  windowsUrl?: string;
-  downloads?: {
-    mac?: {
-      url?: string;
-      fileName?: string;
-    };
-    macArm64?: {
-      url?: string;
-      fileName?: string;
-    };
-    macIntel?: {
-      url?: string;
-      fileName?: string;
-    };
-    windows?: {
-      url?: string;
-      fileName?: string;
-    };
-  };
-};
 
 function getReleaseDownloadUrl(
   release: DesktopReleaseManifest | null,

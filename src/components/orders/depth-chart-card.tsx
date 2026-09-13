@@ -11,7 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
+import { ChartContainer } from "@/components/ui/chart";
+import type { ChartConfig } from "@/types/ui-chart";
 import {
   DEPTH_CHART_AXIS_TICKS,
   DEPTH_CHART_CENTER_PRICE,

@@ -5,7 +5,8 @@ import type { PortfolioAccount, PortfolioPosition } from "@/types/dashboard";
 import type { PortfolioOpenPositionRow } from "@/types/portfolio-open-positions";
 import { resolveUrfxPlanKey } from "@/lib/utils/urfx-pricing";
 import type { UrfxPricingPlanKey } from "@/types/urfx-pricing";
-import { calculateNotionalUsd, getInstrumentSpec, type QuotePriceMap } from "@/lib/utils/instrument-spec";
+import { calculateNotionalUsd, getInstrumentSpec } from "@/lib/utils/instrument-spec";
+import type { QuotePriceMap } from "@/types/instrument-spec";
 
 const PROFIT_TARGET_PERCENT_BY_PLAN: Record<UrfxPricingPlanKey, number> = {
   onePhase: 10,

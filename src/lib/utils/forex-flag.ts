@@ -1,5 +1,6 @@
 import { normalizeTradingSymbol } from "@/lib/utils/market-symbol-icon";
 import type { CryptoIconCode } from "@/types/asset-icon";
+import type { ResolvedForexPairIcon } from "@/types/forex-flag";
 
 const FOREX_CURRENCY_COUNTRY_MAP: Record<string, string> = {
   EUR: "EU",
@@ -15,17 +16,6 @@ const FOREX_CURRENCY_COUNTRY_MAP: Record<string, string> = {
 const FOREX_COMMODITY_ICON_MAP: Record<string, CryptoIconCode> = {
   XAU: "gold",
 };
-
-export type ResolvedForexPairIcon =
-  | {
-      kind: "forex";
-      flagCodes: [string, string];
-    }
-  | {
-      kind: "forex-mixed";
-      cryptoCode: CryptoIconCode;
-      quoteFlag: string;
-    };
 
 export function resolveForexPairIcon(symbol: string): ResolvedForexPairIcon | null {
   const normalized = normalizeTradingSymbol(symbol);
