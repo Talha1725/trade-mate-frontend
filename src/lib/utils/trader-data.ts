@@ -25,7 +25,7 @@ import {
 } from "@/lib/utils/instrument-spec";
 import { formatNewYorkDate, formatNewYorkDateTime } from "@/lib/utils/date-time";
 import type { QuotePriceMap } from "@/types/instrument-spec";
-import type { LiveQuoteMap } from "@/types/trader-data";
+import type { LiveQuoteMap } from "@/lib/utils/trader-data.types";
 
 function toNumber(value: string | number | null | undefined) {
   if (value == null) {

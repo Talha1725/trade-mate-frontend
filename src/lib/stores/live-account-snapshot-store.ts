@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 
-import type { LiveAccountSnapshotStore } from "@/types/live-account-snapshot-store";
+import type { LiveAccountSnapshotStore } from "@/lib/stores/live-account-snapshot-store.types";
 
 export const useLiveAccountSnapshotStore = create<LiveAccountSnapshotStore>()(
   (set) => ({

@@ -2,7 +2,7 @@ import type * as React from "react";
 import type { IChartApi, ISeriesApi } from "lightweight-charts";
 
 import type { ChartCandle, ChartLiveQuote } from "@/types/eodhd";
-import type { VwapCalculationSettings, VwapPoint } from "@/types/chart-indicators";
+import type { VwapCalculationSettings, VwapPoint } from "@/types/chart/chart-indicators";
 import type { ChartIndicatorId, ChartToolId, MagnetMode } from "@/types/lightweight-trading-chart";
 import type { TradingTimeframe } from "@/types/trading-filter-bar";
 

@@ -1,5 +1,5 @@
 import type { PortfolioPosition, PortfolioTrade } from "@/types/dashboard";
-import type { LivePositionMergeOptions } from "@/types/live-portfolio";
+import type { LivePositionMergeOptions } from "@/lib/utils/live-portfolio.types";
 
 /**
  * Live portfolio messages may contain only records changed by the latest

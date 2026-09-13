@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import type { PageHeaderProps } from "@/types";
-import type { DesktopDownloadPlatform, DesktopReleaseManifest } from "@/types/page-header";
+import type { DesktopDownloadPlatform, DesktopReleaseManifest } from "@/components/page-header.types";
 import { PlaceOrderDialog } from "@/components/place-order-dialog";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { get } from "@/lib/utils/api";

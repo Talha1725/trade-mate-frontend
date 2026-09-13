@@ -1,4 +1,4 @@
-import type { StablePositionLike, StablePositionMergeOptions } from "@/types/stable-positions";
+import type { StablePositionLike, StablePositionMergeOptions } from "@/lib/utils/stable-positions.types";
 
 export function mergeStablePositions<T extends StablePositionLike>(
   current: T[],

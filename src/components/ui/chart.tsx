@@ -5,7 +5,7 @@ import * as RechartsPrimitive from "recharts"
 import type { TooltipValueType } from "recharts"
 
 import { cn } from "@/lib/utils"
-import type { ChartConfig, ChartContextProps, TooltipNameType } from "@/types/ui-chart"
+import type { ChartConfig, ChartContextProps, TooltipNameType } from "@/components/ui/chart.types"
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const

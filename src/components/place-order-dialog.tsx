@@ -30,7 +30,7 @@ import {
   getSupplementalQuoteSymbol,
 } from "@/lib/utils/instrument-spec";
 import type { PriceSocketQuote } from "@/types/price";
-import type { PlaceOrderDialogProps } from "@/types/place-order-dialog";
+import type { PlaceOrderDialogProps } from "@/components/place-order-dialog.types";
 import { SymbolSelector } from "@/components/symbol-selector";
 
 function parseOptionalPrice(value: string) {

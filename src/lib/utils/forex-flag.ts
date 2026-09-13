@@ -1,6 +1,6 @@
 import { normalizeTradingSymbol } from "@/lib/utils/market-symbol-icon";
 import type { CryptoIconCode } from "@/types/asset-icon";
-import type { ResolvedForexPairIcon } from "@/types/forex-flag";
+import type { ResolvedForexPairIcon } from "@/lib/utils/forex-flag.types";
 
 const FOREX_CURRENCY_COUNTRY_MAP: Record<string, string> = {
   EUR: "EU",

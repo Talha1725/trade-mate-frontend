@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ChartContainer } from "@/components/ui/chart";
-import type { ChartConfig } from "@/types/ui-chart";
+import type { ChartConfig } from "@/components/ui/chart.types";
 import {
   DEPTH_CHART_AXIS_TICKS,
   DEPTH_CHART_CENTER_PRICE,

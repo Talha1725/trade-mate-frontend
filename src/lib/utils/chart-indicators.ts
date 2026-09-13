@@ -1,5 +1,5 @@
 import type { ChartCandle, ChartIndicatorPoint } from "@/types/eodhd";
-import type { VwapAnchorPeriod, VwapCalculationSettings, VwapPoint, VwapSource } from "@/types/chart-indicators";
+import type { VwapAnchorPeriod, VwapCalculationSettings, VwapPoint, VwapSource } from "@/types/chart/chart-indicators";
 
 export const DEFAULT_VWAP_CALCULATION: VwapCalculationSettings = {
   source: "hlc3",

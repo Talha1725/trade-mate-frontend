@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import type { TradingSide } from "@/types/trading-table-cells";
+import type { TradingSide } from "@/components/shared/trading-table-cells.types";
 
 export const TRADING_TABLE_ROW_CLASS =
   "border-white/10 hover:bg-white/5 data-[state=selected]:bg-white/5 has-aria-expanded:!bg-muted/10";

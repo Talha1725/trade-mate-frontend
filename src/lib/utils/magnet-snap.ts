@@ -1,5 +1,5 @@
 import type { MagnetMode } from "@/types/lightweight-trading-chart";
-import type { MagnetCandle, MagnetSeries, MagnetSettings, MagnetSnapField, MagnetSnapResult, MagnetTimeScale } from "@/types/magnet-snap";
+import type { MagnetCandle, MagnetSeries, MagnetSettings, MagnetSnapField, MagnetSnapResult, MagnetTimeScale } from "@/lib/utils/magnet-snap.types";
 
 export function getEffectiveMagnetMode(configuredMode: MagnetMode, modifierActive: boolean): MagnetMode {
   if (!modifierActive) return configuredMode;

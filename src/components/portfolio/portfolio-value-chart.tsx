@@ -5,7 +5,7 @@ import { PiDownloadFill } from "react-icons/pi";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import { ChartContainer } from "@/components/ui/chart";
-import type { ChartConfig } from "@/types/ui-chart";
+import type { ChartConfig } from "@/components/ui/chart.types";
 import { TRADING_TIMEFRAMES } from "@/constants/trading-timeframes";
 import {
   getPortfolioValueYAxisTicks,

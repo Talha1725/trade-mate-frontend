@@ -2,7 +2,7 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 import { ChevronDownIcon } from "lucide-react"
-import type { NativeSelectProps } from "@/types/ui-native-select"
+import type { NativeSelectProps } from "@/components/ui/native-select.types"
 
 function NativeSelect({
   className,

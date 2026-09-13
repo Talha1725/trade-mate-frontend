@@ -1,5 +1,5 @@
 import type { TradingTimeframe } from "@/types/trading-filter-bar";
-import type { EodhdFetchPlan } from "@/types/eodhd-fetch-plan";
+import type { EodhdFetchPlan } from "@/lib/utils/map-timeframe-to-eodhd.types";
 
 export function mapTimeframeToEodhdPlan(timeframe: TradingTimeframe): EodhdFetchPlan {
   switch (timeframe) {

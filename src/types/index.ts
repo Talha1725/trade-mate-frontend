@@ -76,24 +76,8 @@ export type * from "@/types/challenge-progress-card";
 export type * from "@/types/analytics";
 export type * from "@/types/trading-calendar-card";
 export type * from "@/types/trading-table-card";
-export type * from "@/types/chart-indicators";
-export type * from "@/types/eodhd-fetch-plan";
-export type * from "@/types/forex-flag";
 export type * from "@/types/instrument-spec";
-export type * from "@/types/live-account-snapshot-store";
-export type * from "@/types/live-portfolio";
-export type * from "@/types/magnet-snap";
-export type * from "@/types/page-header";
-export type * from "@/types/place-order-dialog";
-export type * from "@/types/routes";
-export type * from "@/types/stable-positions";
-export type * from "@/types/trader-data";
-export type * from "@/types/trading-table-cells";
-export type * from "@/types/ui-carousel";
-export type * from "@/types/ui-chart";
-export type * from "@/types/ui-native-select";
-export type * from "@/types/ui-pagination";
-export type * from "@/types/ui-sidebar";
+export type * from "@/types/chart/chart-indicators";
 export type {
   AccountMetricsSummary,
   TradeClosePayload,
