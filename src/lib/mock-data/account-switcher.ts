@@ -1,4 +1,4 @@
-import type { AccountSwitcherItem } from "@/types/account-switcher";
+import type { AccountSwitcherItem } from "@/components/account-switcher-dropdown.types";
 
 export const DEFAULT_ACCOUNT_SWITCHER_ID = "91396";
 

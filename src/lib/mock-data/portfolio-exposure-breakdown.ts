@@ -1,4 +1,4 @@
-import type { PortfolioExposureItem } from "@/types/portfolio-exposure-breakdown";
+import type { PortfolioExposureItem } from "@/components/portfolio/types";
 
 export const PORTFOLIO_EXPOSURE_BACKGROUND_IMAGE = "/images/portfolio/cube.png";
 

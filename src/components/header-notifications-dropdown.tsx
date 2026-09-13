@@ -15,7 +15,7 @@ import type {
   HeaderNotificationItem,
   HeaderNotificationsDropdownProps,
   HeaderNotificationStatus,
-} from "@/types/header-notifications";
+} from "@/components/header-notifications-dropdown.types";
 
 function StatusBadge({ status }: { status: HeaderNotificationStatus }) {
   return (

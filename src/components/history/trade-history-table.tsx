@@ -38,7 +38,7 @@ import { downloadTextFile } from "@/lib/utils/download";
 import { mockTrades } from "@/lib/mock-data/trades";
 import { SIDEBAR_ICONS } from "@/lib/mock-data/sidebar-icons";
 import { cn } from "@/lib/utils";
-import type { TradeHistoryTableProps } from "@/types/trade-history";
+import type { TradeHistoryTableProps } from "@/components/history/types";
 import type { Trade } from "@/types/trade";
 import { formatNewYorkDateTime } from "@/lib/utils/date-time";
 

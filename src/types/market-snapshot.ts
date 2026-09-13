@@ -1,4 +1,4 @@
-import type { SparklineDatum } from "@/types/sparkline-chart";
+import type { SparklineDatum } from "@/components/dashboard/types";
 import type { ChartCandle } from "@/types/eodhd";
 
 export type MarketSnapshotBadgeIcon = "momentum" | "risk";

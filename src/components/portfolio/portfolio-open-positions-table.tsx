@@ -17,7 +17,7 @@ import type {
   PortfolioOpenPositionsTableProps,
 } from "@/types/portfolio-open-positions";
 import type { MarketWatchIcon } from "@/types/market-watch-card";
-import type { OpenPositionSide } from "@/types/open-positions-strip";
+import type { OpenPositionSide } from "@/components/dashboard/types";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 function formatSize(value: number, unit: string) {

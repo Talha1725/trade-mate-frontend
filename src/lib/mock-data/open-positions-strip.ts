@@ -1,4 +1,4 @@
-import type { OpenPositionStripItem } from "@/types/open-positions-strip";
+import type { OpenPositionStripItem } from "@/components/dashboard/types";
 
 export const mockOpenPositionsStrip: OpenPositionStripItem[] = [
   {

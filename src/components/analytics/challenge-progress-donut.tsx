@@ -4,7 +4,7 @@ import { useId } from "react";
 
 import { CHALLENGE_PROGRESS_DONUT_INSET_SHADOW } from "@/lib/mock-data/challenge-progress";
 import { cn } from "@/lib/utils";
-import type { ChallengeProgressDonutProps } from "@/types/challenge-progress-card";
+import type { ChallengeProgressDonutProps } from "@/components/analytics/types";
 
 function buildRingMask(size: number, strokeWidth: number) {
   const innerRadius = size / 2 - strokeWidth;

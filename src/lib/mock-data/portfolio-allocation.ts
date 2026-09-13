@@ -1,4 +1,4 @@
-import type { PortfolioAllocationItem } from "@/types/portfolio-allocation";
+import type { PortfolioAllocationItem } from "@/components/portfolio/types";
 
 export const PORTFOLIO_ALLOCATION_BACKGROUND_IMAGE = "/images/portfolio/mask.png";
 

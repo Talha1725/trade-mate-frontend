@@ -4,7 +4,7 @@ import * as React from "react";
 import { Loader2Icon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/stores/auth-store";
-import type { RouteGuardProps } from "@/types";
+import type { RouteGuardProps } from "@/components/auth/types";
 
 export function RouteGuard({ children, requiredRole }: RouteGuardProps) {
   const router = useRouter();

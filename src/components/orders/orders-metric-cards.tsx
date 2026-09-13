@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import type {
   OrdersMetricCard,
   OrdersMetricCardsProps,
-} from "@/types/orders-metric-card";
+} from "@/components/orders/types";
 
 function MetricIconBox({ iconSrc }: { iconSrc: string }) {
   return (

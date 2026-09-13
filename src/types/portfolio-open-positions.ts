@@ -1,5 +1,5 @@
 import type { MarketWatchIcon } from "@/types/market-watch-card";
-import type { OpenPositionSide } from "@/types/open-positions-strip";
+import type { OpenPositionSide } from "@/components/dashboard/types";
 
 export type PortfolioOpenPositionRisk = "low" | "medium" | "high";
 

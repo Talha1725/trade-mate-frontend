@@ -1,4 +1,4 @@
-import type { PortfolioTopMoverItem } from "@/types/portfolio-top-movers";
+import type { PortfolioTopMoverItem } from "@/components/portfolio/types";
 
 export const PORTFOLIO_TOP_MOVERS_BACKGROUND_IMAGE = "/images/portfolio/trending.png";
 

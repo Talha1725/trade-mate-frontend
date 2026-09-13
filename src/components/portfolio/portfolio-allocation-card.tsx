@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import type {
   PortfolioAllocationCardProps,
   PortfolioAllocationItem,
-} from "@/types/portfolio-allocation";
+} from "@/components/portfolio/types";
 
 function formatAllocationValue(value: number) {
   return new Intl.NumberFormat("en-US", {

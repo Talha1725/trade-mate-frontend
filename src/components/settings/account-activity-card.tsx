@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import type {
   AccountActivityCardProps,
   AccountActivityRow,
-} from "@/types/account-activity-card";
+} from "@/components/settings/types";
 
 function AccountActivityRowValue({
   row,

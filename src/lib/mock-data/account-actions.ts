@@ -1,4 +1,4 @@
-import type { AccountActionItem } from "@/types/account-actions-card";
+import type { AccountActionItem } from "@/components/settings/types";
 
 export const ACCOUNT_ACTION_EXPORT_ICON = "/images/setting/export.svg";
 export const ACCOUNT_ACTION_DOWNLOAD_ICON = "/images/setting/download.svg";

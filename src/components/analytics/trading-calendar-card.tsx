@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import type {
   TradingCalendarCardProps,
   TradingCalendarDay,
-} from "@/types/trading-calendar-card";
+} from "@/components/analytics/types";
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));

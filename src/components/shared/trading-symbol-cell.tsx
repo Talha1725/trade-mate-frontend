@@ -3,7 +3,7 @@
 import { AssetIcon } from "@/components/shared/asset-icon";
 import { formatTradingSymbolLabel } from "@/lib/utils/market-symbol-icon";
 import { cn } from "@/lib/utils";
-import type { TradingSymbolCellProps } from "@/types/trading-symbol-cell";
+import type { TradingSymbolCellProps } from "@/components/shared/types";
 
 export function TradingSymbolCell({ symbol, className }: TradingSymbolCellProps) {
   const label = formatTradingSymbolLabel(symbol);

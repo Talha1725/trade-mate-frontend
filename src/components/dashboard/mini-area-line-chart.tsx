@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import type {
   MiniAreaLineChartPalette,
   MiniAreaLineChartProps,
-} from "@/types/mini-area-line-chart";
+} from "@/components/dashboard/types";
 
 const MINI_LINE_PALETTES: Record<
   MiniAreaLineChartPalette,

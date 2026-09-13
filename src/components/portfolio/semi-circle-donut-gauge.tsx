@@ -3,7 +3,7 @@
 import { useId } from "react";
 
 import { cn } from "@/lib/utils";
-import type { SemiCircleDonutGaugeProps } from "@/types/semi-circle-donut-gauge";
+import type { SemiCircleDonutGaugeProps } from "@/components/portfolio/types";
 
 function formatGaugePercent(value: number) {
   const clampedValue = Math.min(100, Math.max(0, value));

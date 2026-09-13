@@ -6,7 +6,7 @@ import { PiDownloadFill } from "react-icons/pi";
 
 import { cn } from "@/lib/utils";
 import { ResponsiveTableScroll } from "@/components/shared/responsive-table-scroll";
-import type { TradingTableCardProps } from "@/types/trading-table-card";
+import type { TradingTableCardProps } from "@/components/shared/types";
 
 export function TradingTableCard({
   title,

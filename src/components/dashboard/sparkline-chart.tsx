@@ -2,7 +2,7 @@
 
 import { MiniAreaLineChart } from "@/components/dashboard/mini-area-line-chart";
 import { cn } from "@/lib/utils";
-import type { SparklineChartProps } from "@/types/sparkline-chart";
+import type { SparklineChartProps } from "@/components/dashboard/types";
 
 export function SparklineChart({
   data,

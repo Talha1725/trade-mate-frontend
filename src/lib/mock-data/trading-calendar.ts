@@ -1,4 +1,4 @@
-import type { TradingCalendarTileTone } from "@/types/trading-calendar-card";
+import type { TradingCalendarTileTone } from "@/components/analytics/types";
 
 export const TRADING_CALENDAR_WEEKDAYS = [
   "SUN",

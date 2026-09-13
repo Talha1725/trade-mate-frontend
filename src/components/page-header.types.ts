@@ -1,3 +1,14 @@
+import type { ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
+
+export type PageHeaderProps = {
+  title: string;
+  description?: string;
+  icon?: LucideIcon;
+  actions?: ReactNode;
+  className?: string;
+};
+
 export type DesktopDownloadPlatform = "macArm64" | "macIntel" | "windows";
 
 export type DesktopReleaseManifest = {

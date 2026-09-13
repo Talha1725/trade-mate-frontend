@@ -9,7 +9,7 @@ import type {
   OpenPositionStripItem,
   OpenPositionsStripCardProps,
   PositionCardProps,
-} from "@/types/open-positions-strip";
+} from "@/components/dashboard/types";
 import Link from "next/link";
 
 function formatPnl(value: number) {

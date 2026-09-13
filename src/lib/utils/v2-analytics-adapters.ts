@@ -4,7 +4,7 @@ import { formatSignedCurrency } from "@/components/shared/trading-table-cells";
 import type { PortfolioMetricCard } from "@/types/portfolio-metric-card";
 import type { PortfolioValuePoint } from "@/types/portfolio-value-chart";
 import type { StrategyPerformanceRow } from "@/types/strategy-performance";
-import type { TradingCalendarDay, TradingCalendarCardProps } from "@/types/trading-calendar-card";
+import type { TradingCalendarDay, TradingCalendarCardProps } from "@/components/analytics/types";
 import { ANALYTICS_RANGES } from "@/constants/analytics";
 
 function formatCurrency(value: number, currency = "USD") {

@@ -4,7 +4,7 @@ import { ArrowDownIcon, ArrowUpDownIcon, ArrowUpIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { SortableColumnHeaderProps } from "@/types";
+import type { SortableColumnHeaderProps } from "@/components/sortable-column-header.types";
 
 export function SortableColumnHeader<TData, TValue = unknown>({
   column,

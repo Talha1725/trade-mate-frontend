@@ -12,8 +12,8 @@ import { PageHeader } from "@/components/page-header";
 import { settingsApi } from "@/lib/services/settings.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
-import type { AccountInformationStat } from "@/types/account-information-card";
-import type { SettingsDialogView } from "@/types/settings";
+import type { AccountInformationStat } from "@/components/settings/types";
+import type { SettingsDialogView } from "@/components/settings-dialog.types";
 
 function formatFundingType(fundingType: string | null | undefined) {
   if (!fundingType) {

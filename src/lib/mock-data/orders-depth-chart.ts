@@ -1,4 +1,4 @@
-import type { DepthChartLevel, DepthChartPoint } from "@/types/orders-depth-chart";
+import type { DepthChartLevel, DepthChartPoint } from "@/components/orders/types";
 
 export const DEPTH_CHART_LEVELS: DepthChartLevel[] = ["100", "250", "500"];
 

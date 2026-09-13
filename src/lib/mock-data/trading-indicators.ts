@@ -1,4 +1,4 @@
-import type { TradingIndicatorItem } from "@/types/trading-indicators";
+import type { TradingIndicatorItem } from "@/components/dashboard/types";
 
 export const DEFAULT_INDICATOR_TEMPLATE_LABEL = "EMA 20, EMA 50, VWAP, BB20";
 

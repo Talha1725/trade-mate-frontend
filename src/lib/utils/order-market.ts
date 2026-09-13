@@ -1,7 +1,7 @@
-import type { OrdersMetricCard } from "@/types/orders-metric-card";
+import type { OrdersMetricCard } from "@/components/orders/types";
 import type { MarketCandle, MarketQuote } from "@/types/market";
 import type { OrderBookRow, OrderBookSnapshot } from "@/types/order-book";
-import type { DepthChartPoint } from "@/types/orders-depth-chart";
+import type { DepthChartPoint } from "@/components/orders/types";
 import type { OrderDepthChartResponse } from "@/types/orders";
 import type { PortfolioAccount, PortfolioPosition, PortfolioTrade } from "@/types/dashboard";
 

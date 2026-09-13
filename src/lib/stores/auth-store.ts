@@ -7,7 +7,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { loginApi } from "@/lib/services/auth.api";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
 import { useLiveAccountSnapshotStore } from "@/lib/stores/live-account-snapshot-store";
-import type { AuthStore } from "@/types";
+import type { AuthStore } from "@/types/auth";
 
 export const useAuthStore = create<AuthStore>()(
   persist(

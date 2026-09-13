@@ -1,8 +1,8 @@
-import type { ChallengeProgressCardProps } from "@/types/challenge-progress-card";
+import type { ChallengeProgressCardProps } from "@/components/analytics/types";
 import type { PortfolioMetricCard } from "@/types/portfolio-metric-card";
 import type { PortfolioValueChartTimeframe } from "@/types/portfolio-value-chart";
 import type { PortfolioValuePoint } from "@/types/portfolio-value-chart";
-import type { TradingCalendarCardProps } from "@/types/trading-calendar-card";
+import type { TradingCalendarCardProps } from "@/components/analytics/types";
 import type { StrategyPerformanceRow } from "@/types/strategy-performance";
 
 export type V2AnalyticsPerformanceRange = "1W" | "1M" | "3M";

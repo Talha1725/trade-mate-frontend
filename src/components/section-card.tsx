@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-import type { SectionCardProps } from "@/types";
+import type { SectionCardProps } from "@/components/section-card.types";
 
 export function SectionCard({
   title,

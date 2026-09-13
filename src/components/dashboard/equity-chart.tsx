@@ -2,7 +2,7 @@
 
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { SectionCard } from "@/components/section-card";
-import type { EquityChartProps } from "@/types";
+import type { EquityChartProps } from "@/components/dashboard/types";
 
 export function EquityChart({ data }: EquityChartProps) {
   const chartData = data ?? [];

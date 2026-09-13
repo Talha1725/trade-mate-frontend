@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import type {
   CompareAssetItem,
   CompareAssetsDropdownProps,
-} from "@/types/trading-compare-assets";
+} from "@/components/dashboard/types";
 import type { TradingFilterBarAsset } from "@/types/trading-filter-bar";
 
 function mapAssetToCompareItem(asset: TradingFilterBarAsset): CompareAssetItem {

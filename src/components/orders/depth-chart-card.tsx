@@ -23,7 +23,7 @@ import {
   mockDepthChartData,
 } from "@/lib/mock-data/orders-depth-chart";
 import { cn } from "@/lib/utils";
-import type { DepthChartCardProps, DepthChartLevel } from "@/types/orders-depth-chart";
+import type { DepthChartCardProps, DepthChartLevel } from "@/components/orders/types";
 
 const BID_COLOR = "#00FFA3";
 const ASK_COLOR = "#FF4D4D";

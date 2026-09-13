@@ -2,7 +2,7 @@
 
 import { SectionCard } from "@/components/section-card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
-import type { BreakdownWidgetsProps } from "@/types";
+import type { BreakdownWidgetsProps } from "@/components/dashboard/types";
 
 export function BreakdownWidgets({ data }: BreakdownWidgetsProps) {
   const chartData = data ?? [];

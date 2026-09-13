@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import type {
   AccountInformationCardProps,
   AccountInformationStat,
-} from "@/types/account-information-card";
+} from "@/components/settings/types";
 
 function AccountStatBox({ stat }: { stat: AccountInformationStat }) {
   return (

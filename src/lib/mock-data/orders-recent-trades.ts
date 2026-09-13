@@ -1,4 +1,4 @@
-import type { RecentTradeRow } from "@/types/orders-recent-trades";
+import type { RecentTradeRow } from "@/components/orders/types";
 
 export const mockRecentTrades: RecentTradeRow[] = [
   {

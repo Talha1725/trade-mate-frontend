@@ -16,7 +16,7 @@ import type { Position, Trade } from "@/types/trade";
 import { getTradingSymbolAliases, resolveMarketWatchIcon } from "@/lib/utils/market-symbol-icon";
 import type { PortfolioOpenPositionRow } from "@/types/portfolio-open-positions";
 import type { ActiveOrderRow } from "@/types/active-orders";
-import type { RecentTradeRow } from "@/types/orders-recent-trades";
+import type { RecentTradeRow } from "@/components/orders/types";
 import type { PriceSocketQuote } from "@/types/price";
 import {
   calculateMarginUsd,

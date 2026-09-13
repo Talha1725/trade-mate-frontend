@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatMarketPrice } from "@/lib/utils/market-price";
-import type { RecentActivityProps } from "@/types";
+import type { RecentActivityProps } from "@/components/dashboard/types";
 
 export function RecentActivity({ items }: RecentActivityProps) {
   const data = items ?? [];

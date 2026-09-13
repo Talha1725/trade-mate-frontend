@@ -10,7 +10,8 @@ import Link from "next/link";
 
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { cn } from "@/lib/utils";
-import type { AuthStatus, LoginFormValues, LoginFormProps } from "@/types";
+import type { LoginFormProps } from "@/components/auth/types";
+import type { AuthStatus, LoginFormValues } from "@/types/auth";
 
 const initialValues: LoginFormValues = {
   email: "",

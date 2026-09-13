@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 import type {
   IndicatorsDropdownProps,
   TradingIndicatorItem,
-} from "@/types/trading-indicators";
+} from "@/components/dashboard/types";
 import Image from "next/image";
 
 function IndicatorRow({

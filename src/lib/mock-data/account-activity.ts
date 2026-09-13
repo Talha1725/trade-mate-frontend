@@ -1,4 +1,4 @@
-import type { AccountActivityRow } from "@/types/account-activity-card";
+import type { AccountActivityRow } from "@/components/settings/types";
 
 export const mockAccountActivityRows: AccountActivityRow[] = [
   {

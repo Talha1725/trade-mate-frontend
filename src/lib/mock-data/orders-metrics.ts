@@ -1,4 +1,4 @@
-import type { OrdersMetricCard } from "@/types/orders-metric-card";
+import type { OrdersMetricCard } from "@/components/orders/types";
 
 export const mockAverageSlippageChartValues = [
   0.04, 0.05, 0.045, 0.055, 0.05, 0.06, 0.058, 0.065, 0.07, 0.068, 0.075, 0.08,

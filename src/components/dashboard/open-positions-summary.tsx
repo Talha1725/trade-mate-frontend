@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { OpenPositionsSummaryProps } from "@/types";
+import type { OpenPositionsSummaryProps } from "@/components/dashboard/types";
 
 export function OpenPositionsSummary({ positions }: OpenPositionsSummaryProps) {
   const data = positions ?? [];

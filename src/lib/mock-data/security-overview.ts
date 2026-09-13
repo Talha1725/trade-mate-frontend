@@ -1,4 +1,4 @@
-import type { SecurityOverviewRow } from "@/types/security-overview-card";
+import type { SecurityOverviewRow } from "@/components/settings/types";
 
 export const mockSecurityOverviewRows: SecurityOverviewRow[] = [
   {

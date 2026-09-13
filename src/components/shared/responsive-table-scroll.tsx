@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
-import type { ResponsiveTableScrollProps } from "@/types/responsive-table-scroll";
+import type { ResponsiveTableScrollProps } from "@/components/shared/types";
 
 export function ResponsiveTableScroll({
   children,

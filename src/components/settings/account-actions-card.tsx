@@ -9,7 +9,7 @@ import type {
   AccountActionIconTone,
   AccountActionItem,
   AccountActionsCardProps,
-} from "@/types/account-actions-card";
+} from "@/components/settings/types";
 
 function ActionIconBox({
   iconSrc,

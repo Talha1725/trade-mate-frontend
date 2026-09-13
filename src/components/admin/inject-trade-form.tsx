@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import type { TradeInjectionTargetOption, InjectTradeFormProps } from "@/types/admin";
+import type { InjectTradeFormProps } from "@/components/admin/types";
+import type { TradeInjectionTargetOption } from "@/types/admin";
 import { Textarea } from "@/components/ui/textarea";
 function getSelectionLabel(options: TradeInjectionTargetOption[], selectedTargets: string[]) {
   const getNameOnly = (value: string) => {

@@ -1,5 +1,3 @@
-import type React from "react";
-
 export interface AccountSummary {
   id: string;
   accountNumber?: string | null;
@@ -11,14 +9,6 @@ export interface AccountSummary {
   openPositionsCount: number;
   status: "Active" | "Suspended" | "Pending";
 }
-
-export type AdminAccountPageProps = {
-  params: Promise<{ id: string }>;
-};
-
-export type AdminLayoutProps = {
-  children: React.ReactNode;
-};
 
 export interface AuditLogEntry {
   id: string;
@@ -108,24 +98,6 @@ export interface TradeInjectionExecuteResponse {
   preview: TradePreviewData & { recommendedScope: "SINGLE" | "BULK" };
   result: TradeInjectionExecuteResult | Record<string, unknown>;
   targetAccountIds: string[];
-}
-
-export interface InjectTradeFormProps {
-  prompt: string;
-  setPrompt: (value: string) => void;
-  selectedTargets: string[];
-  onToggleTarget: (value: string) => void;
-  onSelectAllActive: () => void;
-  onClearTargets: () => void;
-  onPreview: () => void;
-  onInject: () => void;
-  isInjecting?: boolean;
-  options: TradeInjectionTargetOption[];
-}
-
-export interface PreviewPanelProps {
-  preview: TradePreviewData | null;
-  targetAccountLabel?: string;
 }
 
 // --- API types (lib/services) ---

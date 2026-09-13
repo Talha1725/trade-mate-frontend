@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { Toaster } from "@/components/ui/sonner";
 import { AuthenticationBoundary } from "@/components/auth/authentication-boundary";
+import type { ProvidersProps } from "./types";
 
-export function Providers({ children }: { children: ReactNode }) {
+export function Providers({ children }: ProvidersProps) {
   const [queryClient] = useState(
     () =>
       new QueryClient({

@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import type {
   PortfolioExposureBreakdownCardProps,
   PortfolioExposureItem,
-} from "@/types/portfolio-exposure-breakdown";
+} from "@/components/portfolio/types";
 
 function ExposureIconBox({
   iconSrc,

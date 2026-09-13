@@ -1,5 +1,5 @@
 import { MARKET_WATCH_ICON_IMAGES } from "@/lib/mock-data/market-watch-card";
-import type { HeaderNotificationItem } from "@/types/header-notifications";
+import type { HeaderNotificationItem } from "@/components/header-notifications-dropdown.types";
 
 export const mockHeaderNotifications: HeaderNotificationItem[] = [
   {

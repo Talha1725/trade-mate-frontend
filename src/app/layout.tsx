@@ -3,7 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Providers } from "./providers";
-import type { RootLayoutProps } from "@/types";
+import type { RootLayoutProps } from "./types";
 
 const suisseIntl = localFont({
   src: [

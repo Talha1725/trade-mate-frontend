@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Sparkles } from "lucide-react";
 
-import type { BrandMarkProps } from "@/types";
+import type { BrandMarkProps } from "@/components/brand-mark.types";
 
 export function BrandMark({ className, showName = true }: BrandMarkProps) {
   return (

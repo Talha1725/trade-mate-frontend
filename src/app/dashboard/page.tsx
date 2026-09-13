@@ -32,7 +32,7 @@ import { formatTradingPrice } from "@/components/shared/trading-table-cells";
 import type { AccountLedgerResponse, UserPortfolioResponse } from "@/types/dashboard";
 import type { MarketSnapshotChartSummary, MarketSnapshotData } from "@/types/market-snapshot";
 import type { MarketWatchItem } from "@/types/market-watch-card";
-import type { OpenPositionStripItem } from "@/types/open-positions-strip";
+import type { OpenPositionStripItem } from "@/components/dashboard/types";
 import type { PortfolioPosition } from "@/types/dashboard";
 import type { PriceSocketAccountMessage, PriceSocketCandleMessage, PriceSocketQuote } from "@/types";
 import type { ChartCandle } from "@/types/eodhd";

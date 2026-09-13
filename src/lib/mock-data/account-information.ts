@@ -1,4 +1,4 @@
-import type { AccountInformationStat } from "@/types/account-information-card";
+import type { AccountInformationStat } from "@/components/settings/types";
 
 export const mockAccountInformationStats: AccountInformationStat[] = [
   {

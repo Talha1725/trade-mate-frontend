@@ -13,7 +13,7 @@ import type {
   PortfolioTopMoverItem,
   PortfolioTopMoversCardProps,
   SortMode,
-} from "@/types/portfolio-top-movers";
+} from "@/components/portfolio/types";
 import type { MarketWatchIcon } from "@/types/market-watch-card";
 
 function formatSignedCurrency(value: number) {

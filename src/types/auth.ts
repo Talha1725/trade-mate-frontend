@@ -1,4 +1,3 @@
-import type React from "react";
 import type { ID, ISODateString } from "@/types";
 
 export type UserRole = "trader" | "admin";
@@ -85,8 +84,3 @@ export type AuthStoreActions = {
 };
 
 export type AuthStore = AuthStoreState & AuthStoreActions;
-
-export type RouteGuardProps = {
-  children: React.ReactNode;
-  requiredRole?: UserRole;
-};

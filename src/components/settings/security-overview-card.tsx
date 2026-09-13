@@ -8,7 +8,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { settingsApi } from "@/lib/services/settings.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { Spinner } from "@/components/ui/spinner";
-import type { SecurityOverviewCardProps } from "@/types/security-overview-card";
+import type { SecurityOverviewCardProps } from "@/components/settings/types";
 
 export function SecurityOverviewCard({
   className,

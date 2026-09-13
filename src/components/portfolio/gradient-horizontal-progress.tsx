@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import type { GradientHorizontalProgressProps } from "@/types/gradient-horizontal-progress";
+import type { GradientHorizontalProgressProps } from "@/components/portfolio/types";
 
 const GRADIENT_FILL = "linear-gradient(180deg, #0CE9A0 0%, #108961 100%)";
 

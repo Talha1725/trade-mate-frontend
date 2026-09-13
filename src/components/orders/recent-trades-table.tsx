@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 import type {
   RecentTradeRow,
   RecentTradesTableProps,
-} from "@/types/orders-recent-trades";
+} from "@/components/orders/types";
 import type { StrategyPerformanceRow } from "@/types/strategy-performance";
 import { SortableColumnHeader } from "@/components/sortable-column-header";
 

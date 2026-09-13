@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import type {
   ChallengeProgressCardProps,
   ChallengeProgressStatRow,
-} from "@/types/challenge-progress-card";
+} from "@/components/analytics/types";
 
 function OnTrackBadge({ label }: { label: string }) {
   return (

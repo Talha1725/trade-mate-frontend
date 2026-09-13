@@ -1,6 +1,6 @@
 import { SectionCard } from "@/components/section-card";
 import { cn } from "@/lib/utils";
-import type { StatCardsProps } from "@/types";
+import type { StatCardsProps } from "@/components/dashboard/types";
 
 export function StatCards({ stats }: StatCardsProps) {
   const data = stats ?? [];

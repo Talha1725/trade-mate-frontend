@@ -12,7 +12,7 @@ import {
 import { useUserAccounts } from "@/hooks/use-user-accounts";
 import { useSelectedAccountStore } from "@/lib/stores/account-store";
 import { cn } from "@/lib/utils";
-import type { AccountSwitcherDropdownProps } from "@/types/account-switcher";
+import type { AccountSwitcherDropdownProps } from "@/components/account-switcher-dropdown.types";
 
 function getAccountLabel(
   account: { id: string; accountNumber?: string | null; name?: string | null },

@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import type { DataTableProps } from "@/types"
+import type { DataTableProps } from "@/components/ui/data-table.types"
 
 export function DataTable<TData, TValue>({
   columns,

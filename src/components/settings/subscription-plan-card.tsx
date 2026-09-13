@@ -2,7 +2,7 @@
 import type { ReactNode } from "react";
 import { mockSubscriptionPlan } from "@/lib/mock-data/subscription-plan";
 import { cn } from "@/lib/utils";
-import type { SubscriptionPlanCardProps } from "@/types/subscription-plan-card";
+import type { SubscriptionPlanCardProps } from "@/components/settings/types";
 import { FaClipboardList } from "react-icons/fa6";
 
 function ActivePlanBadge({ label }: { label: string }) {

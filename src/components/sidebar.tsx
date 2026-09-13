@@ -15,7 +15,7 @@ import { HiMiniChartBar } from "react-icons/hi2";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { AssetIcon } from "@/components/shared/asset-icon";
-import type { SidebarItemProps, CardRowProps } from "@/types/components";
+import type { CardRowProps, SidebarItemProps } from "@/components/sidebar.types";
 import type { AccountMetricsSummary } from "@/types";
 import { usePositions } from "@/hooks/use-trades";
 import { SIDEBAR_ICONS } from "@/lib/mock-data/sidebar-icons";
