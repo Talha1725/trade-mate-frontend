@@ -5,7 +5,7 @@ import type {
   TradePreviewData,
   TradeInjectionExecuteResponse,
 } from "@/types/admin"
-import { accountsApi } from "./accounts.api"
+import { accountsApi } from "../accounts.api"
 
 export const injectApi = {
   async getInjectionTargets(): Promise<TradeInjectionTargetOption[]> {

@@ -1,8 +1,8 @@
 import { ROUTES } from "@/constant/routes";
 import { get, post } from "@/lib/utils/api";
 import { useAuthStore } from "@/lib/stores/auth-store";
-import { adminApi } from "./admin.api";
-import { auditApi } from "./audit.api";
+import { adminApi } from "../admin.api";
+import { auditApi } from "../audit.api";
 import type { AccountSummary, AccountsApiOptions, PaginatedAccountsResponse, PaginatedTradesResponse } from "@/types/admin";
 import type { Trade } from "@/types/trade";
 
