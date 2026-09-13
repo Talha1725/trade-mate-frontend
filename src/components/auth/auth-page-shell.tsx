@@ -1,7 +1,7 @@
 import Image from "next/image";
-import type { ReactNode } from "react";
+import type { AuthPageShellProps } from "@/components/auth/types";
 
-export function AuthPageShell({ children }: { children: ReactNode }) {
+export function AuthPageShell({ children }: AuthPageShellProps) {
   return (
     <main className="min-h-[100dvh] bg-black flex flex-col items-center justify-center p-4 sm:p-6 md:p-8">
       <div className="flex flex-col items-center w-full sm:max-w-[440px]">

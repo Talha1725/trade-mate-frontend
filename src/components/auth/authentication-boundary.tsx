@@ -8,12 +8,11 @@ import { toast } from "sonner";
 
 import { PUBLIC_PATHS } from "@/constant/routes";
 import { useAuthStore } from "@/lib/stores/auth-store";
+import type { AuthenticationBoundaryProps } from "@/components/auth/types";
 
 export function AuthenticationBoundary({
   children,
-}: {
-  children: React.ReactNode;
-}) {
+}: AuthenticationBoundaryProps) {
   const pathname = usePathname();
   const router = useRouter();
   const queryClient = useQueryClient();
