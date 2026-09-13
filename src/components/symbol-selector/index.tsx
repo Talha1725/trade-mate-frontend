@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 import type { AssetCategory } from "@/types/asset";
 import type { TradingFilterBarAsset } from "@/types/trading-filter-bar";
 import { SYMBOL_CATEGORY_LABELS, SYMBOL_CATEGORY_ORDER } from "@/constants/symbol-selector";
-import type { SymbolSelectorProps } from "@/components/symbol-selector.types";
+import type { SymbolSelectorProps } from "./types";
 
 /**
  * Searchable, category-grouped symbol selector backed by the shared

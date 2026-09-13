@@ -7,7 +7,7 @@ import { BrandMark } from "@/components/brand-mark";
 import { ProfileMenu } from "@/components/profile-menu";
 import { Separator } from "@/components/ui/separator";
 
-import type { TopBarProps } from "@/components/top-bar.types";
+import type { TopBarProps } from "./types";
 
 export function TopBar({ userLabel, onSignOut }: TopBarProps) {
   return (

@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { ProfileMenuProps } from "@/components/profile-menu.types";
+import type { ProfileMenuProps } from "./types";
 
 function getInitials(userLabel?: string) {
   if (!userLabel) {

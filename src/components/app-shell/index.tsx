@@ -17,7 +17,7 @@ import {
   DrawerTrigger,
   DrawerClose,
 } from "@/components/ui/drawer";
-import type { AppShellProps } from "@/components/app-shell.types";
+import type { AppShellProps } from "./types";
 
 export function AppShell({
   userLabel,

@@ -12,7 +12,7 @@ import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { settingsApi } from "@/lib/services/settings.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
-import type { SettingsDialogProps, SettingsProfile, SettingsViewProps } from "./settings-dialog.types";
+import type { SettingsDialogProps, SettingsProfile, SettingsViewProps } from "./types";
 
 export function SettingsDialog({ view, onViewChange, profile }: SettingsDialogProps) {
   const isOpen = view !== null;
