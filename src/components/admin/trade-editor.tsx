@@ -13,8 +13,64 @@ import { accountsApi } from "@/lib/services/accounts.api";
 import { post, patch, del } from "@/lib/utils/api";
 import { useServerTablePagination } from "@/hooks/use-server-table-pagination";
 import { ROUTES } from "@/constant/routes";
-import type { Trade, TradeEditorProps, TradeStatusFilter } from "@/types/trade";
+import type {
+  AdminTradeCreatePayload,
+  AdminTradeFormData,
+  AdminTradeUpdatePayload,
+  Trade,
+  TradeEditorProps,
+  TradeStatusFilter,
+} from "@/types/trade";
 import { toast } from "sonner";
+
+const EMPTY_FORM_DATA: AdminTradeFormData = {
+  symbol: "",
+  direction: "BUY",
+  lots: "1",
+  entryPrice: "",
+  exitPrice: "",
+  stopLoss: "",
+  takeProfit: "",
+  openedAt: "",
+  closedAt: "",
+  notes: "",
+};
+
+function parseOptionalNumber(value: string) {
+  if (value.trim() === "") {
+    return undefined;
+  }
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : Number.NaN;
+}
+
+function parseOptionalProtection(value: string) {
+  const parsed = parseOptionalNumber(value);
+  return parsed === undefined ? null : parsed;
+}
+
+function toDateTimeLocalValue(value?: string | null) {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const offsetMs = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+}
+
+function toIsoDateTime(value: string) {
+  return value ? new Date(value).toISOString() : undefined;
+}
+
+function hasInvalidNumber(value: number | null | undefined) {
+  return typeof value === "number" && Number.isNaN(value);
+}
 
 export function TradeEditor({ accountId }: TradeEditorProps) {
   const [trades, setTrades] = useState<Trade[]>([]);
@@ -31,16 +87,7 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
     pageSizeOptions: [10, 25, 50],
   });
 
-  const [formData, setFormData] = useState({
-    symbol: "",
-    direction: "BUY" as "BUY" | "SELL",
-    lots: 1.0,
-    entryPrice: 1.0,
-    exitPrice: 1.0,
-    stopLoss: "" as string | number,
-    takeProfit: "" as string | number,
-    notes: "",
-  });
+  const [formData, setFormData] = useState<AdminTradeFormData>(EMPTY_FORM_DATA);
 
   const fetchTrades = useCallback(async () => {
     setLoading(true);
@@ -71,11 +118,13 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
     setFormData({
       symbol: trade.symbol,
       direction: trade.type === "Buy" ? "BUY" : "SELL",
-      lots: trade.vol,
-      entryPrice: trade.openP,
-      exitPrice: trade.closeP,
-      stopLoss: trade.stopLoss ?? "",
-      takeProfit: trade.takeProfit ?? "",
+      lots: String(trade.vol),
+      entryPrice: Number.isFinite(trade.openP) ? String(trade.openP) : "",
+      exitPrice: trade.closeP > 0 ? String(trade.closeP) : "",
+      stopLoss: trade.stopLoss == null ? "" : String(trade.stopLoss),
+      takeProfit: trade.takeProfit == null ? "" : String(trade.takeProfit),
+      openedAt: toDateTimeLocalValue(trade.openedAt ?? trade.time),
+      closedAt: toDateTimeLocalValue(trade.closedAt),
       notes: trade.notes ?? "",
     });
     setShowForm(true);
@@ -96,29 +145,81 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const payload = {
-        symbol: formData.symbol.toUpperCase(),
-        direction: formData.direction,
-        lots: formData.lots,
-        entryPrice: formData.entryPrice,
-        exitPrice: formData.exitPrice,
-        stopLoss: formData.stopLoss ? parseFloat(formData.stopLoss as string) : null,
-        takeProfit: formData.takeProfit ? parseFloat(formData.takeProfit as string) : null,
-        notes: formData.notes || null,
-        accountId,
-      };
+      const lots = Number(formData.lots);
+      const entryPrice = parseOptionalNumber(formData.entryPrice);
+      const exitPrice = parseOptionalNumber(formData.exitPrice);
+      const stopLoss = parseOptionalProtection(formData.stopLoss);
+      const takeProfit = parseOptionalProtection(formData.takeProfit);
+
+      if (!Number.isFinite(lots) || lots <= 0) {
+        toast.error("Lots must be greater than zero.");
+        return;
+      }
+
+      if (
+        hasInvalidNumber(entryPrice) ||
+        hasInvalidNumber(exitPrice) ||
+        hasInvalidNumber(stopLoss) ||
+        hasInvalidNumber(takeProfit)
+      ) {
+        toast.error("Please enter valid numeric values.");
+        return;
+      }
 
       if (editingTrade) {
+        const payload: AdminTradeUpdatePayload = {
+          lots,
+          stopLoss,
+          takeProfit,
+          notes: formData.notes.trim() || null,
+        };
+
+        if (entryPrice !== undefined) {
+          payload.entryPrice = entryPrice;
+        }
+
+        payload.exitPrice = exitPrice === undefined ? null : exitPrice;
+        payload.openedAt = toIsoDateTime(formData.openedAt) ?? null;
+        payload.closedAt = toIsoDateTime(formData.closedAt) ?? null;
+
         await patch(ROUTES.ADMIN.TRADE_BY_ID(editingTrade.id), payload);
         toast.success("Trade updated successfully!");
       } else {
+        const symbol = formData.symbol.trim().toUpperCase();
+        if (!symbol) {
+          toast.error("Symbol is required.");
+          return;
+        }
+
+        const payload: AdminTradeCreatePayload = {
+          accountId,
+          symbol,
+          direction: formData.direction,
+          lots,
+          stopLoss,
+          takeProfit,
+        };
+
+        if (entryPrice !== undefined) {
+          payload.entryPrice = entryPrice;
+        }
+
+        if (exitPrice !== undefined) {
+          payload.exitPrice = exitPrice;
+        }
+
+        const openedAt = toIsoDateTime(formData.openedAt);
+        if (openedAt) {
+          payload.openedAt = openedAt;
+        }
+
         await post(ROUTES.ADMIN.TRADES, payload);
         toast.success("Trade injected successfully!");
       }
 
       setShowForm(false);
       setEditingTrade(null);
-      setFormData({ symbol: "", direction: "BUY", lots: 1.0, entryPrice: 1.0, exitPrice: 1.0, stopLoss: "", takeProfit: "", notes: "" });
+      setFormData(EMPTY_FORM_DATA);
       setPage(1);
       setRefreshKey((value) => value + 1);
     } catch (err: any) {
@@ -175,14 +276,12 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
       header: () => <div className="text-right">Actions</div>,
       cell: ({ row }) => {
         const trade = row.original;
-        const isClosed = trade.status === "Closed";
         return (
           <div className="flex items-center justify-end gap-2">
             <Button
               variant="ghost"
               size="icon"
-              disabled={!isClosed}
-              title={isClosed ? "Edit trade" : "Only closed trades can be edited"}
+              title="Edit trade"
               onClick={() => handleEdit(trade)}
               className="h-8 w-8 text-muted-foreground hover:text-indigo-600 disabled:opacity-40"
             >
@@ -191,8 +290,7 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
             <Button
               variant="ghost"
               size="icon"
-              disabled={!isClosed}
-              title={isClosed ? "Delete trade" : "Only closed trades can be deleted"}
+              title="Delete trade"
               onClick={() => handleDelete(trade.id)}
               className="h-8 w-8 text-muted-foreground hover:text-rose-600 disabled:opacity-40"
             >
@@ -208,7 +306,15 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
     <SectionCard title={`Trade Editor for ${accountId}`}>
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm text-muted-foreground">Manage historical and active trades for this account.</p>
-        <Button onClick={() => setShowForm(!showForm)} size="sm" className="gap-1.5">
+        <Button
+          onClick={() => {
+            setShowForm((current) => !current);
+            setEditingTrade(null);
+            setFormData(EMPTY_FORM_DATA);
+          }}
+          size="sm"
+          className="gap-1.5"
+        >
           <PlusIcon className="h-4 w-4" />
           Add Trade
         </Button>
@@ -255,6 +361,7 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
               placeholder="EURUSD"
               value={formData.symbol}
               onChange={(e) => setFormData({ ...formData, symbol: e.target.value })}
+              disabled={Boolean(editingTrade)}
               required
             />
           </div>
@@ -264,7 +371,7 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
               value={formData.direction}
               onValueChange={(v) => setFormData({ ...formData, direction: v as "BUY" | "SELL" })}
             >
-              <SelectTrigger>
+              <SelectTrigger disabled={Boolean(editingTrade)}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -279,7 +386,9 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
               type="number"
               step="0.01"
               value={formData.lots}
-              onChange={(e) => setFormData({ ...formData, lots: parseFloat(e.target.value) || 0 })}
+              min="0.01"
+              onChange={(e) => setFormData({ ...formData, lots: e.target.value })}
+              required
             />
           </div>
           <div className="space-y-1.5">
@@ -288,7 +397,7 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
               type="number"
               step="0.0001"
               value={formData.entryPrice}
-              onChange={(e) => setFormData({ ...formData, entryPrice: parseFloat(e.target.value) || 0 })}
+              onChange={(e) => setFormData({ ...formData, entryPrice: e.target.value })}
             />
           </div>
           <div className="space-y-1.5">
@@ -297,7 +406,7 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
               type="number"
               step="0.0001"
               value={formData.exitPrice}
-              onChange={(e) => setFormData({ ...formData, exitPrice: parseFloat(e.target.value) || 0 })}
+              onChange={(e) => setFormData({ ...formData, exitPrice: e.target.value })}
             />
           </div>
           <div className="space-y-1.5">
@@ -318,12 +427,30 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
               onChange={(e) => setFormData({ ...formData, takeProfit: e.target.value })}
             />
           </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold">Opened At</label>
+            <Input
+              type="datetime-local"
+              value={formData.openedAt}
+              onChange={(e) => setFormData({ ...formData, openedAt: e.target.value })}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold">Closed At</label>
+            <Input
+              type="datetime-local"
+              value={formData.closedAt}
+              onChange={(e) => setFormData({ ...formData, closedAt: e.target.value })}
+              disabled={!editingTrade && !formData.exitPrice.trim()}
+            />
+          </div>
           <div className="space-y-1.5 sm:col-span-2">
             <label className="text-xs font-semibold">Notes</label>
             <Input
               placeholder="Optional notes"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              disabled={!editingTrade}
             />
           </div>
           <div className="flex items-center gap-2 sm:col-span-4">
@@ -336,6 +463,7 @@ export function TradeEditor({ accountId }: TradeEditorProps) {
               onClick={() => {
                 setShowForm(false);
                 setEditingTrade(null);
+                setFormData(EMPTY_FORM_DATA);
               }}
             >
               Cancel

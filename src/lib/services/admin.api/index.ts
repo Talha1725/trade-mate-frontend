@@ -16,6 +16,8 @@ function mapTrade(t: any): Trade {
     profit: parseFloat(t.pnl),
     status: t.status === "OPEN" ? "Open" : "Closed",
     time: t.openedAt,
+    openedAt: t.openedAt,
+    closedAt: t.closedAt ?? null,
   } as Trade;
 }
 

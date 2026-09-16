@@ -36,6 +36,42 @@ export type TradeEditorProps = {
 
 export type TradeOrderDirection = "BUY" | "SELL";
 
+export type AdminTradeFormData = {
+  symbol: string;
+  direction: TradeOrderDirection;
+  lots: string;
+  entryPrice: string;
+  exitPrice: string;
+  stopLoss: string;
+  takeProfit: string;
+  openedAt: string;
+  closedAt: string;
+  notes: string;
+};
+
+export type AdminTradeCreatePayload = {
+  accountId: string;
+  symbol: string;
+  direction: TradeOrderDirection;
+  lots: number;
+  entryPrice?: number;
+  exitPrice?: number;
+  stopLoss?: number | null;
+  takeProfit?: number | null;
+  openedAt?: string;
+};
+
+export type AdminTradeUpdatePayload = {
+  lots?: number;
+  entryPrice?: number;
+  exitPrice?: number | null;
+  stopLoss?: number | null;
+  takeProfit?: number | null;
+  openedAt?: string | null;
+  closedAt?: string | null;
+  notes?: string | null;
+};
+
 export type TradeOpenPayload = {
   accountId: string;
   symbol: string;
