@@ -12,7 +12,7 @@ import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { settingsApi } from "@/lib/services/settings.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
-import type { SettingsDialogProps, SettingsProfile, SettingsViewProps } from "./types";
+import type { SettingsDialogProps, SettingsViewProps } from "./types";
 
 const AVATAR_MAX_BYTES = 5 * 1024 * 1024;
 const AVATAR_MIME_TYPES = new Set(["image/jpeg", "image/jpg", "image/png", "image/webp"]);
@@ -64,11 +64,6 @@ function EditProfileView({ onClose, profile }: SettingsViewProps) {
   const [avatarUrl, setAvatarUrl] = React.useState<string | null>(profile?.avatarUrl ?? null);
   const [isSaving, setIsSaving] = React.useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = React.useState(false);
-
-  React.useEffect(() => {
-    setFullName(profile?.fullName ?? "");
-    setAvatarUrl(profile?.avatarUrl ?? null);
-  }, [profile?.avatarUrl, profile?.fullName]);
 
   const initials =
     fullName
