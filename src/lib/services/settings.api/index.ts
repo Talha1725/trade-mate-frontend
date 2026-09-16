@@ -1,5 +1,5 @@
 import { ROUTES } from "@/constant/routes";
-import { get, patch } from "@/lib/utils/api";
+import { get, patch, post } from "@/lib/utils/api";
 import type { AuthApiUser } from "@/types/auth";
 import type {
   SettingsOverviewResponse,
@@ -60,6 +60,15 @@ export const settingsApi = {
 
   updateProfile(payload: UpdateSettingsProfilePayload) {
     return patch<SettingsOverviewResponse["user"]>(ROUTES.SETTINGS.PROFILE, payload).then((user) => ({ user }));
+  },
+
+  uploadAvatar(file: File) {
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    return post<AuthApiUser>(ROUTES.SETTINGS.AVATAR, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }).then((user) => ({ user: mapSettingsUser(user) }));
   },
 
   updatePassword(payload: UpdateSettingsPasswordPayload) {

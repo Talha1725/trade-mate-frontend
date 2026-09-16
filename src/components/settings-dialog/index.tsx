@@ -14,6 +14,9 @@ import { settingsApi } from "@/lib/services/settings.api";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import type { SettingsDialogProps, SettingsProfile, SettingsViewProps } from "./types";
 
+const AVATAR_MAX_BYTES = 5 * 1024 * 1024;
+const AVATAR_MIME_TYPES = new Set(["image/jpeg", "image/jpg", "image/png", "image/webp"]);
+
 export function SettingsDialog({ view, onViewChange, profile }: SettingsDialogProps) {
   const isOpen = view !== null;
 
@@ -55,10 +58,12 @@ export function SettingsDialog({ view, onViewChange, profile }: SettingsDialogPr
 
 function EditProfileView({ onClose, profile }: SettingsViewProps) {
   const queryClient = useQueryClient();
+  const avatarInputRef = React.useRef<HTMLInputElement | null>(null);
   const [fullName, setFullName] = React.useState(profile?.fullName ?? "");
   const [email] = React.useState(profile?.email ?? "");
   const [avatarUrl, setAvatarUrl] = React.useState<string | null>(profile?.avatarUrl ?? null);
   const [isSaving, setIsSaving] = React.useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = React.useState(false);
 
   React.useEffect(() => {
     setFullName(profile?.fullName ?? "");
@@ -103,6 +108,37 @@ function EditProfileView({ onClose, profile }: SettingsViewProps) {
     }
   }
 
+  async function handleAvatarChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file || isUploadingAvatar) {
+      return;
+    }
+
+    if (!AVATAR_MIME_TYPES.has(file.type)) {
+      toast.error("Only PNG, JPG and WEBP images are allowed.");
+      return;
+    }
+
+    if (file.size > AVATAR_MAX_BYTES) {
+      toast.error("Profile image must be 5MB or smaller.");
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    try {
+      const result = await settingsApi.uploadAvatar(file);
+      setAvatarUrl(result.user.avatarUrl ?? null);
+      await refreshProfile();
+      toast.success("Profile image updated.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to upload profile image.");
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  }
+
   return (
     <div className="flex flex-col">
       <DialogTitle className="mb-2 text-lg font-semibold text-white">Edit Profile</DialogTitle>
@@ -116,13 +152,21 @@ function EditProfileView({ onClose, profile }: SettingsViewProps) {
           </Avatar>
           <div>
             <div className="mb-1 text-sm font-medium text-white">Upload Image</div>
-            <div className="mb-2 text-sm font-normal text-white/60">Min 400x400px, PNG or JPEG</div>
+            <div className="mb-2 text-sm font-normal text-white/60">PNG, JPG or WEBP up to 5MB</div>
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/jpg,image/webp"
+              className="hidden"
+              onChange={handleAvatarChange}
+            />
             <button
               type="button"
-              onClick={() => toast.info("Profile image upload is not available in backend v2 yet.")}
-              className="gradient-btn-upload cursor-pointer rounded-[10px] border border-white/3 px-3.5 py-1.75 text-sm font-medium text-white transition-colors hover:bg-[#333]"
+              onClick={() => avatarInputRef.current?.click()}
+              disabled={isUploadingAvatar}
+              className="gradient-btn-upload cursor-pointer rounded-[10px] border border-white/3 px-3.5 py-1.75 text-sm font-medium text-white transition-colors hover:bg-[#333] disabled:cursor-not-allowed disabled:opacity-70"
             >
-              Upload
+              {isUploadingAvatar ? "Uploading..." : "Upload"}
             </button>
           </div>
         </div>

@@ -75,6 +75,7 @@ export const ROUTES = {
     OVERVIEW:       `/api/settings/overview`,
     PROFILE:        `/api/settings/profile`,
     PASSWORD:       `/api/settings/password`,
+    AVATAR:         `/api/settings/avatar`,
     AVATAR_PRESIGN: `/api/settings/avatar/presign`,
   },
 
