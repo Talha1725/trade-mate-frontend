@@ -209,7 +209,7 @@ export function ActiveOrdersTable({
             {table.getHeaderGroups()[0].headers.map((header) => (
               <TableHead
                 key={header.id}
-                  className={header.column.id === "actions" ? "h-11 w-[50px] min-w-[50px] whitespace-nowrap px-4 text-right text-sm font-medium text-white/60" : "h-11 whitespace-nowrap px-4 text-sm font-medium text-white/60"}
+                  className={header.column.id === "actions" ? "h-11 w-[120px] min-w-[120px] whitespace-nowrap px-4 text-right text-sm font-medium text-white/60" : "h-11 whitespace-nowrap px-4 text-sm font-medium text-white/60"}
               >
                 {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
               </TableHead>
@@ -223,7 +223,7 @@ export function ActiveOrdersTable({
               {row.getVisibleCells().map((cell) => (
                 <TableCell
                   key={cell.id}
-                    className={cell.column.id === "actions" ? "w-[50px] min-w-[50px] whitespace-nowrap px-4 py-[5px] text-right" : "whitespace-nowrap px-4 py-[5px]"}
+                    className={cell.column.id === "actions" ? "w-[120px] min-w-[120px] whitespace-nowrap px-4 py-[5px] text-right" : "whitespace-nowrap px-4 py-[5px]"}
                 >
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </TableCell>

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { EllipsisVerticalIcon, Loader2Icon, PencilIcon, SplitIcon, XCircleIcon } from "lucide-react";
+import { Loader2Icon, PencilIcon, SplitIcon, XCircleIcon } from "lucide-react";
 
 import { PlaceOrderDialog } from "@/components/place-order-dialog";
 import { Button } from "@/components/ui/button";
@@ -13,12 +13,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 
 export function TableRowActionsMenu({
@@ -80,43 +74,43 @@ export function TableRowActionsMenu({
 
   return (
     <>
-      <DropdownMenu modal={false}>
-        <DropdownMenuTrigger
-          aria-label="Open row actions"
-          className="inline-flex size-8 relative cursor-pointer items-center justify-center rounded-lg border border-white/10 text-white/70 outline-none transition-colors hover:bg-white/10 hover:text-white"
+      <div className="inline-flex items-center justify-end gap-1.5">
+        {onModifyProtection ? (
+          <button
+            type="button"
+            title="Edit trade"
+            aria-label="Edit trade"
+            onClick={() => setEditOpen(true)}
+            className="inline-flex size-8 cursor-pointer items-center justify-center rounded-lg border border-white/10 text-white/70 outline-none transition-colors hover:bg-white/10 hover:text-white"
+          >
+            <PencilIcon className="size-4" />
+          </button>
+        ) : null}
+        <button
+          type="button"
+          title="Partial close"
+          aria-label="Partial close"
+          className="inline-flex size-8 cursor-pointer items-center justify-center rounded-lg border border-white/10 text-orange outline-none transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+          disabled={isClosing || lots <= 0}
+          onClick={() => {
+            setPartialLots("");
+            setPartialCloseError(null);
+            setPartialCloseOpen(true);
+          }}
         >
-          <EllipsisVerticalIcon className="size-4" />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="min-w-32">
-          {onModifyProtection ? (
-            <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => setEditOpen(true)}>
-              <PencilIcon className="size-4" />
-              Edit
-            </DropdownMenuItem>
-          ) : null}
-          <DropdownMenuItem
-            className="cursor-pointer gap-2"
-            disabled={isClosing || lots <= 0}
-            onClick={() => {
-              setPartialLots("");
-              setPartialCloseError(null);
-              setPartialCloseOpen(true);
-            }}
-          >
-            <SplitIcon className="size-4" />
-            Partial Close
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            variant="destructive"
-            className="cursor-pointer gap-2"
-            disabled={isClosing}
-            onClick={() => void handleClose()}
-          >
-            {isClosing ? <Loader2Icon className="size-4 animate-spin" /> : <XCircleIcon className="size-4" />}
-            Close Full
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          <SplitIcon className="size-4" />
+        </button>
+        <button
+          type="button"
+          title="Close full"
+          aria-label="Close full"
+          className="inline-flex size-8 cursor-pointer items-center justify-center rounded-lg border border-destructive/30 bg-destructive/10 text-destructive outline-none transition-colors hover:bg-destructive/20 disabled:cursor-not-allowed disabled:opacity-40"
+          disabled={isClosing}
+          onClick={() => void handleClose()}
+        >
+          {isClosing ? <Loader2Icon className="size-4 animate-spin" /> : <XCircleIcon className="size-4" />}
+        </button>
+      </div>
 
       <Dialog open={partialCloseOpen} onOpenChange={setPartialCloseOpen}>
         <DialogContent className="gradient-dialog-bg max-w-[420px] gap-0 rounded-[16px] border border-white/20 p-5 pt-12 text-white shadow-2xl">

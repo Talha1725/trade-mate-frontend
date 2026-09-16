@@ -284,7 +284,7 @@ export function PortfolioOpenPositionsTable({
                   key={header.id}
                   className={cn(
                     "h-11 px-4 text-sm font-medium text-white/60",
-                    header.column.id === "actions" && "w-[50px] min-w-[50px] text-right",
+                    header.column.id === "actions" && "w-[120px] min-w-[120px] text-right",
                   )}
                 >
                   {header.isPlaceholder
@@ -308,7 +308,7 @@ export function PortfolioOpenPositionsTable({
                     key={cell.id}
                     className={cn(
                       "px-4 py-1.5",
-                      cell.column.id === "actions" && "w-[50px] min-w-[50px] whitespace-nowrap text-right",
+                      cell.column.id === "actions" && "w-[120px] min-w-[120px] whitespace-nowrap text-right",
                     )}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
