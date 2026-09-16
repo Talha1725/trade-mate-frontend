@@ -83,6 +83,7 @@ export type TradeOpenPayload = {
 
 export type TradeClosePayload = {
   positionId: string;
+  lots?: number;
   closePrice?: number | null;
 };
 

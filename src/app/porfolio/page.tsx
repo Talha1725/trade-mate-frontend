@@ -373,24 +373,28 @@ export default function PortfolioPage() {
     });
 
     const handleClosePosition = React.useCallback(
-        async (positionId: string) => {
+        async (positionId: string, lots?: number) => {
             if (!token) return;
 
             try {
-                const result = await terminalApi.closeTrade({ positionId }, token);
+                const result = await terminalApi.closeTrade({ positionId, lots }, token);
 
                 setSnapshot((current) => {
                     if (!current) {
                         return {
                             account: result.account,
-                            positions: [],
+                            positions: result.remainingPosition ? [result.remainingPosition] : [],
                         };
                     }
 
                     return {
                         ...current,
                         account: result.account,
-                        positions: current.positions.filter((position) => position.id !== result.position.id),
+                        positions: result.remainingPosition
+                            ? current.positions.map((position) =>
+                                position.id === result.remainingPosition?.id ? result.remainingPosition : position,
+                            )
+                            : current.positions.filter((position) => position.id !== result.closedPosition.id),
                     };
                 });
 
@@ -400,7 +404,7 @@ export default function PortfolioPage() {
                     buildAccountMetricsSummaryFromAccount(result.account, currentSummary),
                 );
 
-                toast.success("Position closed.");
+                toast.success(result.remainingPosition ? "Position partially closed." : "Position closed.");
                 window.dispatchEvent(new Event("trade-mate:positions-changed"));
                 await refreshSnapshot();
                 await refreshPortfolioData();

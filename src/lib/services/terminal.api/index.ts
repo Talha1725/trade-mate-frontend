@@ -122,7 +122,7 @@ export const terminalApi = {
   },
 
   async closeTrade(payload: TradeClosePayload, authToken?: string): Promise<TradeCloseResponse> {
-    const response = await post<V2CloseTradeResponse>(`${ROUTES.TRADE.LIST}/${encodeURIComponent(payload.positionId)}/close`, {}, {
+    const response = await post<V2CloseTradeResponse>(`${ROUTES.TRADE.LIST}/${encodeURIComponent(payload.positionId)}/close`, payload.lots === undefined ? {} : { lots: payload.lots }, {
       headers: authToken ? { Authorization: `Bearer ${authToken}` } : undefined,
     });
 

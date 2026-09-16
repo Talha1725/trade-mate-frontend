@@ -319,11 +319,11 @@ export default function OrdersPage() {
   }, [liveOverview, liveQuoteForSymbol, selectedAsset?.category, selectedSymbol]);
 
   const handleClosePosition = React.useCallback(
-        async (positionId: string) => {
+        async (positionId: string, lots?: number) => {
             if (!token) return;
 
             try {
-                const result = await terminalApi.closeTrade({ positionId }, token);
+                const result = await terminalApi.closeTrade({ positionId, lots }, token);
 
                 setOverview((current) => {
                   if (!current) {
@@ -333,17 +333,31 @@ export default function OrdersPage() {
                   return {
                     ...current,
                     account: result.account,
-                    positions: current.positions.filter((position) => position.id !== result.position.id),
-                    trades: current.trades.map((trade) =>
-                      trade.id === result.trade.id ? result.trade : trade,
-                    ),
+                    positions: result.remainingPosition
+                      ? current.positions.map((position) =>
+                          position.id === result.remainingPosition?.id ? result.remainingPosition : position,
+                        )
+                      : current.positions.filter((position) => position.id !== result.closedPosition.id),
+                    trades: [
+                      result.trade,
+                      ...current.trades
+                        .filter((trade) => trade.id !== result.trade.id)
+                        .map((trade) => result.remainingTrade && trade.id === result.remainingTrade.id ? result.remainingTrade : trade),
+                    ],
                   };
                 });
 
                 queryClient.setQueryData<{ positions?: Array<{ id: string; status?: string }> }>(
                   ["positions", result.account.id],
                   (current) => current
-                    ? { ...current, positions: current.positions?.filter((position) => position.id !== result.position.id) }
+                    ? {
+                        ...current,
+                        positions: result.remainingPosition
+                          ? current.positions?.map((position) =>
+                              position.id === result.remainingPosition?.id ? result.remainingPosition : position,
+                            )
+                          : current.positions?.filter((position) => position.id !== result.closedPosition.id),
+                      }
                     : current,
                 );
 
@@ -353,7 +367,7 @@ export default function OrdersPage() {
                   buildAccountMetricsSummaryFromAccount(result.account, currentSummary),
                 );
 
-                toast.success("Order closed.");
+                toast.success(result.remainingPosition ? "Order partially closed." : "Order closed.");
                 window.dispatchEvent(new Event("trade-mate:positions-changed"));
                 await refreshOverview();
             } catch (error) {

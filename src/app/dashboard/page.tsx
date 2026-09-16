@@ -409,16 +409,18 @@ export default function DashboardPage() {
     [livePositions, mapPositionToOpenStripItem],
   );
 
-  const handleClosePosition = React.useCallback(async (positionId: string) => {
+  const handleClosePosition = React.useCallback(async (positionId: string, lots?: number) => {
     if (!token) return;
-    await terminalApi.closeTrade({ positionId }, token);
-    locallyClosedPositionIdsRef.current.add(positionId);
+    const result = await terminalApi.closeTrade({ positionId, lots }, token);
+    if (!result.remainingPosition) {
+      locallyClosedPositionIdsRef.current.add(positionId);
+    }
     const overview = await dashboardApi.getOverview(token, resolvedAccountId ?? undefined);
     setSnapshot(overview.snapshot);
     setLedger(overview.ledger);
     setOverviewSymbols(overview.symbols);
     setOverviewWatchlistAssets(overview.watchlistAssets);
-    toast.success("Position closed.");
+    toast.success(result.remainingPosition ? "Position partially closed." : "Position closed.");
   }, [resolvedAccountId, token]);
 
   const handleModifyProtection = React.useCallback(async (input: { positionId: string; stopLoss: number | null; takeProfit: number | null }) => {

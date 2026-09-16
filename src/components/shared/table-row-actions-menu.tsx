@@ -1,15 +1,25 @@
 "use client";
 
 import * as React from "react";
-import { EllipsisVerticalIcon, Loader2Icon, PencilIcon, XCircleIcon } from "lucide-react";
+import { EllipsisVerticalIcon, Loader2Icon, PencilIcon, SplitIcon, XCircleIcon } from "lucide-react";
 
 import { PlaceOrderDialog } from "@/components/place-order-dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 
 export function TableRowActionsMenu({
   symbol,
@@ -30,19 +40,42 @@ export function TableRowActionsMenu({
   stopLoss: number | null;
   takeProfit: number | null;
   onModifyProtection?: (input: { positionId: string; stopLoss: number | null; takeProfit: number | null }) => Promise<{ status: "PENDING" | "SENT" | "FAILED" | "SKIPPED" }>;
-  onCancel?: () => void | Promise<void>;
+  onCancel?: (lots?: number) => void | Promise<void>;
 }) {
   const [editOpen, setEditOpen] = React.useState(false);
+  const [partialCloseOpen, setPartialCloseOpen] = React.useState(false);
+  const [partialLots, setPartialLots] = React.useState("");
+  const [partialCloseError, setPartialCloseError] = React.useState<string | null>(null);
   const [isClosing, setIsClosing] = React.useState(false);
 
-  const handleClose = async () => {
+  const handleClose = async (closeLots?: number) => {
     if (!onCancel) return;
     setIsClosing(true);
     try {
-      await onCancel();
+      await onCancel(closeLots);
+      setPartialCloseOpen(false);
+      setPartialLots("");
+      setPartialCloseError(null);
     } finally {
       setIsClosing(false);
     }
+  };
+
+  const handlePartialClose = async () => {
+    const closeLots = Number(partialLots);
+
+    if (!Number.isFinite(closeLots) || closeLots <= 0) {
+      setPartialCloseError("Enter lots greater than zero.");
+      return;
+    }
+
+    if (closeLots >= lots) {
+      setPartialCloseError("Partial close lots must be less than the open lots.");
+      return;
+    }
+
+    setPartialCloseError(null);
+    await handleClose(closeLots);
   };
 
   return (
@@ -62,16 +95,70 @@ export function TableRowActionsMenu({
             </DropdownMenuItem>
           ) : null}
           <DropdownMenuItem
+            className="cursor-pointer gap-2"
+            disabled={isClosing || lots <= 0}
+            onClick={() => {
+              setPartialLots("");
+              setPartialCloseError(null);
+              setPartialCloseOpen(true);
+            }}
+          >
+            <SplitIcon className="size-4" />
+            Partial Close
+          </DropdownMenuItem>
+          <DropdownMenuItem
             variant="destructive"
             className="cursor-pointer gap-2"
             disabled={isClosing}
-            onClick={handleClose}
+            onClick={() => void handleClose()}
           >
             {isClosing ? <Loader2Icon className="size-4 animate-spin" /> : <XCircleIcon className="size-4" />}
-            Close
+            Close Full
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <Dialog open={partialCloseOpen} onOpenChange={setPartialCloseOpen}>
+        <DialogContent className="gradient-dialog-bg max-w-[420px] gap-0 rounded-[16px] border border-white/20 p-5 pt-12 text-white shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold text-white">Partial Close</DialogTitle>
+            <DialogDescription className="text-xs leading-relaxed text-white/50">
+              Close part of this position and keep the remaining lots open.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="mt-5 space-y-2">
+            <div className="flex items-center justify-between rounded-xl border border-white/20 bg-white/5 px-3 py-2 text-xs text-white/60">
+              <span>{symbol}</span>
+              <span>{lots.toFixed(4)} lots open</span>
+            </div>
+            <Input
+              type="text"
+              inputMode="decimal"
+              value={partialLots}
+              onChange={(event) => {
+                setPartialLots(event.target.value);
+                setPartialCloseError(null);
+              }}
+              placeholder="Lots to close"
+              className="gradient-btn-trade h-10 border-white/20 text-white placeholder:text-white/35 focus-visible:border-primary focus-visible:ring-primary/20"
+            />
+            {partialCloseError ? (
+              <p className="text-xs text-destructive">{partialCloseError}</p>
+            ) : null}
+          </div>
+
+          <DialogFooter className="gradient-btn-secondary -mx-5 -mb-5 mt-5 border-t border-white/10 p-4">
+            <Button type="button" variant="outline" className="border-white/20 bg-transparent text-white hover:bg-white/10" onClick={() => setPartialCloseOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="button" disabled={isClosing} className="btn-red text-white disabled:opacity-60" onClick={() => void handlePartialClose()}>
+              {isClosing ? <Loader2Icon className="size-4 animate-spin" /> : null}
+              Close Partial
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {onModifyProtection ? (
         <PlaceOrderDialog

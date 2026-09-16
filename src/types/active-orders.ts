@@ -30,7 +30,7 @@ export type ActiveOrdersTableProps = {
   onExport?: () => void;
   onCloseAll?: () => void;
   isCloseAllLoading?: boolean;
-  onCancel?: (orderId: string) => void;
+  onCancel?: (orderId: string, lots?: number) => void | Promise<void>;
   onModifyProtection?: (input: {
     positionId: string;
     stopLoss: number | null;

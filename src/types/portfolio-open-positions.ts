@@ -27,7 +27,7 @@ export type PortfolioOpenPositionsTableProps = {
   onExport?: () => void;
   onCloseAll?: () => void;
   isCloseAllLoading?: boolean;
-  onCancel?: (positionId: string) => void | Promise<void>;
+  onCancel?: (positionId: string, lots?: number) => void | Promise<void>;
   onModifyProtection?: (input: {
     positionId: string;
     stopLoss: number | null;

@@ -129,9 +129,15 @@ export function mapV2CloseResponse(response: {
   remaining: V2Trade | null;
   account: PortfolioAccount;
 }): TradeCloseResponse {
+  const closedPosition = mapV2TradeToPosition(response.closed);
+  const remainingPosition = response.remaining ? mapV2TradeToPosition(response.remaining) : null;
+
   return {
     trade: mapV2Trade(response.closed),
-    position: response.remaining ? mapV2TradeToPosition(response.remaining) : mapV2TradeToPosition(response.closed),
+    remainingTrade: response.remaining ? mapV2Trade(response.remaining) : null,
+    position: remainingPosition ?? closedPosition,
+    closedPosition,
+    remainingPosition,
     account: mapV2Account(response.account),
   };
 }

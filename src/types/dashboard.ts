@@ -120,6 +120,9 @@ export type TradeOpenResponse = {
 
 export type TradeCloseResponse = {
   trade: PortfolioTrade;
+  remainingTrade: PortfolioTrade | null;
   position: TradePositionRecord;
+  closedPosition: TradePositionRecord;
+  remainingPosition: TradePositionRecord | null;
   account: PortfolioAccount;
 };

@@ -58,13 +58,13 @@ export type OpenPositionsStripCardProps = {
   title?: string;
   items: OpenPositionStripItem[];
   className?: string;
-  onClosePosition?: (positionId: string) => Promise<void>;
+  onClosePosition?: (positionId: string, lots?: number) => Promise<void>;
   onModifyProtection?: (input: { positionId: string; stopLoss: number | null; takeProfit: number | null }) => Promise<{ status: "PENDING" | "SENT" | "FAILED" | "SKIPPED" }>;
 };
 
 export type PositionCardProps = {
   item: OpenPositionStripItem;
-  onClosePosition?: (positionId: string) => Promise<void>;
+  onClosePosition?: (positionId: string, lots?: number) => Promise<void>;
   onModifyProtection?: OpenPositionsStripCardProps["onModifyProtection"];
 };
 

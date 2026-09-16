@@ -236,7 +236,7 @@ export function PortfolioOpenPositionsTable({
             stopLoss={row.original.stopLoss}
             takeProfit={row.original.takeProfit}
             onModifyProtection={onModifyProtection}
-            onCancel={() => onCancel?.(row.original.id)}
+            onCancel={(lots) => onCancel?.(row.original.id, lots)}
           />
         ),
       },
