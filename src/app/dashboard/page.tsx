@@ -41,6 +41,7 @@ import { useResolvedAccountNumber } from "@/hooks/use-resolved-account-number";
 import { useSyncedTradingAssets } from "@/hooks/use-synced-trading-assets";
 import { getTradingSymbolAliases } from "@/lib/utils/market-symbol-icon";
 import { applyLiveQuoteToWatchItem } from "@/lib/utils/live-watchlist";
+import { getBucketTime } from "@/lib/utils/merge-live-quote-candles";
 
 export default function DashboardPage() {
   const [snapshot, setSnapshot] = React.useState<UserPortfolioResponse | null>(null);
@@ -495,14 +496,22 @@ export default function DashboardPage() {
 
   const mergeSocketCandle = React.useCallback((candles: ChartCandle[] | undefined, candle: ChartCandle) => {
     const current = candles ?? [];
-    const index = current.findIndex((item) => item.time === candle.time);
+    const bucketTime = getBucketTime(candle.time, timeframe);
+    const index = current.findIndex((item) => item.time === bucketTime);
 
     if (index === -1) {
-      return [...current, candle];
+      return [...current, { ...candle, time: bucketTime }].sort((left, right) => left.time - right.time);
     }
 
-    return current.map((item, itemIndex) => itemIndex === index ? candle : item);
-  }, []);
+    return current.map((item, itemIndex) => itemIndex === index ? {
+      time: bucketTime,
+      open: item.open,
+      high: Math.max(item.high, candle.high),
+      low: Math.min(item.low, candle.low),
+      close: candle.close,
+      volume: Math.max(item.volume, candle.volume),
+    } : item);
+  }, [timeframe]);
 
   const handleSocketCandle = React.useCallback(
     (payload: PriceSocketCandleMessage) => {
