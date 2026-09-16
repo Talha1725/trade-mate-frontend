@@ -53,7 +53,7 @@ function formatProfitFactor(value: number | null) {
     return "∞";
   }
 
-  if (!Number.isFinite(value) || value <= 0) {
+  if (!Number.isFinite(value)) {
     return "—";
   }
 

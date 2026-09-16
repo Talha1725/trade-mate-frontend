@@ -29,12 +29,28 @@ function pnlTone(value: number) {
 }
 
 function dateKey(value: string) {
+  const directDate = value.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
+  if (directDate) {
+    return directDate;
+  }
+
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
     return "";
   }
 
   return date.toISOString().slice(0, 10);
+}
+
+function timestampForCalendarDate(value: string) {
+  const key = dateKey(value);
+  if (key) {
+    const [year, month, day] = key.split("-").map(Number);
+    return Date.UTC(year, month - 1, day, 12);
+  }
+
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) ? timestamp : Date.now();
 }
 
 function startOfCalendarGrid(referenceDate: Date) {
@@ -50,9 +66,18 @@ function buildStatsCards(
   const currency = overview.currency || "USD";
   const chartValues = performance.points.map((point) => point.equity);
   const profitFactor = overview.trades.profitFactor ?? 0;
-  const consistencyScore = Math.min(10, Math.max(0, overview.trades.winRate / 10));
+  const profitFactorTarget = overview.trades.profitFactorTarget ?? 2;
+  const winRateTarget = overview.trades.winRateTarget ?? 50;
+  const consistencyScore = overview.days?.consistency ?? Math.min(10, Math.max(0, overview.trades.winRate / 10));
   const breachCount = overview.challenge?.breaches.count ?? 0;
-  const maxDrawdownRemaining = overview.challenge?.maxDrawdown.remaining ?? 0;
+  const maxDrawdown = overview.challenge?.maxDrawdown;
+  const maxDrawdownUsed = maxDrawdown?.used ?? overview.drawdown.max;
+  const maxDrawdownUsedPercent = maxDrawdown?.usedPercent ?? overview.drawdown.maxPercent;
+  const maxDrawdownRemaining = maxDrawdown?.remaining ?? 0;
+  const bestDayPnl = overview.days?.bestDay?.pnl ?? 0;
+  const avgDayPnl = overview.days?.avgDay ?? 0;
+  const isAboveProfitFactorTarget = profitFactor >= profitFactorTarget;
+  const isAboveWinRateTarget = overview.trades.winRate >= winRateTarget;
 
   return mockAnalyticsMetricCards.map((card) => {
     if (card.id === "net-pnl" && card.variant === "icon-stats") {
@@ -65,11 +90,11 @@ function buildStatsCards(
         iconTone: overview.trades.netPnl >= 0 ? "green" : "red",
         chartValues,
         subStats: [
-          { ...card.subStats[0], value: formatCurrency(overview.trades.grossProfit, currency), tone: "positive" },
+          { ...card.subStats[0], value: formatCurrency(bestDayPnl, currency), tone: valueTone(bestDayPnl) },
           {
             ...card.subStats[1],
-            value: formatCurrency(Math.abs(overview.trades.grossLoss), currency),
-            tone: overview.trades.grossLoss < 0 ? "negative" : "default",
+            value: formatCurrency(avgDayPnl, currency),
+            tone: valueTone(avgDayPnl),
           },
         ],
       };
@@ -82,6 +107,7 @@ function buildStatsCards(
         subtitle: `${overview.trades.total} trades analyzed`,
         gaugeValue: overview.trades.winRate,
         progressValue: overview.trades.winRate,
+        progressRightLabel: `${winRateTarget.toFixed(winRateTarget % 1 === 0 ? 0 : 1)}%+`,
       };
     }
 
@@ -89,9 +115,11 @@ function buildStatsCards(
       return {
         ...card,
         value: profitFactor.toFixed(2),
-        subtitle: profitFactor >= 2 ? "Target 2.0+" : "Below 2.0 target",
-        subtitleTone: profitFactor >= 2 ? "positive" : "negative",
-        iconTone: profitFactor >= 2 ? "green" : profitFactor >= 1 ? "orange" : "red",
+        subtitle: isAboveProfitFactorTarget
+          ? `Target ${profitFactorTarget.toFixed(1)}+`
+          : `Below ${profitFactorTarget.toFixed(1)} target`,
+        subtitleTone: isAboveProfitFactorTarget ? "positive" : "negative",
+        iconTone: isAboveProfitFactorTarget ? "green" : profitFactor >= 1 ? "orange" : "red",
         subStats: [
           { ...card.subStats[0], value: formatCurrency(overview.trades.grossProfit, currency) },
           { ...card.subStats[1], value: formatCurrency(Math.abs(overview.trades.grossLoss), currency) },
@@ -102,19 +130,19 @@ function buildStatsCards(
     if (card.id === "max-drawdown" && card.variant === "icon-stats") {
       return {
         ...card,
-        value: formatCurrency(overview.drawdown.max, currency),
-        valueTone: overview.drawdown.max > 0 ? "negative" : "default",
-        subtitle: formatPercent(overview.drawdown.maxPercent),
-        subtitleTone: overview.drawdown.max > 0 ? "negative" : "default",
-        iconTone: overview.drawdown.maxPercent >= 10 ? "red" : overview.drawdown.maxPercent >= 5 ? "orange" : "blue",
+        value: formatCurrency(maxDrawdownUsed, currency),
+        valueTone: maxDrawdownUsed > 0 ? "negative" : "default",
+        subtitle: formatPercent(maxDrawdownUsedPercent),
+        subtitleTone: maxDrawdownUsed > 0 ? "negative" : "default",
+        iconTone: maxDrawdownUsedPercent >= 10 ? "red" : maxDrawdownUsedPercent >= 5 ? "orange" : "blue",
         subStats: [
           {
             ...card.subStats[0],
-            value: overview.challenge ? formatCurrency(overview.challenge.maxDrawdown.amount, currency) : "N/A",
+            value: maxDrawdown ? formatCurrency(maxDrawdown.amount, currency) : "N/A",
           },
           {
             ...card.subStats[1],
-            value: maxDrawdownRemaining > 0 || overview.challenge ? formatCurrency(maxDrawdownRemaining, currency) : "N/A",
+            value: maxDrawdown ? formatCurrency(maxDrawdownRemaining, currency) : "N/A",
             tone: maxDrawdownRemaining > 0 ? "positive" : "default",
           },
         ],
@@ -125,11 +153,11 @@ function buildStatsCards(
       return {
         ...card,
         value: `${consistencyScore.toFixed(1)}/10`,
-        subtitle: overview.trades.winRate >= 50 ? "Stable" : "Needs improvement",
-        subtitleTone: overview.trades.winRate >= 50 ? "positive" : "negative",
+        subtitle: isAboveWinRateTarget ? "Stable" : "Needs improvement",
+        subtitleTone: isAboveWinRateTarget ? "positive" : "negative",
         subStats: [
-          { ...card.subStats[0], value: String(overview.trades.wins), tone: "positive" },
-          { ...card.subStats[1], value: `${overview.trades.open} open` },
+          { ...card.subStats[0], value: String(overview.days?.greenDays ?? overview.trades.wins), tone: "positive" },
+          { ...card.subStats[1], value: `${overview.days?.currentStreak ?? 0} day${(overview.days?.currentStreak ?? 0) === 1 ? "" : "s"}` },
         ],
       };
     }
@@ -142,7 +170,7 @@ function buildStatsCards(
         subtitle: breachCount === 0 ? "Clear risk signals" : "Partner breach recorded",
         subtitleTone: breachCount === 0 ? "positive" : "negative",
         subStats: [
-          { ...card.subStats[0], value: formatPercent(overview.drawdown.currentPercent) },
+          { ...card.subStats[0], value: formatPercent(maxDrawdownUsedPercent) },
           { ...card.subStats[1], value: breachCount === 0 ? "Active" : "Review", tone: breachCount === 0 ? "positive" : "negative" },
         ],
       };
@@ -228,17 +256,18 @@ function buildChallengeProgress(overview: V2AnalyticsOverviewResponse): Analytic
 
 export function mapV2AnalyticsPerformancePoints(response: V2AnalyticsPerformanceResponse): PortfolioValuePoint[] {
   return response.points.map((point) => {
-    const timestamp = Date.parse(point.at);
-
     return {
-      timestamp: Number.isFinite(timestamp) ? timestamp : Date.now(),
+      timestamp: timestampForCalendarDate(point.at),
       label: point.at,
       value: point.equity,
     };
   });
 }
 
-function buildCalendar(performance: V2AnalyticsPerformanceResponse): TradingCalendarCardProps {
+function buildCalendar(
+  performance: V2AnalyticsPerformanceResponse,
+  overview: V2AnalyticsOverviewResponse,
+): TradingCalendarCardProps {
   const pnlByDay = new Map<string, { pnl: number; trades: number }>();
 
   for (const point of performance.points) {
@@ -253,7 +282,7 @@ function buildCalendar(performance: V2AnalyticsPerformanceResponse): TradingCale
   }
 
   const referencePoint = performance.points.at(-1)?.at ?? new Date().toISOString();
-  const parsedReferenceDate = new Date(referencePoint);
+  const parsedReferenceDate = new Date(timestampForCalendarDate(referencePoint));
   const referenceDate = Number.isNaN(parsedReferenceDate.getTime()) ? new Date() : parsedReferenceDate;
   const gridStart = startOfCalendarGrid(referenceDate);
   const days: TradingCalendarDay[] = [];
@@ -275,7 +304,7 @@ function buildCalendar(performance: V2AnalyticsPerformanceResponse): TradingCale
     });
   }
 
-  const sessions = performance.points.reduce((total, point) => total + point.trades, 0);
+  const sessions = overview.days?.tradingDays ?? performance.points.reduce((total, point) => total + point.trades, 0);
 
   return {
     sessionsLabel: `${sessions} session${sessions === 1 ? "" : "s"}`,
@@ -340,7 +369,7 @@ export function mapV2AnalyticsOverview(params: {
       defaultTimeframe: "1M",
       dataByTimeframe,
     },
-    calendar: buildCalendar(performance),
+    calendar: buildCalendar(performance, params.overview),
     strategyPerformance: {
       total: params.overview.bySymbol.length,
       rows: buildStrategyRows(params.overview, params.pricesBySymbol ?? {}),

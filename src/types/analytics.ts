@@ -70,6 +70,20 @@ export type V2AnalyticsOverviewResponse = {
     averageLoss: number;
     largestWin: number;
     largestLoss: number;
+    winRateTarget?: number;
+    profitFactorTarget?: number;
+  };
+  days?: {
+    tradingDays: number;
+    greenDays: number;
+    currentStreak: number;
+    avgDay: number;
+    consistency: number;
+    bestDay: {
+      at?: string;
+      date?: string;
+      pnl: number;
+    } | null;
   };
   bySymbol: {
     symbol: string;
