@@ -77,6 +77,9 @@ export type V2AnalyticsOverviewResponse = {
     wins: number;
     winRate: number;
     netPnl: number;
+    avgEntryPrice: number | null;
+    avgExitPrice: number | null;
+    profitFactor: number | null;
   }[];
 };
 

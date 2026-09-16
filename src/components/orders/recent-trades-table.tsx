@@ -48,9 +48,13 @@ function formatSignedCurrency(value: number) {
   })}`;
 }
 
-function formatProfitFactor(value: number) {
+function formatProfitFactor(value: number | null) {
+  if (value == null) {
+    return "∞";
+  }
+
   if (!Number.isFinite(value) || value <= 0) {
-    return "0.00";
+    return "—";
   }
 
   return value.toFixed(2);

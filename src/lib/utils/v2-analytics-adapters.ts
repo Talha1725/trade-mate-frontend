@@ -290,11 +290,11 @@ function buildStrategyRows(
   return overview.bySymbol.map((row) => ({
     id: row.symbol,
     symbol: row.symbol,
-    price: pricesBySymbol[row.symbol] ?? null,
+    price: row.avgEntryPrice ?? pricesBySymbol[row.symbol] ?? null,
     pnl: row.netPnl,
     pnlTone: pnlTone(row.netPnl),
     winRate: row.winRate,
-    profitFactor: overview.trades.profitFactor ?? 0,
+    profitFactor: row.profitFactor,
   }));
 }
 

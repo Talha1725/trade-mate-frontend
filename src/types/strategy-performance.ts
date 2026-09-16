@@ -7,5 +7,5 @@ export type StrategyPerformanceRow = {
   pnl: number;
   pnlTone?: StrategyPerformancePnlTone;
   winRate: number;
-  profitFactor: number;
+  profitFactor: number | null;
 };
