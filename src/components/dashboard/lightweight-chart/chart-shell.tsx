@@ -55,21 +55,10 @@ export function ChartShell({ context }: { context: ChartShellContext }) {
 
         <div className="relative flex min-w-0 flex-1 flex-col h-full rounded-[12px] border-[1.5px] border-white/20 bg-linear-to-t from-white/7 to-white/5">
           {isChartLoading ? (
-            <div className="absolute inset-0 z-20 flex items-center justify-center gap-2 text-sm text-white/60">
+            <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center gap-2 text-sm text-white/60">
               <Loader2 className="size-4 animate-spin text-primary" />
               Loading chart data...
             </div>
-          ) : null}
-
-          {isLoadingOlderCandles ? (
-            <div
-              className="absolute inset-0 z-10"
-              onPointerDown={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-              }}
-          
-            />
           ) : null}
 
           {isLoadingOlderCandles ? (

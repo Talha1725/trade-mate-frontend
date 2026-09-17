@@ -11,6 +11,7 @@ export type LightweightTradingChartProps = {
   compareLiveQuote?: ChartLiveQuote | null;
   initialCandles?: ChartCandle[];
   initialCompareCandles?: ChartCandle[];
+  initialCandlesKey?: string | null;
   trades?: PortfolioTrade[];
   tradePositions?: PortfolioPosition[];
   markers?: TradeMarker[];

@@ -71,6 +71,7 @@ export type UseChartDataOptions = {
   compareLiveQuote: ChartLiveQuote | null;
   initialCandles?: ChartCandle[];
   initialCompareCandles?: ChartCandle[];
+  initialCandlesKey?: string | null;
   enabledIndicators: ChartIndicatorId[];
   emaPeriod: number;
   vwapSettings: VwapCalculationSettings;

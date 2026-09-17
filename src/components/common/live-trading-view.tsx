@@ -11,6 +11,7 @@ export function LiveTradingView({
   compareLiveQuote = null,
   initialCandles,
   initialCompareCandles,
+  initialCandlesKey,
   trades = [],
   tradePositions = [],
   markers = [],
@@ -28,6 +29,7 @@ export function LiveTradingView({
       compareLiveQuote={compareLiveQuote}
       initialCandles={initialCandles}
       initialCompareCandles={initialCompareCandles}
+      initialCandlesKey={initialCandlesKey}
       trades={trades}
       tradePositions={tradePositions}
       markers={markers}

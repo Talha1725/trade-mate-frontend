@@ -51,6 +51,7 @@ export default function DashboardPage() {
   const [chartOhlcvCandle, setChartOhlcvCandle] = React.useState<ChartCandle | null>(null);
   const [initialChartCandles, setInitialChartCandles] = React.useState<ChartCandle[] | undefined>();
   const [initialCompareCandles, setInitialCompareCandles] = React.useState<ChartCandle[] | undefined>();
+  const [initialChartCandlesKey, setInitialChartCandlesKey] = React.useState<string | null>(null);
   const [overviewSymbols, setOverviewSymbols] = React.useState<string[]>([]);
   const [overviewWatchlistAssets, setOverviewWatchlistAssets] = React.useState<MarketWatchItem[]>([]);
   const [liveWatchlistItems, setLiveWatchlistItems] = React.useState<MarketWatchItem[]>([]);
@@ -252,6 +253,10 @@ export default function DashboardPage() {
   const compareSymbol = compareWatchlistItem?.symbol ?? compareFilterAsset?.symbol ?? null;
 
   const marketInterval = mapTimeframeToMarketInterval(timeframe);
+  const chartDataIdentityKey = React.useMemo(
+    () => [chartSymbol, timeframe, compareSymbol ?? ""].join("|"),
+    [chartSymbol, compareSymbol, timeframe],
+  );
 
   React.useEffect(() => {
     if (compareAssetId && compareAssetId === selectedMarketId) {
@@ -282,6 +287,7 @@ export default function DashboardPage() {
         setMarketChart(null);
         setInitialChartCandles(undefined);
         setInitialCompareCandles(undefined);
+        setInitialChartCandlesKey(null);
 
         const [response, compareResponse] = await Promise.all([
           marketApi.getSnapshot(chartSymbol, marketInterval),
@@ -306,12 +312,14 @@ export default function DashboardPage() {
         setMarketChart(response.chart);
         setInitialChartCandles(response.candles);
         setInitialCompareCandles(compareResponse?.candles);
+        setInitialChartCandlesKey(chartDataIdentityKey);
       } catch {
         if (!isMounted) {
           return;
         }
         setInitialChartCandles([]);
         setInitialCompareCandles(undefined);
+        setInitialChartCandlesKey(null);
       }
     };
 
@@ -320,7 +328,7 @@ export default function DashboardPage() {
     return () => {
       isMounted = false;
     };
-  }, [chartSymbol, compareSymbol, marketInterval, token]);
+  }, [chartDataIdentityKey, chartSymbol, compareSymbol, marketInterval, token]);
 
   const filterBarQuote = React.useMemo(
     () =>
@@ -663,6 +671,7 @@ export default function DashboardPage() {
               tradePositions={snapshot?.positions ?? []}
               initialCandles={initialChartCandles}
               initialCompareCandles={initialCompareCandles}
+              initialCandlesKey={initialChartCandlesKey}
               onOhlcvChange={setChartOhlcvCandle}
               className="h-[420px] min-h-0 xl:h-[560px]"
             />

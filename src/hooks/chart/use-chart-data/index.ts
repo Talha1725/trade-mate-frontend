@@ -35,6 +35,7 @@ export function useChartData({
   compareLiveQuote,
   initialCandles,
   initialCompareCandles,
+  initialCandlesKey,
   enabledIndicators,
   emaPeriod,
   vwapSettings,
@@ -46,14 +47,20 @@ export function useChartData({
   const [hasOlderCandles, setHasOlderCandles] = React.useState(true);
   const [isLoadingOlderCandles, setIsLoadingOlderCandles] = React.useState(false);
   const olderLoadKeyRef = React.useRef<string | null>(null);
+  const chartSelectionKey = React.useMemo(
+    () => [symbol, timeframe, compareSymbol ?? ""].join("|"),
+    [compareSymbol, symbol, timeframe],
+  );
+  const validInitialCandles = initialCandlesKey === chartSelectionKey ? initialCandles : undefined;
+  const validInitialCompareCandles = initialCandlesKey === chartSelectionKey ? initialCompareCandles : undefined;
   const candles = React.useMemo(
-    () => mergeCandles(olderCandles, initialCandles, data?.candles),
-    [data?.candles, initialCandles, olderCandles],
+    () => mergeCandles(olderCandles, validInitialCandles, data?.candles),
+    [data?.candles, olderCandles, validInitialCandles],
   );
   const effectiveLiveQuote = liveQuote;
   const compareCandles = React.useMemo(
-    () => mergeCandles(olderCompareCandles, initialCompareCandles, compareData?.candles),
-    [compareData?.candles, initialCompareCandles, olderCompareCandles],
+    () => mergeCandles(olderCompareCandles, validInitialCompareCandles, compareData?.candles),
+    [compareData?.candles, olderCompareCandles, validInitialCompareCandles],
   );
 
   React.useEffect(() => {
@@ -129,18 +136,15 @@ export function useChartData({
     compareLiveQuote?.price ?? "",
   ].join("|"), [candles, compareLiveQuote?.price, compareSymbol, displayCompareCandles, symbol, timeframe]);
   const chartViewportKey = React.useMemo(() => {
-    if (!data || data.symbol !== symbol || data.timeframe !== timeframe || data.candles.length === 0) {
+    const hasCurrentQueryData = data?.symbol === symbol && data.timeframe === timeframe && data.candles.length > 0;
+    const hasCurrentInitialData = initialCandlesKey === chartSelectionKey && (initialCandles?.length ?? 0) > 0;
+
+    if (!hasCurrentQueryData && !hasCurrentInitialData) {
       return null;
     }
 
-    return [
-      symbol,
-      timeframe,
-      compareSymbol ?? "",
-      data.candles.length,
-      data.candles[data.candles.length - 1]?.time ?? 0,
-    ].join("|");
-  }, [compareSymbol, data, symbol, timeframe]);
+    return chartSelectionKey;
+  }, [chartSelectionKey, data, initialCandles?.length, initialCandlesKey, symbol, timeframe]);
 
   const ema = React.useMemo(
     () => enabledIndicators.includes("ema") ? buildIndicatorSeries(displayCandles, calculateEma(displayCandles.map((candle) => candle.close), emaPeriod)) : [],

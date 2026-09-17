@@ -20,7 +20,7 @@ export function useChartInstance(options: ChartInstanceOptions) {
   const [chartReady, setChartReady] = React.useState(false);
   const hoveredCandleTimeRef = React.useRef<number | null>(null);
   const isLoadingMoreRef = React.useRef(false);
-  const pendingOlderCandleViewRef = React.useRef<{ span: number } | null>(null);
+  const pendingOlderCandleViewRef = React.useRef<{ addedCount: number } | null>(null);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -429,7 +429,7 @@ export function useChartInstance(options: ChartInstanceOptions) {
         .then((addedCount) => {
           if (addedCount > 0) {
             pendingOlderCandleViewRef.current = {
-              span: Math.max(range.to - range.from, 10),
+              addedCount,
             };
           }
         })
@@ -457,13 +457,16 @@ export function useChartInstance(options: ChartInstanceOptions) {
 
     const pendingOlderCandleView = pendingOlderCandleViewRef.current;
     if (pendingOlderCandleView) {
-      const range = {
-        from: 0,
-        to: pendingOlderCandleView.span,
-      };
+      const currentRange = mainChart.timeScale().getVisibleLogicalRange();
+      if (currentRange) {
+        const range = {
+          from: currentRange.from + pendingOlderCandleView.addedCount,
+          to: currentRange.to + pendingOlderCandleView.addedCount,
+        };
 
-      mainChart.timeScale().setVisibleLogicalRange(range);
-      subChart.timeScale().setVisibleLogicalRange(range);
+        mainChart.timeScale().setVisibleLogicalRange(range);
+        subChart.timeScale().setVisibleLogicalRange(range);
+      }
       pendingOlderCandleViewRef.current = null;
     }
 
@@ -475,7 +478,7 @@ export function useChartInstance(options: ChartInstanceOptions) {
       mainChart.timeScale().unsubscribeVisibleLogicalRangeChange(maybeLoadMoreCandles);
       mainChart.unsubscribeCrosshairMove(handleCrosshairMove);
     };
-  }, [candles.length, chartDataKey, chartReady, displayCompareCandles, enabledIndicators, indicatorPeriods, normalizedCompareSymbol, displayCandles, vwapSettings, onOhlcvChange, onLoadMoreCandles, isLoadingOlderCandles, timeframe]);
+  }, [candles.length, chartDataKey, chartReady, displayCompareCandles, enabledIndicators, indicatorPeriods, normalizedCompareSymbol, vwapSettings, onOhlcvChange, onLoadMoreCandles, isLoadingOlderCandles, timeframe]);
 
 
 
