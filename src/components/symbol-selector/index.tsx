@@ -33,6 +33,7 @@ export function SymbolSelector({
   className,
   contentClassName,
   triggerLabel,
+  onWishlistToggle,
 }: SymbolSelectorProps) {
   // Keep the store's known assets in sync wherever this selector is mounted.
   useSyncedTradingAssets();
@@ -176,6 +177,7 @@ export function SymbolSelector({
                       onClick={(event) => {
                         event.preventDefault();
                         event.stopPropagation();
+                        onWishlistToggle?.(asset, !wishlistAssetIds.includes(asset.id));
                         toggleWishlistAsset?.(asset.id);
                       }}
                     >

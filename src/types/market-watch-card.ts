@@ -1,3 +1,5 @@
+import type { TradingFilterBarAsset } from "@/types/trading-filter-bar";
+
 export type MarketWatchTab = "watchlist";
 export type MarketSignalTone = "positive" | "warning" | "neutral";
 // | "signals" | "news"
@@ -48,6 +50,7 @@ export type MarketWatchCardProps = {
   isLoading?: boolean;
   onItemSelect?: (itemId: string) => void;
   onWatchlistToggle?: (itemId: string) => void;
+  onSymbolWishlistToggle?: (asset: TradingFilterBarAsset, nextIsInWatchlist: boolean) => void;
   className?: string;
 };
 

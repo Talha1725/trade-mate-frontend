@@ -93,6 +93,7 @@ export function MarketWatchCard({
   isLoading = false,
   onItemSelect,
   onWatchlistToggle,
+  onSymbolWishlistToggle,
   className,
 }: MarketWatchCardProps) {
   const activeTab = "watchlist";
@@ -157,6 +158,7 @@ export function MarketWatchCard({
       </div>
       <SymbolSelector
         triggerLabel="+ Add Symbol"
+        onWishlistToggle={onSymbolWishlistToggle}
         className="mt-2 min-h-9 w-full shrink-0 justify-center rounded-[8px] border-white/10 bg-transparent text-sm font-normal text-white/80 hover:border-primary/50 hover:bg-transparent hover:text-primary"
       />
     </div>

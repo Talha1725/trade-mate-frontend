@@ -36,12 +36,14 @@ import type { OpenPositionStripItem } from "@/components/dashboard/types";
 import type { PortfolioPosition } from "@/types/dashboard";
 import type { PriceSocketAccountMessage, PriceSocketCandleMessage, PriceSocketQuote } from "@/types";
 import type { ChartCandle } from "@/types/eodhd";
+import type { TradingFilterBarAsset } from "@/types/trading-filter-bar";
 import { usePriceStream } from "@/hooks/use-price-stream";
 import { useResolvedAccountNumber } from "@/hooks/use-resolved-account-number";
 import { useSyncedTradingAssets } from "@/hooks/use-synced-trading-assets";
 import { getTradingSymbolAliases } from "@/lib/utils/market-symbol-icon";
 import { applyLiveQuoteToWatchItem } from "@/lib/utils/live-watchlist";
 import { getBucketTime } from "@/lib/utils/merge-live-quote-candles";
+import { tradingFilterAssetToWatchlistItem } from "@/lib/utils/watchlist";
 
 export default function DashboardPage() {
   const [snapshot, setSnapshot] = React.useState<UserPortfolioResponse | null>(null);
@@ -189,32 +191,58 @@ export default function DashboardPage() {
   }, []);
 
   React.useEffect(() => {
-    setLiveWatchlistItems((currentItems) => {
-      if (overviewWatchlistAssets.length === 0) {
-        return [];
-      }
-
-      const currentById = new Map(currentItems.map((item) => [item.id, item]));
-
-      return overviewWatchlistAssets.map((item) => {
-        const current = currentById.get(item.id);
-
-        if (!current) {
-          return item;
+    const timer = window.setTimeout(() => {
+      setLiveWatchlistItems((currentItems) => {
+        if (overviewWatchlistAssets.length === 0) {
+          return [];
         }
 
-        return {
-          ...item,
-          price: current.price ?? item.price,
-          high: current.high ?? item.high,
-          low: current.low ?? item.low,
-          volume: current.volume ?? item.volume,
-          change: current.change ?? item.change,
-          changePercent: current.changePercent ?? item.changePercent,
-        };
+        const currentById = new Map(currentItems.map((item) => [item.id, item]));
+
+        return overviewWatchlistAssets.map((item) => {
+          const current = currentById.get(item.id);
+
+          if (!current) {
+            return item;
+          }
+
+          return {
+            ...item,
+            price: current.price ?? item.price,
+            high: current.high ?? item.high,
+            low: current.low ?? item.low,
+            volume: current.volume ?? item.volume,
+            change: current.change ?? item.change,
+            changePercent: current.changePercent ?? item.changePercent,
+          };
+        });
       });
-    });
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, [overviewWatchlistAssets]);
+
+  const handleSymbolWishlistToggle = React.useCallback(
+    (asset: TradingFilterBarAsset, nextIsInWatchlist: boolean) => {
+      if (!nextIsInWatchlist) {
+        setOverviewWatchlistAssets((current) => current.filter((item) => item.id !== asset.id));
+        setLiveWatchlistItems((current) => current.filter((item) => item.id !== asset.id));
+        return;
+      }
+
+      const watchlistItem = tradingFilterAssetToWatchlistItem(asset);
+      const liveQuote = resolveQuoteForSymbol(Object.values(liveQuotes), watchlistItem.symbol);
+      const nextItem = applyLiveQuoteToWatchItem(watchlistItem, liveQuote);
+
+      setOverviewWatchlistAssets((current) =>
+        current.some((item) => item.id === asset.id) ? current : [...current, nextItem],
+      );
+      setLiveWatchlistItems((current) =>
+        current.some((item) => item.id === asset.id) ? current : [...current, nextItem],
+      );
+    },
+    [liveQuotes, resolveQuoteForSymbol],
+  );
 
   const toggleWishlistAsset = React.useCallback(async (assetId: string) => {
     if (!token || !accountNumber) {
@@ -222,6 +250,25 @@ export default function DashboardPage() {
     }
 
     const isInWishlist = overviewWatchlistAssets.some((asset) => asset.id === assetId);
+    const previousOverviewWatchlistAssets = overviewWatchlistAssets;
+    const previousLiveWatchlistItems = liveWatchlistItems;
+    const assetToAdd = tradingAssets.find((asset) => asset.id === assetId);
+
+    if (isInWishlist) {
+      setOverviewWatchlistAssets((current) => current.filter((asset) => asset.id !== assetId));
+      setLiveWatchlistItems((current) => current.filter((asset) => asset.id !== assetId));
+    } else if (assetToAdd) {
+      const watchlistItem = tradingFilterAssetToWatchlistItem(assetToAdd);
+      const liveQuote = resolveQuoteForSymbol(Object.values(liveQuotes), watchlistItem.symbol);
+      const nextItem = applyLiveQuoteToWatchItem(watchlistItem, liveQuote);
+
+      setOverviewWatchlistAssets((current) =>
+        current.some((asset) => asset.id === assetId) ? current : [...current, nextItem],
+      );
+      setLiveWatchlistItems((current) =>
+        current.some((asset) => asset.id === assetId) ? current : [...current, nextItem],
+      );
+    }
 
     try {
       const updatedWishlist = isInWishlist
@@ -236,9 +283,21 @@ export default function DashboardPage() {
       setOverviewSymbols(overview.symbols);
       setOverviewWatchlistAssets(overview.watchlistAssets);
     } catch {
+      setOverviewWatchlistAssets(previousOverviewWatchlistAssets);
+      setLiveWatchlistItems(previousLiveWatchlistItems);
       toast.error("Unable to update watchlist.");
     }
-  }, [accountNumber, overviewWatchlistAssets, resolvedAccountId, setWishlist, token]);
+  }, [
+    accountNumber,
+    liveQuotes,
+    liveWatchlistItems,
+    overviewWatchlistAssets,
+    resolvedAccountId,
+    resolveQuoteForSymbol,
+    setWishlist,
+    token,
+    tradingAssets,
+  ]);
 
   const selectedWatchlistItem = liveWatchlistItems.find((item) => item.id === selectedMarketId);
   const selectedFilterAsset = tradingAssets.find((asset) => asset.id === selectedMarketId);
@@ -681,6 +740,7 @@ export default function DashboardPage() {
               isLoading={overviewWatchlistAssets.length > 0 && liveWatchlistItems.length < overviewWatchlistAssets.length}
               onItemSelect={setSelectedMarketId}
               onWatchlistToggle={toggleWishlistAsset}
+              onSymbolWishlistToggle={handleSymbolWishlistToggle}
               className="min-h-[340px] xl:h-[390px]"
             />
           </div>
