@@ -26,6 +26,25 @@ export function useChartInstance(options: ChartInstanceOptions) {
   const latestVisibleRangeRef = React.useRef<{ from: number; to: number } | null>(null);
   const userNavigationTimeoutRef = React.useRef<number | null>(null);
 
+  const loadMoreCandles = React.useCallback(() => {
+    if (!onLoadMoreCandles || isLoadingMoreRef.current) {
+      return;
+    }
+
+    isLoadingMoreRef.current = true;
+    void onLoadMoreCandles()
+      .then((addedCount) => {
+        if (addedCount > 0) {
+          pendingOlderCandleViewRef.current = {
+            addedCount,
+          };
+        }
+      })
+      .finally(() => {
+        isLoadingMoreRef.current = false;
+      });
+  }, [onLoadMoreCandles]);
+
   React.useEffect(() => {
     let cancelled = false;
     let retryFrame = 0;
@@ -465,7 +484,7 @@ export function useChartInstance(options: ChartInstanceOptions) {
     mainChart.subscribeCrosshairMove(handleCrosshairMove);
 
     const maybeLoadMoreCandles = (range: { from: number; to: number } | null) => {
-      if (!range || !onLoadMoreCandles || isLoadingMoreRef.current || isLoadingOlderCandles) {
+      if (!range || isLoadingOlderCandles) {
         return;
       }
 
@@ -473,18 +492,7 @@ export function useChartInstance(options: ChartInstanceOptions) {
         return;
       }
 
-      isLoadingMoreRef.current = true;
-      void onLoadMoreCandles()
-        .then((addedCount) => {
-          if (addedCount > 0) {
-            pendingOlderCandleViewRef.current = {
-              addedCount,
-            };
-          }
-        })
-        .finally(() => {
-          isLoadingMoreRef.current = false;
-        });
+      loadMoreCandles();
     };
 
     mainChart.timeScale().subscribeVisibleLogicalRangeChange(maybeLoadMoreCandles);
@@ -531,7 +539,25 @@ export function useChartInstance(options: ChartInstanceOptions) {
       mainChart.timeScale().unsubscribeVisibleLogicalRangeChange(maybeLoadMoreCandles);
       mainChart.unsubscribeCrosshairMove(handleCrosshairMove);
     };
-  }, [candles.length, chartDataKey, chartReady, displayCompareCandles, enabledIndicators, indicatorPeriods, normalizedCompareSymbol, vwapSettings, onOhlcvChange, onLoadMoreCandles, isLoadingOlderCandles, timeframe]);
+  }, [candles.length, chartDataKey, chartReady, displayCompareCandles, enabledIndicators, indicatorPeriods, normalizedCompareSymbol, vwapSettings, onOhlcvChange, loadMoreCandles, isLoadingOlderCandles, timeframe]);
+
+  React.useEffect(() => {
+    const chart = mainChartRef.current;
+
+    if (!chartReady || !chart || isLoadingOlderCandles || displayCandles.length === 0) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      const range = chart.timeScale().getVisibleLogicalRange();
+
+      if (range && range.from <= 0) {
+        loadMoreCandles();
+      }
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [chartReady, displayCandles.length, isLoadingOlderCandles, loadMoreCandles, mainChartRef]);
 
 
 
