@@ -105,6 +105,7 @@ export type ChartInstanceOptions = {
   effectiveLiveQuote: ChartLiveQuote | null;
   candles: ChartCandle[];
   chartDataKey: string;
+  chartViewportKey: string | null;
   overlayRevision: React.Dispatch<React.SetStateAction<number>>;
   indicatorPeriods: { ema: number };
   syncLastPriceLabel: (series: ISeriesApi<"Candlestick">, price: number, label: HTMLDivElement | null, symbol: string) => void;

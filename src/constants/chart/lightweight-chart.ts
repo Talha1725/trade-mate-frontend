@@ -79,3 +79,13 @@ export function getDefaultVisibleBars(timeframe: string) {
   }
 }
 
+export function getRightAnchoredVisibleRange(timeframe: string, candleCount: number) {
+  const visibleBars = getDefaultVisibleBars(timeframe);
+  const lastIndex = Math.max(0, candleCount - 1);
+  const to = lastIndex + 4;
+
+  return {
+    from: to - visibleBars,
+    to,
+  };
+}

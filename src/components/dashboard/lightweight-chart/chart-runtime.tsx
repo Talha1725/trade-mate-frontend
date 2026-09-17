@@ -12,7 +12,7 @@ import {
   FIBONACCI_DEFAULT_STYLE,
   TRENDLINE_DEFAULT_STATS,
   TRENDLINE_DEFAULT_STYLE,
-  getDefaultVisibleBars,
+  getRightAnchoredVisibleRange,
 } from "@/constants/chart/lightweight-chart";
 import {
   formatChartPrice,
@@ -208,6 +208,7 @@ export function LightweightTradingChart({
     vwap,
     latestVwapPoint,
     chartDataKey,
+    chartViewportKey,
     isChartLoading,
     isLoadingOlderCandles,
     loadOlderCandles,
@@ -984,11 +985,7 @@ export function LightweightTradingChart({
       return;
     }
 
-    const visibleBars = getDefaultVisibleBars(timeframe);
-    const lastIndex = displayCandles.length - 1;
-    const from = Math.max(0, lastIndex - visibleBars + 1);
-    const to = Math.max(lastIndex + 4, from + visibleBars);
-    const range = { from, to };
+    const range = getRightAnchoredVisibleRange(timeframe, displayCandles.length);
 
     chart.timeScale().setVisibleLogicalRange(range);
     subChart.timeScale().setVisibleLogicalRange(range);
@@ -1143,7 +1140,7 @@ export function LightweightTradingChart({
     return () => window.cancelAnimationFrame(frame);
   }, [activeTool, draftPoints, draftPreviewPoint, drawings, overlayRevision, renderDrawing]);
 
-  useChartInstance({ mainContainerRef, subContainerRef, mainChartRef, subChartRef, mainSeriesRef, subSeriesRef, candleSeriesRef, emaSeriesRef, vwapSeriesRef, vwapUpperSeriesRefs, vwapLowerSeriesRefs, priceLineRef, priceLabelRef, lastCloseRef, initialViewKeyRef, symbol, timeframe, normalizedCompareSymbol, displayCandles, displayCompareCandles, compareTrack, enabledIndicators, vwap, vwapSettings, ema, effectiveLiveQuote, candles, chartDataKey, overlayRevision: setOverlayRevision, indicatorPeriods, syncLastPriceLabel, onOhlcvChange, onLoadMoreCandles: loadOlderCandles, isLoadingOlderCandles });
+  useChartInstance({ mainContainerRef, subContainerRef, mainChartRef, subChartRef, mainSeriesRef, subSeriesRef, candleSeriesRef, emaSeriesRef, vwapSeriesRef, vwapUpperSeriesRefs, vwapLowerSeriesRefs, priceLineRef, priceLabelRef, lastCloseRef, initialViewKeyRef, symbol, timeframe, normalizedCompareSymbol, displayCandles, displayCompareCandles, compareTrack, enabledIndicators, vwap, vwapSettings, ema, effectiveLiveQuote, candles, chartDataKey, chartViewportKey, overlayRevision: setOverlayRevision, indicatorPeriods, syncLastPriceLabel, onOhlcvChange, onLoadMoreCandles: loadOlderCandles, isLoadingOlderCandles });
   const selectedFibonacci = selectedDrawingId
     ? drawings.find((drawing): drawing is FibonacciDrawing => drawing.id === selectedDrawingId && drawing.tool === "fibonacci")
     : null;

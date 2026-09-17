@@ -128,6 +128,19 @@ export function useChartData({
     displayCompareCandles[displayCompareCandles.length - 1]?.time ?? 0,
     compareLiveQuote?.price ?? "",
   ].join("|"), [candles, compareLiveQuote?.price, compareSymbol, displayCompareCandles, symbol, timeframe]);
+  const chartViewportKey = React.useMemo(() => {
+    if (!data || data.symbol !== symbol || data.timeframe !== timeframe || data.candles.length === 0) {
+      return null;
+    }
+
+    return [
+      symbol,
+      timeframe,
+      compareSymbol ?? "",
+      data.candles.length,
+      data.candles[data.candles.length - 1]?.time ?? 0,
+    ].join("|");
+  }, [compareSymbol, data, symbol, timeframe]);
 
   const ema = React.useMemo(
     () => enabledIndicators.includes("ema") ? buildIndicatorSeries(displayCandles, calculateEma(displayCandles.map((candle) => candle.close), emaPeriod)) : [],
@@ -153,6 +166,7 @@ export function useChartData({
     vwap,
     latestVwapPoint,
     chartDataKey,
+    chartViewportKey,
     isChartLoading: candles.length === 0 && (isLoading || (!!compareSymbol && isCompareLoading)),
     isLoadingOlderCandles,
     loadOlderCandles,

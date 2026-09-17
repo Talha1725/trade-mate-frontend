@@ -5,7 +5,7 @@ import { CandlestickSeries, ColorType, CrosshairMode, LineSeries, LineStyle, cre
 import { buildIndicatorSeries, calculateEma, calculateVwap } from "@/lib/utils/chart-indicators";
 import { mergeLiveQuoteIntoCandles } from "@/lib/utils/merge-live-quote-candles";
 import type { ChartCandle } from "@/types/eodhd";
-import { CANDLE_DOWN, CANDLE_UP, CHART_BACKGROUND, COMPARE_LINE_COLOR, EMA50_COLOR, GRID_COLOR, SUB_CHART_AXIS_COLOR, SUB_CHART_X_AXIS_FONT_SIZE, TEXT_COLOR, VWAP_BAND_COLORS, VWAP_COLOR, getDefaultVisibleBars } from "@/constants/chart/lightweight-chart";
+import { CANDLE_DOWN, CANDLE_UP, CHART_BACKGROUND, COMPARE_LINE_COLOR, EMA50_COLOR, GRID_COLOR, SUB_CHART_AXIS_COLOR, SUB_CHART_X_AXIS_FONT_SIZE, TEXT_COLOR, VWAP_BAND_COLORS, VWAP_COLOR, getRightAnchoredVisibleRange } from "@/constants/chart/lightweight-chart";
 import { formatChartPrice, getChartPriceFormat } from "@/lib/utils/chart/formatters";
 import type { ChartInstanceOptions } from "@/types/chart/chart-component-props";
 
@@ -16,7 +16,7 @@ function getLastPriceColor(candle: ChartCandle) {
 }
 
 export function useChartInstance(options: ChartInstanceOptions) {
-  const { mainContainerRef, subContainerRef, mainChartRef, subChartRef, mainSeriesRef, subSeriesRef, candleSeriesRef, emaSeriesRef, vwapSeriesRef, vwapUpperSeriesRefs: vwapUpperSeriesRefsRef, vwapLowerSeriesRefs: vwapLowerSeriesRefsRef, priceLineRef, priceLabelRef, lastCloseRef, initialViewKeyRef, symbol, timeframe, normalizedCompareSymbol, displayCandles, displayCompareCandles, compareTrack, enabledIndicators, vwap, vwapSettings, ema, effectiveLiveQuote, candles, chartDataKey, overlayRevision, indicatorPeriods, syncLastPriceLabel, onOhlcvChange, onLoadMoreCandles, isLoadingOlderCandles = false } = options;
+  const { mainContainerRef, subContainerRef, mainChartRef, subChartRef, mainSeriesRef, subSeriesRef, candleSeriesRef, emaSeriesRef, vwapSeriesRef, vwapUpperSeriesRefs: vwapUpperSeriesRefsRef, vwapLowerSeriesRefs: vwapLowerSeriesRefsRef, priceLineRef, priceLabelRef, lastCloseRef, initialViewKeyRef, symbol, timeframe, normalizedCompareSymbol, displayCandles, displayCompareCandles, compareTrack, enabledIndicators, vwap, vwapSettings, ema, effectiveLiveQuote, candles, chartDataKey, chartViewportKey, overlayRevision, indicatorPeriods, syncLastPriceLabel, onOhlcvChange, onLoadMoreCandles, isLoadingOlderCandles = false } = options;
   const [chartReady, setChartReady] = React.useState(false);
   const hoveredCandleTimeRef = React.useRef<number | null>(null);
   const isLoadingMoreRef = React.useRef(false);
@@ -445,16 +445,14 @@ export function useChartInstance(options: ChartInstanceOptions) {
       : candleByTime.get(hoveredCandleTimeRef.current) ?? latestCandle;
     onOhlcvChange?.(selectedCandle);
 
-    const viewKey = `${symbol}|${timeframe}`;
+    if (chartViewportKey && initialViewKeyRef.current !== chartViewportKey && candles.length > 0) {
+      const range = getRightAnchoredVisibleRange(timeframe, displayCandles.length);
 
-    if (initialViewKeyRef.current !== viewKey && candles.length > 0) {
-      const visibleBars = getDefaultVisibleBars(timeframe);
-      const lastIndex = displayCandles.length - 1;
-      const from = Math.max(0, lastIndex - visibleBars + 1);
-      const to = Math.max(lastIndex + 2, from + visibleBars);
-
-      mainChart.timeScale().setVisibleLogicalRange({ from, to });
-      initialViewKeyRef.current = viewKey;
+      mainChart.timeScale().setVisibleLogicalRange(range);
+      subChart.timeScale().setVisibleLogicalRange(range);
+      mainChart.timeScale().scrollToRealTime();
+      subChart.timeScale().scrollToRealTime();
+      initialViewKeyRef.current = chartViewportKey;
     }
 
     const pendingOlderCandleView = pendingOlderCandleViewRef.current;
@@ -484,6 +482,10 @@ export function useChartInstance(options: ChartInstanceOptions) {
   React.useEffect(() => {
     const series = candleSeriesRef.current;
     if (!series || !effectiveLiveQuote) return;
+    const mainChart = mainChartRef.current;
+    const subChart = subChartRef.current;
+    const logicalRange = mainChart?.timeScale().getVisibleLogicalRange();
+    const shouldStickToRealtime = !logicalRange || logicalRange.to >= Math.max(0, candles.length - 2);
     const merged = mergeLiveQuoteIntoCandles(candles, effectiveLiveQuote, timeframe);
     const last = merged[merged.length - 1];
     if (!last) return;
@@ -513,5 +515,9 @@ export function useChartInstance(options: ChartInstanceOptions) {
       });
     }
     syncLastPriceLabel(series, last.close, priceLabelRef.current, symbol);
+    if (shouldStickToRealtime) {
+      mainChart?.timeScale().scrollToRealTime();
+      subChart?.timeScale().scrollToRealTime();
+    }
   }, [candles, effectiveLiveQuote, indicatorPeriods.ema, timeframe, vwapSettings, symbol, syncLastPriceLabel, onOhlcvChange]);
 }
