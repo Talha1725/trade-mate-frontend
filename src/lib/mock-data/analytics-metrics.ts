@@ -52,7 +52,7 @@ export const mockAnalyticsMetricCards: PortfolioMetricCard[] = [
     iconTone: "red",
     subStats: [
       { label: "Threshold", value: "$5,000" },
-      { label: "Status", value: "Safe", tone: "positive" },
+      { label: "Remaining", value: "Safe", tone: "positive" },
     ],
   },
   {
