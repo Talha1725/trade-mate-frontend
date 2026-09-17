@@ -21,6 +21,10 @@ export function useChartInstance(options: ChartInstanceOptions) {
   const hoveredCandleTimeRef = React.useRef<number | null>(null);
   const isLoadingMoreRef = React.useRef(false);
   const pendingOlderCandleViewRef = React.useRef<{ addedCount: number } | null>(null);
+  const autoFollowRealtimeRef = React.useRef(true);
+  const isUserNavigatingRef = React.useRef(false);
+  const latestVisibleRangeRef = React.useRef<{ from: number; to: number } | null>(null);
+  const userNavigationTimeoutRef = React.useRef<number | null>(null);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -142,6 +146,21 @@ export function useChartInstance(options: ChartInstanceOptions) {
     syncCharts(subChart, mainChart);
 
     const refreshDrawingOverlay = () => overlayRevision((current) => current + 1);
+    const markUserNavigation = () => {
+      isUserNavigatingRef.current = true;
+
+      if (userNavigationTimeoutRef.current !== null) {
+        window.clearTimeout(userNavigationTimeoutRef.current);
+      }
+
+      userNavigationTimeoutRef.current = window.setTimeout(() => {
+        isUserNavigatingRef.current = false;
+        userNavigationTimeoutRef.current = null;
+      }, 900);
+    };
+
+    mainContainer.addEventListener("pointerdown", markUserNavigation);
+    mainContainer.addEventListener("wheel", markUserNavigation, { passive: true });
     mainContainer.addEventListener("pointermove", refreshDrawingOverlay);
     mainContainer.addEventListener("wheel", refreshDrawingOverlay, { passive: true });
     window.addEventListener("resize", refreshDrawingOverlay);
@@ -175,7 +194,13 @@ export function useChartInstance(options: ChartInstanceOptions) {
 
     cleanupCharts = () => {
       window.cancelAnimationFrame(initialSizeFrame);
+      if (userNavigationTimeoutRef.current !== null) {
+        window.clearTimeout(userNavigationTimeoutRef.current);
+        userNavigationTimeoutRef.current = null;
+      }
       resizeObserver.disconnect();
+      mainContainer.removeEventListener("pointerdown", markUserNavigation);
+      mainContainer.removeEventListener("wheel", markUserNavigation);
       mainContainer.removeEventListener("pointermove", refreshDrawingOverlay);
       mainContainer.removeEventListener("wheel", refreshDrawingOverlay);
       window.removeEventListener("resize", refreshDrawingOverlay);
@@ -401,6 +426,30 @@ export function useChartInstance(options: ChartInstanceOptions) {
 
     mainChart.timeScale().subscribeVisibleLogicalRangeChange(updateLastPriceLabel);
 
+    const updateAutoFollowRealtime = (range: { from: number; to: number } | null) => {
+      if (!range) {
+        return;
+      }
+
+      const previousRange = latestVisibleRangeRef.current;
+      const latestIndex = Math.max(0, displayCandles.length - 1);
+      const nearRealtime = range.to >= latestIndex - 1;
+
+      if (
+        isUserNavigatingRef.current &&
+        previousRange &&
+        range.to < previousRange.to - 0.05
+      ) {
+        autoFollowRealtimeRef.current = false;
+      } else if (nearRealtime) {
+        autoFollowRealtimeRef.current = true;
+      }
+
+      latestVisibleRangeRef.current = range;
+    };
+
+    mainChart.timeScale().subscribeVisibleLogicalRangeChange(updateAutoFollowRealtime);
+
     const candleByTime = new Map(displayCandles.map((candle) => [candle.time, candle]));
     const latestCandle = displayCandles[displayCandles.length - 1] ?? null;
     const handleCrosshairMove = (param: { time?: unknown }) => {
@@ -452,6 +501,8 @@ export function useChartInstance(options: ChartInstanceOptions) {
       subChart.timeScale().setVisibleLogicalRange(range);
       mainChart.timeScale().scrollToRealTime();
       subChart.timeScale().scrollToRealTime();
+      autoFollowRealtimeRef.current = true;
+      latestVisibleRangeRef.current = range;
       initialViewKeyRef.current = chartViewportKey;
     }
 
@@ -466,6 +517,7 @@ export function useChartInstance(options: ChartInstanceOptions) {
 
         mainChart.timeScale().setVisibleLogicalRange(range);
         subChart.timeScale().setVisibleLogicalRange(range);
+        latestVisibleRangeRef.current = range;
       }
       pendingOlderCandleViewRef.current = null;
     }
@@ -475,6 +527,7 @@ export function useChartInstance(options: ChartInstanceOptions) {
     return () => {
       cancelAnimationFrame(labelFrameId);
       mainChart.timeScale().unsubscribeVisibleLogicalRangeChange(updateLastPriceLabel);
+      mainChart.timeScale().unsubscribeVisibleLogicalRangeChange(updateAutoFollowRealtime);
       mainChart.timeScale().unsubscribeVisibleLogicalRangeChange(maybeLoadMoreCandles);
       mainChart.unsubscribeCrosshairMove(handleCrosshairMove);
     };
@@ -488,7 +541,7 @@ export function useChartInstance(options: ChartInstanceOptions) {
     const mainChart = mainChartRef.current;
     const subChart = subChartRef.current;
     const logicalRange = mainChart?.timeScale().getVisibleLogicalRange();
-    const shouldStickToRealtime = !logicalRange || logicalRange.to >= Math.max(0, candles.length - 2);
+    const shouldStickToRealtime = autoFollowRealtimeRef.current && (!logicalRange || logicalRange.to >= Math.max(0, candles.length - 2));
     const merged = mergeLiveQuoteIntoCandles(candles, effectiveLiveQuote, timeframe);
     const last = merged[merged.length - 1];
     if (!last) return;
