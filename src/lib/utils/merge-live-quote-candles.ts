@@ -40,17 +40,16 @@ function buildLiveCandle(
   quote: ChartLiveQuote,
   previous?: ChartCandle,
 ): ChartCandle {
-  const open = quote.open ?? previous?.open ?? quote.price;
-  const high = quote.high ?? previous?.high ?? quote.price;
-  const low = quote.low ?? previous?.low ?? quote.price;
-  const volume = quote.volume ?? previous?.volume ?? 0;
+  const open = previous?.close ?? quote.price;
+  const close = quote.price;
+  const volume = quote.volume ?? 0;
 
   return {
     time: bucketTime,
     open,
-    high: Math.max(high, quote.price),
-    low: Math.min(low, quote.price),
-    close: quote.price,
+    high: Math.max(open, close),
+    low: Math.min(open, close),
+    close,
     volume,
   };
 }
@@ -103,8 +102,8 @@ export function mergeLiveQuoteIntoCandles(
       {
         time: bucketTime,
         open: last.open,
-        high: Math.max(last.high, liveCandle.high),
-        low: Math.min(last.low, liveCandle.low),
+        high: Math.max(last.high, quote.price),
+        low: Math.min(last.low, quote.price),
         close: quote.price,
         volume: Math.max(last.volume, liveCandle.volume),
       },

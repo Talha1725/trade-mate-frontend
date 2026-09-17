@@ -31,7 +31,7 @@ describe("mergeLiveQuoteIntoCandles", () => {
     vi.useRealTimers();
   });
 
-  it("updates an existing 4H candle from the quote timestamp bucket", () => {
+  it("updates an existing 4H candle from the live price only", () => {
     vi.setSystemTime("2026-08-25T08:50:00.000Z");
 
     const merged = mergeLiveQuoteIntoCandles(
@@ -39,8 +39,8 @@ describe("mergeLiveQuoteIntoCandles", () => {
       {
         price: 80_200,
         timestamp: "2026-08-25T08:48:00.000Z",
-        high: 80_250,
-        low: 79_900,
+        high: 90_000,
+        low: 70_000,
         volume: 20,
       },
       "4H",
@@ -50,10 +50,30 @@ describe("mergeLiveQuoteIntoCandles", () => {
     expect(merged.at(-1)).toMatchObject({
       time: Date.parse("2026-08-25T08:00:00.000Z") / 1000,
       open: 80_000,
-      high: 80_250,
-      low: 79_900,
+      high: 80_200,
+      low: 79_950,
       close: 80_200,
       volume: 20,
+    });
+  });
+
+  it("starts a new live candle from the previous close", () => {
+    vi.setSystemTime("2026-08-25T12:02:00.000Z");
+
+    const merged = mergeLiveQuoteIntoCandles(
+      baseCandles,
+      { price: 80_125, timestamp: "2026-08-25T12:01:00.000Z" },
+      "4H",
+    );
+
+    expect(merged).toHaveLength(3);
+    expect(merged.at(-1)).toMatchObject({
+      time: Date.parse("2026-08-25T12:00:00.000Z") / 1000,
+      open: 80_050,
+      high: 80_125,
+      low: 80_050,
+      close: 80_125,
+      volume: 0,
     });
   });
 
