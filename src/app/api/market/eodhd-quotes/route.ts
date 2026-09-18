@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { ROUTES } from "@/constant/routes";
+
 function backendUrl() {
   return process.env.BACKEND_URL ?? process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4100";
 }
@@ -13,7 +15,7 @@ export async function GET(request: NextRequest) {
   const headers = authorization ? { authorization } : undefined;
   const snapshots = await Promise.all(
     symbols.map(async (symbol) => {
-      const url = new URL("/api/v2/market/snapshot", backendUrl());
+      const url = new URL(ROUTES.MARKET.SNAPSHOT, backendUrl());
       url.searchParams.set("symbol", symbol);
       url.searchParams.set("interval", "M1");
       url.searchParams.set("limit", "1");

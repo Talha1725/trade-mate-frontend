@@ -1,4 +1,5 @@
 import { get } from "@/lib/utils/api";
+import { ROUTES } from "@/constant/routes";
 import type { V2Candle, V2CandleInterval, V2MarketSnapshot } from "@/types/v2-market";
 
 const SNAPSHOT_CACHE_TTL_MS = 2_000;
@@ -78,7 +79,7 @@ export function getV2MarketSnapshot(params: {
   const key = cacheKey(normalizedParams);
 
   return readThroughCache(snapshotCache, key, () =>
-    get<V2MarketSnapshot>("/api/market/snapshot", {
+    get<V2MarketSnapshot>(ROUTES.MARKET.SNAPSHOT, {
       params: normalizedParams,
       headers: params.authToken ? { Authorization: `Bearer ${params.authToken}` } : undefined,
     }),
@@ -103,7 +104,7 @@ export function getV2MarketCandles(params: {
   const key = cacheKey(normalizedParams);
 
   return readThroughCache(candlesCache, key, () =>
-    get<V2Candle[]>("/api/market/candles", {
+    get<V2Candle[]>(ROUTES.MARKET.HISTORY, {
       params: normalizedParams,
       headers: params.authToken ? { Authorization: `Bearer ${params.authToken}` } : undefined,
     }),

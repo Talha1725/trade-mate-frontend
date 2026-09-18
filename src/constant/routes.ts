@@ -1,110 +1,119 @@
+const API_PREFIX = "/api/v2";
+
 export const ROUTES = {
   /** Auth Module */
   AUTH: {
-    LOGIN:           `/api/auth/login`,
-    ME:              `/api/auth/me`,
-    FORGOT_PASSWORD: `/api/auth/forgot-password`,
-    RESET_PASSWORD:  `/api/auth/reset-password`,
+    LOGIN:           `${API_PREFIX}/auth/login`,
+    ME:              `${API_PREFIX}/auth/me`,
+    FORGOT_PASSWORD: `${API_PREFIX}/auth/forgot-password`,
+    RESET_PASSWORD:  `${API_PREFIX}/auth/reset-password`,
+    LOGOUT:          `${API_PREFIX}/auth/logout`,
   },
 
   /** Market Module */
   MARKET: {
-    HISTORY:        `/api/market/history`,
-    CHART_DATA:     `/api/market/chart`,
-    SYMBOLS:        `/api/market/symbols`,
-    SNAPSHOT:       `/api/market/snapshot`,
-    BY_SYMBOL: (s: string) => `/api/market/${s}`,
-    CHART:    (s: string) => `/api/market/${s}/chart`,
+    HISTORY:        `${API_PREFIX}/market/candles`,
+    CHART_DATA:     `${API_PREFIX}/market/candles`,
+    SYMBOLS:        `${API_PREFIX}/assets`,
+    SNAPSHOT:       `${API_PREFIX}/market/snapshot`,
+    MOVERS:         `${API_PREFIX}/market/movers`,
+    BY_SYMBOL: (s: string) => `${API_PREFIX}/market/snapshot?symbol=${encodeURIComponent(s)}`,
+    CHART:    (s: string) => `${API_PREFIX}/market/candles?symbol=${encodeURIComponent(s)}`,
   },
 
   /** Trade Module */
   TRADE: {
-    LIST:           `/api/trades`,
-    OPEN:           `/api/trades/open`,
-    CLOSE:          `/api/trades/close`,
-    MODIFY:         `/api/trades/modify`,
-    ACCOUNT: (id: string) => `/api/account/${id}`,
-    BY_ID:  (id: string) => `/api/trades/${id}`,
-    CREATE:         `/api/trades/create`,
-    HISTORY:        `/api/trades/history`,
+    LIST:           `${API_PREFIX}/trades`,
+    OPEN:           `${API_PREFIX}/trades`,
+    CLOSE:          `${API_PREFIX}/trades`,
+    MODIFY:         `${API_PREFIX}/trades`,
+    ACCOUNT: (id: string) => `${API_PREFIX}/trades?accountId=${encodeURIComponent(id)}`,
+    BY_ID:  (id: string) => `${API_PREFIX}/trades/${encodeURIComponent(id)}`,
+    CREATE:         `${API_PREFIX}/trades`,
+    HISTORY:        `${API_PREFIX}/trades`,
   },
 
   /** Position Module */
   POSITION: {
-    LIST:           `/api/positions`,
-    BY_ID:  (id: string) => `/api/positions/${id}`,
-    CLOSE:  (id: string) => `/api/positions/${id}/close`,
+    LIST:           `${API_PREFIX}/trades?status=OPEN`,
+    BY_ID:  (id: string) => `${API_PREFIX}/trades/${encodeURIComponent(id)}`,
+    CLOSE:  (id: string) => `${API_PREFIX}/trades/${encodeURIComponent(id)}/close`,
   },
 
   /** Account Module */
   ACCOUNT: {
-    SUMMARY:        `/api/account/summary`,
-    BY_ID:  (id: string) => `/api/account/${id}`,
-    LIST:           `/api/accounts`,
+    SUMMARY:        `${API_PREFIX}/dashboard/overview`,
+    BY_ID:  (id: string) => `${API_PREFIX}/admin/accounts/${encodeURIComponent(id)}`,
+    LIST:           `${API_PREFIX}/accounts`,
     WISHLIST: (accountNumber: string) =>
-      `/api/accounts/${encodeURIComponent(accountNumber)}/wishlist`,
+      `${API_PREFIX}/wishlist/${encodeURIComponent(accountNumber)}`,
     WISHLIST_ITEM: (accountNumber: string, assetId: string) =>
-      `/api/accounts/${encodeURIComponent(accountNumber)}/wishlist/${encodeURIComponent(assetId)}`,
+      `${API_PREFIX}/wishlist/${encodeURIComponent(accountNumber)}/${encodeURIComponent(assetId)}`,
   },
 
   /** Dashboard Module */
   DASHBOARD: {
-    OVERVIEW:       `/api/dashboard/overview`,
-    SUMMARY:        `/api/dashboard/overview`,
-    EQUITY_CURVE:   `/api/dashboard/equity-curve`,
-    BREAKDOWN:      `/api/dashboard/breakdown`,
-    RECENT_ACTIVITY:`/api/dashboard/recent-activity`,
-    STAT_CARDS:     `/api/dashboard/stat-cards`,
+    OVERVIEW:       `${API_PREFIX}/dashboard/overview`,
+    SUMMARY:        `${API_PREFIX}/dashboard/overview`,
+    EQUITY_CURVE:   `${API_PREFIX}/portfolio/chart`,
+    BREAKDOWN:      `${API_PREFIX}/portfolio/allocation`,
+    RECENT_ACTIVITY:`${API_PREFIX}/admin/audit-logs`,
+    STAT_CARDS:     `${API_PREFIX}/dashboard/overview`,
   },
 
   /** Analytics Module */
   ANALYTICS: {
-    OVERVIEW:       `/api/analytics/overview`,
-    PERFORMANCE:    `/api/analytics/performance`,
+    OVERVIEW:       `${API_PREFIX}/analytics/overview`,
+    PERFORMANCE:    `${API_PREFIX}/analytics/performance`,
   },
 
   /** Portfolio Module */
   PORTFOLIO: {
-    SUMMARY:        `/api/portfolio/summary`,
-    CHART:          `/api/portfolio/chart`,
-    ALLOCATION:     `/api/portfolio/allocation`,
+    SUMMARY:        `${API_PREFIX}/portfolio/summary`,
+    CHART:          `${API_PREFIX}/portfolio/chart`,
+    ALLOCATION:     `${API_PREFIX}/portfolio/allocation`,
   },
 
   /** Settings Module */
   SETTINGS: {
-    OVERVIEW:       `/api/settings/overview`,
-    PROFILE:        `/api/settings/profile`,
-    PASSWORD:       `/api/settings/password`,
-    AVATAR:         `/api/settings/avatar`,
-    AVATAR_PRESIGN: `/api/settings/avatar/presign`,
+    OVERVIEW:       `${API_PREFIX}/settings/overview`,
+    PROFILE:        `${API_PREFIX}/settings/profile`,
+    PASSWORD:       `${API_PREFIX}/settings/password`,
+    AVATAR:         `${API_PREFIX}/settings/avatar`,
+    AVATAR_PRESIGN: `${API_PREFIX}/settings/avatar/presign`,
   },
 
   /** Orders Module */
   ORDERS: {
-    OVERVIEW:       `/api/orders/overview`,
+    OVERVIEW:       `${API_PREFIX}/trades`,
   },
 
   /** Assets Module */
   ASSETS: {
-    LIST:           `/api/assets`,
+    LIST:           `${API_PREFIX}/assets`,
+  },
+
+  /** Desktop Module */
+  DESKTOP_RELEASES: {
+    LATEST:         `${API_PREFIX}/desktop-releases/latest`,
   },
 
   /** Integrations Module */
   INTEGRATIONS: {
     URFX_PRICING_RULES: (planKey: string) =>
-      `/api/integrations/urfx/pricing-rules/${encodeURIComponent(planKey)}`,
+      `${API_PREFIX}/partner/pricing-rules/${encodeURIComponent(planKey)}`,
   },
 
   /** Admin Module */
   ADMIN: {
-    ACCOUNTS:        `/api/admin/accounts`,
-    TRADES:          `/api/admin/trades`,
-    TRADE_BY_ID: (id: string) => `/api/admin/trades/${id}`,
-    USERS:           `/api/admin/users`,
-    INJECT_PREVIEW:  `/api/admin/inject/preview`,
-    INJECT:          `/api/admin/inject`,
-    BULK_PUSH:       `/api/admin/bulk-push`,
-    AUDIT:           `/api/admin/audit`,
+    ACCOUNTS:        `${API_PREFIX}/admin/accounts`,
+    TRADES:          `${API_PREFIX}/admin/trades`,
+    TRADE_BY_ID: (id: string) => `${API_PREFIX}/admin/trades/${encodeURIComponent(id)}`,
+    USERS:           `${API_PREFIX}/admin/users`,
+    INJECT_PREVIEW:  `${API_PREFIX}/admin/injections/preview`,
+    INJECT:          `${API_PREFIX}/admin/injections`,
+    BULK_PUSH:       `${API_PREFIX}/admin/trades`,
+    AUDIT:           `${API_PREFIX}/admin/audit-logs`,
   },
 } as const
 

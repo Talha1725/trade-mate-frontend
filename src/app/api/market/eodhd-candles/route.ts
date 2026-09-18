@@ -1,20 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { ROUTES } from "@/constant/routes";
+
 function backendUrl() {
   return process.env.BACKEND_URL ?? process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4100";
+}
+
+function normalizeInterval(interval: string) {
+  switch (interval) {
+    case "1m":
+      return "M1";
+    case "5m":
+      return "M5";
+    case "15m":
+      return "M15";
+    case "1h":
+    case "1H":
+      return "H1";
+    case "4h":
+    case "4H":
+      return "H4";
+    case "1d":
+    case "D":
+      return "D1";
+    case "1w":
+    case "W":
+      return "W1";
+    default:
+      return interval;
+  }
 }
 
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
   const timeframe = params.get("timeframe");
-  const url = new URL(timeframe ? "/api/market/chart" : "/api/market/history", backendUrl());
+  const url = new URL(ROUTES.MARKET.HISTORY, backendUrl());
   url.searchParams.set("symbol", params.get("symbol") ?? "");
-  if (timeframe) {
-    url.searchParams.set("timeframe", timeframe);
-  } else {
-    url.searchParams.set("interval", params.get("interval") ?? "1d");
-    url.searchParams.set("limit", params.get("limit") ?? "500");
-  }
+  url.searchParams.set("interval", normalizeInterval(timeframe ?? params.get("interval") ?? "D1"));
+  url.searchParams.set("limit", params.get("limit") ?? "500");
 
   const response = await fetch(url, { cache: "no-store" });
   const payload = await response.json();

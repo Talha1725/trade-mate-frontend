@@ -25,6 +25,7 @@ import type { DesktopDownloadPlatform, DesktopReleaseManifest } from "./types";
 import { PlaceOrderDialog } from "@/components/place-order-dialog";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { get } from "@/lib/utils/api";
+import { ROUTES } from "@/constant/routes";
 
 const CURRENT_DESKTOP_APP_VERSION =
   process.env.NEXT_PUBLIC_DESKTOP_APP_VERSION?.replace(/^v/i, "") ?? "1.0.0";
@@ -124,7 +125,7 @@ async function getDesktopRelease() {
   let data: DesktopReleaseManifest | null = null;
 
   try {
-    data = getReleaseFromApiResponse(await get("/api/desktop-releases/latest"));
+    data = getReleaseFromApiResponse(await get(ROUTES.DESKTOP_RELEASES.LATEST));
   } catch {
     data = await getReleaseFromManifestFallback();
   }

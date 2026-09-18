@@ -66,7 +66,7 @@ export const loginApi = {
 
   async signout(): Promise<void> {
     try {
-      await post<null>("/api/auth/logout")
+      await post<null>(ROUTES.AUTH.LOGOUT)
     } finally {
       useAuthStore.getState().clearToken()
     }

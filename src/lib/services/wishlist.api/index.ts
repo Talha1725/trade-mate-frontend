@@ -1,14 +1,15 @@
 import { del, get, post } from "@/lib/utils/api";
+import { ROUTES } from "@/constant/routes";
 import { dedupeInFlight } from "@/lib/utils/in-flight-request";
 import type { V2WishlistItem } from "@/types/v2-wishlist";
 import type { AddToWishlistPayload, WishlistResponse } from "@/types/wishlist";
 
 function wishlistRoute(accountNumber: string) {
-  return `/api/wishlist/${encodeURIComponent(accountNumber)}`;
+  return ROUTES.ACCOUNT.WISHLIST(accountNumber);
 }
 
 function wishlistItemRoute(accountNumber: string, assetId: string) {
-  return `${wishlistRoute(accountNumber)}/${encodeURIComponent(assetId)}`;
+  return ROUTES.ACCOUNT.WISHLIST_ITEM(accountNumber, assetId);
 }
 
 function mapWishlistResponse(response: WishlistResponse | V2WishlistItem[]): WishlistResponse {
