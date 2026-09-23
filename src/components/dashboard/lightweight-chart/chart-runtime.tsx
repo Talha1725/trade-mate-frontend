@@ -63,7 +63,7 @@ function syncLastPriceLabel(
 export function LightweightTradingChart({
   symbol,
   compareSymbol = null,
-  timeframe = "4H",
+  timeframe = "D",
   liveQuote = null,
   compareLiveQuote = null,
   initialCandles,

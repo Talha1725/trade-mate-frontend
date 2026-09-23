@@ -6,7 +6,7 @@ import type { LiveTradingViewProps } from "@/types";
 export function LiveTradingView({
   symbol,
   compareSymbol = null,
-  timeframe = "4H",
+  timeframe = "D",
   liveQuote = null,
   compareLiveQuote = null,
   initialCandles,

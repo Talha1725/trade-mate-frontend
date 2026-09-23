@@ -7,7 +7,7 @@ import type { MarketSelectionStore } from "@/types/market-selection-store";
 import type { TradingTimeframe } from "@/types/trading-filter-bar";
 import { TRADING_TIMEFRAMES } from "@/constants/trading-timeframes";
 
-const DEFAULT_TIMEFRAME: TradingTimeframe = "4H";
+const DEFAULT_TIMEFRAME: TradingTimeframe = "D";
 
 function normalizeTimeframe(timeframe: TradingTimeframe) {
   return TRADING_TIMEFRAMES.includes(timeframe) ? timeframe : DEFAULT_TIMEFRAME;
@@ -119,8 +119,8 @@ export const useMarketSelectionStore = create<MarketSelectionStore>()(
     }),
     {
       // Reset the persisted chart selection once so existing users start on
-      // the new 4H default instead of an older persisted 1m selection.
-      name: "trade-mate-market-selection-v2",
+      // the daily default instead of an older persisted intraday selection.
+      name: "trade-mate-market-selection-v3",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         selectedMarketId: state.selectedMarketId,
