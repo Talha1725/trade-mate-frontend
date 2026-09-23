@@ -23,8 +23,13 @@ export function useChartInstance(options: ChartInstanceOptions) {
   const pendingOlderCandleViewRef = React.useRef<{ addedCount: number } | null>(null);
   const autoFollowRealtimeRef = React.useRef(true);
   const isUserNavigatingRef = React.useRef(false);
+  const isLoadingOlderCandlesRef = React.useRef(isLoadingOlderCandles);
   const latestVisibleRangeRef = React.useRef<{ from: number; to: number } | null>(null);
   const userNavigationTimeoutRef = React.useRef<number | null>(null);
+
+  React.useEffect(() => {
+    isLoadingOlderCandlesRef.current = isLoadingOlderCandles;
+  }, [isLoadingOlderCandles]);
 
   const loadMoreCandles = React.useCallback(() => {
     if (!onLoadMoreCandles || isLoadingMoreRef.current) {
@@ -77,6 +82,7 @@ export function useChartInstance(options: ChartInstanceOptions) {
         visible: true,
         borderColor: "rgba(255,255,255,0.08)",
         minimumWidth: 72,
+        autoScale: true,
       },
       leftPriceScale: {
         visible: false,
@@ -259,6 +265,8 @@ export function useChartInstance(options: ChartInstanceOptions) {
       return;
     }
 
+    const visibleRangeBeforeDataReset = mainChart.timeScale().getVisibleLogicalRange();
+
     mainChart.applyOptions({
       localization: {
         priceFormatter: (price: number) => formatChartPrice(price, symbol),
@@ -290,6 +298,7 @@ export function useChartInstance(options: ChartInstanceOptions) {
     mainChart.priceScale("right").applyOptions({
       visible: true,
       borderColor: "rgba(255,255,255,0.08)",
+      autoScale: true,
     });
     mainChart.priceScale("left").applyOptions({
       visible: false,
@@ -364,6 +373,7 @@ export function useChartInstance(options: ChartInstanceOptions) {
 
     mainChart.priceScale("right").applyOptions({
       visible: true,
+      autoScale: true,
     });
     mainChart.priceScale("left").applyOptions({
       visible: Boolean(compareSeries),
@@ -387,8 +397,8 @@ export function useChartInstance(options: ChartInstanceOptions) {
       low: candle.low,
       close: candle.close,
     }));
-
     candleSeries.setData(candleData);
+    mainChart.priceScale("right").applyOptions({ autoScale: true });
     emaSeries?.setData(ema.map((point) => ({ time: toSeriesTime(point.time), value: point.value })));
     vwapSeries?.setData(vwap.map((point) => ({ time: toSeriesTime(point.time), value: point.value })));
     vwapUpperSeries.forEach((series, index) => {
@@ -478,13 +488,14 @@ export function useChartInstance(options: ChartInstanceOptions) {
 
       const time = typeof param.time === "number" ? param.time : null;
       hoveredCandleTimeRef.current = time;
-      onOhlcvChange(time == null ? latestCandle : candleByTime.get(time) ?? latestCandle);
+      const selectedCandle = time == null ? latestCandle : candleByTime.get(time) ?? latestCandle;
+      onOhlcvChange(selectedCandle);
     };
 
     mainChart.subscribeCrosshairMove(handleCrosshairMove);
 
     const maybeLoadMoreCandles = (range: { from: number; to: number } | null) => {
-      if (!range || isLoadingOlderCandles) {
+      if (!range || isLoadingOlderCandlesRef.current) {
         return;
       }
 
@@ -502,7 +513,9 @@ export function useChartInstance(options: ChartInstanceOptions) {
       : candleByTime.get(hoveredCandleTimeRef.current) ?? latestCandle;
     onOhlcvChange?.(selectedCandle);
 
-    if (chartViewportKey && initialViewKeyRef.current !== chartViewportKey && candles.length > 0) {
+    const isInitialViewport = chartViewportKey && initialViewKeyRef.current !== chartViewportKey && candles.length > 0;
+
+    if (isInitialViewport) {
       const range = getRightAnchoredVisibleRange(timeframe, displayCandles.length);
 
       mainChart.timeScale().setVisibleLogicalRange(range);
@@ -516,7 +529,7 @@ export function useChartInstance(options: ChartInstanceOptions) {
 
     const pendingOlderCandleView = pendingOlderCandleViewRef.current;
     if (pendingOlderCandleView) {
-      const currentRange = mainChart.timeScale().getVisibleLogicalRange();
+      const currentRange = visibleRangeBeforeDataReset ?? mainChart.timeScale().getVisibleLogicalRange();
       if (currentRange) {
         const range = {
           from: currentRange.from + pendingOlderCandleView.addedCount,
@@ -528,6 +541,10 @@ export function useChartInstance(options: ChartInstanceOptions) {
         latestVisibleRangeRef.current = range;
       }
       pendingOlderCandleViewRef.current = null;
+    } else if (!isInitialViewport && visibleRangeBeforeDataReset && !autoFollowRealtimeRef.current) {
+      mainChart.timeScale().setVisibleLogicalRange(visibleRangeBeforeDataReset);
+      subChart.timeScale().setVisibleLogicalRange(visibleRangeBeforeDataReset);
+      latestVisibleRangeRef.current = visibleRangeBeforeDataReset;
     }
 
     window.requestAnimationFrame(() => overlayRevision((current) => current + 1));
@@ -539,7 +556,7 @@ export function useChartInstance(options: ChartInstanceOptions) {
       mainChart.timeScale().unsubscribeVisibleLogicalRangeChange(maybeLoadMoreCandles);
       mainChart.unsubscribeCrosshairMove(handleCrosshairMove);
     };
-  }, [candles.length, chartDataKey, chartReady, displayCompareCandles, enabledIndicators, indicatorPeriods, normalizedCompareSymbol, vwapSettings, onOhlcvChange, loadMoreCandles, isLoadingOlderCandles, timeframe]);
+  }, [candles.length, chartDataKey, chartReady, displayCompareCandles, enabledIndicators, indicatorPeriods, normalizedCompareSymbol, vwapSettings, onOhlcvChange, loadMoreCandles, timeframe]);
 
   React.useEffect(() => {
     const chart = mainChartRef.current;

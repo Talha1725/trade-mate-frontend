@@ -47,6 +47,7 @@ export function useChartData({
   const [hasOlderCandles, setHasOlderCandles] = React.useState(true);
   const [isLoadingOlderCandles, setIsLoadingOlderCandles] = React.useState(false);
   const olderLoadKeyRef = React.useRef<string | null>(null);
+  const isLoadingOlderCandlesRef = React.useRef(isLoadingOlderCandles);
   const chartSelectionKey = React.useMemo(
     () => [symbol, timeframe, compareSymbol ?? ""].join("|"),
     [compareSymbol, symbol, timeframe],
@@ -64,17 +65,22 @@ export function useChartData({
   );
 
   React.useEffect(() => {
+    isLoadingOlderCandlesRef.current = isLoadingOlderCandles;
+  }, [isLoadingOlderCandles]);
+
+  React.useEffect(() => {
     setOlderCandles(EMPTY_CANDLES);
     setOlderCompareCandles(EMPTY_CANDLES);
     setHasOlderCandles(true);
     setIsLoadingOlderCandles(false);
+    isLoadingOlderCandlesRef.current = false;
     olderLoadKeyRef.current = null;
   }, [symbol, compareSymbol, timeframe]);
 
   const loadOlderCandles = React.useCallback(async () => {
     const oldestTime = candles[0]?.time;
 
-    if (!oldestTime || isLoadingOlderCandles || !hasOlderCandles) {
+    if (!oldestTime || isLoadingOlderCandlesRef.current || !hasOlderCandles) {
       return 0;
     }
 
@@ -85,6 +91,7 @@ export function useChartData({
 
     olderLoadKeyRef.current = loadKey;
     setIsLoadingOlderCandles(true);
+    isLoadingOlderCandlesRef.current = true;
 
     try {
       const [nextCandles, nextCompareCandles] = await Promise.all([
@@ -112,10 +119,11 @@ export function useChartData({
     } finally {
       window.setTimeout(() => {
         setIsLoadingOlderCandles(false);
+        isLoadingOlderCandlesRef.current = false;
         olderLoadKeyRef.current = null;
       }, MIN_OLDER_CANDLE_LOADER_MS);
     }
-  }, [candles, compareSymbol, hasOlderCandles, isLoadingOlderCandles, symbol, timeframe]);
+  }, [candles, compareSymbol, hasOlderCandles, symbol, timeframe]);
 
   const displayCandles = React.useMemo(
     () => effectiveLiveQuote ? mergeLiveQuoteIntoCandles(candles, effectiveLiveQuote, timeframe) : candles,
