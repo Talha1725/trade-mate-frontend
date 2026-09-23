@@ -118,18 +118,17 @@ export const useMarketSelectionStore = create<MarketSelectionStore>()(
       setHasHydrated: (value) => set({ hasHydrated: value }),
     }),
     {
-      // Reset the persisted chart selection once so existing users start on
-      // the daily default instead of an older persisted intraday selection.
-      name: "trade-mate-market-selection-v3",
+      // Keep asset selections, but let every fresh page load start on the
+      // daily chart timeframe.
+      name: "trade-mate-market-selection-v4",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         selectedMarketId: state.selectedMarketId,
         compareAssetId: state.compareAssetId,
-        timeframe: state.timeframe,
       }),
       onRehydrateStorage: () => (state) => {
         if (state) {
-          state.timeframe = normalizeTimeframe(state.timeframe ?? DEFAULT_TIMEFRAME);
+          state.timeframe = DEFAULT_TIMEFRAME;
         }
 
         state?.setHasHydrated(true);
