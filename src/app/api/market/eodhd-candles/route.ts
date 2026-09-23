@@ -3,7 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { ROUTES } from "@/constant/routes";
 
 function backendUrl() {
-  return process.env.BACKEND_URL ?? process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4100";
+  const base =
+    process.env.BACKEND_URL ?? process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:4100/api/v2";
+  return base.replace(/\/$/, "");
 }
 
 function normalizeInterval(interval: string) {
@@ -34,7 +36,7 @@ function normalizeInterval(interval: string) {
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
   const timeframe = params.get("timeframe");
-  const url = new URL(ROUTES.MARKET.HISTORY, backendUrl());
+  const url = new URL(`${backendUrl()}${ROUTES.MARKET.HISTORY}`);
   url.searchParams.set("symbol", params.get("symbol") ?? "");
   url.searchParams.set("interval", normalizeInterval(timeframe ?? params.get("interval") ?? "D1"));
   url.searchParams.set("limit", params.get("limit") ?? "500");
