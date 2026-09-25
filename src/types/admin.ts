@@ -7,7 +7,7 @@ export interface AccountSummary {
   balance: number;
   equity: number;
   openPositionsCount: number;
-  status: "Active" | "Suspended" | "Pending";
+  status: "Active" | "Suspended" | "Passed" | "Pending";
 }
 
 export interface AuditLogEntry {
@@ -106,7 +106,7 @@ export type AccountsApiOptions = {
   page?: number;
   limit?: number;
   search?: string;
-  status?: AccountSummary["status"] | "ACTIVE" | "SUSPENDED" | "CLOSED" | "All";
+  status?: AccountSummary["status"] | "ACTIVE" | "SUSPENDED" | "FAILED" | "PASSED" | "CLOSED" | "All";
 };
 
 export type PaginatedAccountsResponse = {

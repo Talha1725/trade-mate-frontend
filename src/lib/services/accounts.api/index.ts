@@ -16,6 +16,8 @@ function mapAccountStatus(status: AccountsApiOptions["status"]) {
       return "ACTIVE";
     case "Suspended":
       return "SUSPENDED";
+    case "Passed":
+      return "PASSED";
     case "Pending":
       return "CLOSED";
     default:
