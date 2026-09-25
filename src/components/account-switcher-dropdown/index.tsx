@@ -34,8 +34,14 @@ function getAccountStatusTone(status?: string | null) {
     return "bg-emerald-500/15 text-emerald-300 border-emerald-400/30";
   }
 
-  if (normalized === "suspended" || normalized === "inactive") {
+  if (normalized === "suspended" || normalized === "inactive" || normalized === "failed") {
     return "bg-rose-500/15 text-rose-300 border-rose-400/30";
+  }
+
+  // A passed challenge is finished like a failed one, and must never be shown
+  // in the same colour as a breach.
+  if (normalized === "passed") {
+    return "bg-green-500/15 text-green-300 border-green-400/30";
   }
 
   return "bg-white/10 text-white/70 border-white/15";
