@@ -80,7 +80,7 @@ export default function SettingsPage() {
         id: "account-status",
         label: "Account Status",
         value: formatAccountStatus(account?.status ?? null),
-        valueTone: account?.status === "ACTIVE" ? "positive" : "negative",
+        valueTone: account?.status === "ACTIVE" || account?.status === "PASSED" ? "positive" : "negative",
       },
     ];
 

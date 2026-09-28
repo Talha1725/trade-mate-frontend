@@ -58,7 +58,9 @@ function mapAccount(account: {
   const statusMap: Record<string, AccountSummary["status"]> = {
     ACTIVE: "Active",
     SUSPENDED: "Suspended",
-    CLOSED: "Suspended",
+    FAILED: "Failed",
+    PASSED: "Passed",
+    CLOSED: "Closed",
   };
 
   return {
@@ -215,7 +217,9 @@ export const accountsApi = {
     const statusMap: Record<string, AccountSummary["status"]> = {
       ACTIVE: "Active",
       SUSPENDED: "Suspended",
-      CLOSED: "Suspended",
+      FAILED: "Failed",
+      PASSED: "Passed",
+      CLOSED: "Closed",
     };
 
     let email = "user@trademate.local";

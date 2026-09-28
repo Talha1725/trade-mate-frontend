@@ -65,7 +65,7 @@ const columns: ColumnDef<AccountSummary>[] = [
     cell: ({ row }) => {
       const status = row.getValue("status") as string;
       return (
-        <div className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${status === "Active" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
+        <div className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${status === "Active" || status === "Passed" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
           {status}
         </div>
       );
@@ -217,6 +217,9 @@ export function AccountsTable() {
               <SelectItem value="All">All Statuses</SelectItem>
               <SelectItem value="Active">Active</SelectItem>
               <SelectItem value="Suspended">Suspended</SelectItem>
+              <SelectItem value="Failed">Failed</SelectItem>
+              <SelectItem value="Passed">Passed</SelectItem>
+              <SelectItem value="Closed">Closed</SelectItem>
             </SelectContent>
           </Select>
           <Button onClick={() => setShowProvisionForm(!showProvisionForm)} variant="default" className="gap-2">

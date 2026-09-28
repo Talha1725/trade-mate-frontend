@@ -15,7 +15,7 @@ export type SettingsOverviewAccount = {
   fundingType: string | null;
   name: string;
   type: "DEMO" | "LIVE";
-  status: "ACTIVE" | "SUSPENDED" | "CLOSED";
+  status: "ACTIVE" | "SUSPENDED" | "FAILED" | "PASSED" | "CLOSED";
   balance: string;
   equity: string;
   floatingPnl: string;

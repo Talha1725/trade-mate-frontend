@@ -7,7 +7,7 @@ export interface AccountSummary {
   balance: number;
   equity: number;
   openPositionsCount: number;
-  status: "Active" | "Suspended" | "Passed" | "Pending";
+  status: "Active" | "Suspended" | "Failed" | "Passed" | "Closed" | "Pending";
 }
 
 export interface AuditLogEntry {
