@@ -17,7 +17,7 @@ import type {
 } from "@/types/price";
 
 function normalize(values?: string[]) {
-  return Array.from(new Set((values ?? []).map((value) => value.trim()).filter((value) => value.length > 0)));
+  return Array.from(new Set((values ?? []).map((value) => value.trim().toUpperCase()).filter((value) => value.length > 0))).sort();
 }
 
 export function usePriceStream({
@@ -31,14 +31,9 @@ export function usePriceStream({
 }: PriceStreamOptions) {
   const token = useAuthStore((state) => state.session?.token ?? null);
   const callbacksRef = React.useRef({ onQuotes, onPortfolio, onCandle, onAccount, onError });
-  const subscription = React.useMemo(() => {
-    const resolvedSymbols = normalize(symbols);
-
-    return {
-      key: resolvedSymbols.join("|"),
-      resolvedSymbols,
-    };
-  }, [symbols]);
+  // Callers may allocate a new array on every price update. Only reconnect
+  // when the actual symbol set changes, not its array identity or ordering.
+  const subscriptionKey = JSON.stringify(normalize(symbols));
 
   React.useEffect(() => {
     callbacksRef.current = { onQuotes, onPortfolio, onCandle, onAccount, onError };
@@ -49,7 +44,7 @@ export function usePriceStream({
       return;
     }
 
-    const { resolvedSymbols } = subscription;
+    const resolvedSymbols = JSON.parse(subscriptionKey) as string[];
 
     if (!token || resolvedSymbols.length === 0) {
       return;
@@ -64,6 +59,7 @@ export function usePriceStream({
     const quoteBuffer = createLatestValueBuffer<PriceSocketQuote>(
       (quote) => quote.symbol.toUpperCase(),
       (quotes) => {
+        if (isDisposed) return;
         useLivePriceStore.getState().setQuotes(quotes);
         unstable_batchedUpdates(() => {
           callbacksRef.current.onQuotes?.(quotes);
@@ -73,6 +69,7 @@ export function usePriceStream({
     const portfolioBuffer = createLatestValueBuffer<PriceSocketPortfolioMessage>(
       () => "portfolio",
       (messages) => {
+        if (isDisposed) return;
         const latestPortfolio = messages[messages.length - 1];
         if (!latestPortfolio) {
           return;
@@ -173,6 +170,7 @@ export function usePriceStream({
       };
 
       socket.onmessage = (event) => {
+        if (isDisposed) return;
         try {
           const payload = JSON.parse(event.data as string) as PriceSocketServerMessage;
 
@@ -224,6 +222,7 @@ export function usePriceStream({
       };
 
       socket.onerror = () => {
+        if (isDisposed) return;
         unstable_batchedUpdates(() => {
           callbacksRef.current.onError?.("Live market stream is temporarily unavailable.");
         });
@@ -271,5 +270,5 @@ export function usePriceStream({
 
       socket?.close();
     };
-  }, [enabled, subscription, token]);
+  }, [enabled, subscriptionKey, token]);
 }
