@@ -4,7 +4,7 @@ import * as React from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/app-shell";
-import { LiveTradingView } from "@/components/common/live-trading-view";
+import { TradingViewWidgetChart as LiveTradingView } from "@/components/common/TradingViewWidgetChart";
 import { MarketSnapshotCard } from "@/components/dashboard/market-snapshot-card";
 import { MarketWatchCard } from "@/components/dashboard/market-watch-card";
 import { OpenPositionsStripCard } from "@/components/dashboard/open-positions-strip-card";
